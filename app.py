@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# FINAL FIXED VERSION - Full Screen + Working Toggle + Clean Sidebar
+# FINAL FIXED - Full Screen + Working Toggle + No Manage App
 # ============================================================
 
 import os
@@ -20,86 +20,24 @@ st.set_page_config(
 )
 
 # ============================================================
-# CSS — FULL SCREEN + WORKING TOGGLE + CLEAN SIDEBAR + NO MANAGE APP
+# THEME CSS
 # ============================================================
 st.markdown("""
 <style>
-    /* ==== Header transparent (VISIBLE - keeps sidebar toggle alive) ==== */
-    header[data-testid="stHeader"] {
-        background: transparent !important;
-        box-shadow: none !important;
-    }
+    /* Hide ONLY the toolbar icons (Share/star/edit) */
     [data-testid="stToolbar"] { display: none !important; }
     [data-testid="stDecoration"] { display: none !important; }
     [data-testid="stStatusWidget"] { display: none !important; }
     #MainMenu { visibility: hidden !important; }
     footer { visibility: hidden !important; }
 
-    /* ==== Kill "Manage app" button completely ==== */
-    [data-testid="manage-app-button"],
-    [data-testid="stAppDeployButton"],
-    [data-testid="stCloudAppManageButton"],
-    .stAppDeployButton,
-    iframe[title="streamlit_cloud_status"],
-    div[class*="manageApp"],
-    div[class*="ManageApp"],
-    div[class*="manage-app"],
-    button[class*="manageApp"],
-    button[class*="ManageApp"],
-    a[class*="manageApp"],
-    a[class*="ManageApp"] {
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-        width: 0 !important;
-        height: 0 !important;
-        overflow: hidden !important;
+    /* Header transparent but NOT hidden (keeps sidebar toggle working) */
+    header[data-testid="stHeader"] {
+        background: transparent !important;
+        box-shadow: none !important;
     }
 
-    /* Cover bottom-right corner as fallback */
-    .stApp::after {
-        content: "" !important;
-        position: fixed !important;
-        bottom: 0 !important;
-        right: 0 !important;
-        width: 280px !important;
-        height: 70px !important;
-        background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%) !important;
-        z-index: 2147483640 !important;
-        pointer-events: none !important;
-    }
-
-    /* ==== Sidebar toggle (both collapsed & expanded) — always visible ==== */
-    [data-testid="stSidebarCollapsedControl"],
-    [data-testid="collapsedControl"] {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        z-index: 999999 !important;
-    }
-    [data-testid="stSidebarCollapsedControl"] button,
-    [data-testid="collapsedControl"] button {
-        background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%) !important;
-        color: #ffffff !important;
-        border: none !important;
-        border-radius: 8px !important;
-        box-shadow: 0 2px 6px rgba(76,175,80,0.4) !important;
-        padding: 4px 6px !important;
-    }
-    [data-testid="stSidebarCollapsedControl"] svg,
-    [data-testid="collapsedControl"] svg {
-        fill: #ffffff !important;
-        color: #ffffff !important;
-    }
-    [data-testid="stSidebarCollapseButton"] button {
-        background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%) !important;
-        color: #ffffff !important;
-        border: none !important;
-        border-radius: 8px !important;
-    }
-
-    /* ==== Main background ==== */
+    /* Main background */
     .stApp {
         background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%) !important;
     }
@@ -111,14 +49,12 @@ st.markdown("""
         max-width: 100% !important;
     }
 
-    /* ==== Sidebar ==== */
+    /* Sidebar */
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #c8e6c9 0%, #b2ebf2 100%) !important;
     }
 
-    /* ==== Sidebar radio options — BALANCED size ==== */
-    section[data-testid="stSidebar"] .stRadio label p,
-    section[data-testid="stSidebar"] .stRadio label span,
+    /* Sidebar options — normal size */
     section[data-testid="stSidebar"] .stRadio label {
         font-size: 15px !important;
         font-weight: 600 !important;
@@ -130,26 +66,13 @@ st.markdown("""
         border-radius: 8px !important;
         margin-bottom: 6px !important;
         padding: 6px 10px !important;
-        transition: all 0.15s ease !important;
-        box-shadow: 0 1px 3px rgba(76,175,80,0.1) !important;
-        cursor: pointer !important;
     }
     section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover {
         background-color: #e8f5e9 !important;
         border-color: #4caf50 !important;
-        transform: translateX(3px) !important;
-    }
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label[data-checked="true"],
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) {
-        background: linear-gradient(135deg, #c8e6c9 0%, #b2ebf2 100%) !important;
-        border-color: #4caf50 !important;
-    }
-    section[data-testid="stSidebar"] div[role="radiogroup"] input[type="radio"] {
-        width: 16px !important;
-        height: 16px !important;
     }
 
-    /* ==== Inputs ==== */
+    /* Inputs */
     .stTextInput > div > div > input,
     .stNumberInput > div > div > input,
     .stSelectbox > div > div > div,
@@ -159,19 +82,14 @@ st.markdown("""
         border: 2px solid #b2dfdb !important;
         border-radius: 8px !important;
     }
-    .stTextInput > div > div > input:focus,
-    .stNumberInput > div > div > input:focus {
-        border-color: #4caf50 !important;
-    }
 
-    /* ==== Buttons ==== */
+    /* Buttons */
     .stButton > button {
         background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%) !important;
         color: #ffffff !important;
         border: none !important;
         font-weight: bold !important;
         border-radius: 8px !important;
-        box-shadow: 0 2px 6px rgba(76,175,80,0.25) !important;
     }
     .stButton > button:hover {
         background: linear-gradient(135deg, #388e3c 0%, #00897b 100%) !important;
@@ -193,7 +111,7 @@ st.markdown("""
         height: 0 !important;
     }
 
-    /* ==== Cards ==== */
+    /* Cards */
     .metric-card {
         background: #ffffff;
         border: 2px solid #a5d6a7;
@@ -208,7 +126,6 @@ st.markdown("""
         margin: 0 !important;
         font-weight: 700 !important;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
     }
     .metric-card h1 {
         color: #2e7d32 !important;
@@ -223,9 +140,7 @@ st.markdown("""
         border-radius: 10px;
         padding: 12px 18px;
         margin-bottom: 8px;
-        box-shadow: 0 2px 6px rgba(76,175,80,0.1);
     }
-
     .hint-box {
         background: #e8f5e9;
         border-left: 4px solid #4caf50;
@@ -235,16 +150,13 @@ st.markdown("""
         font-size: 13px;
         margin-top: 4px;
     }
-
     .summary-box {
         background: #ffffff;
         border: 2px solid #4caf50;
         border-radius: 12px;
         padding: 15px 20px;
         margin-bottom: 15px;
-        box-shadow: 0 3px 10px rgba(76,175,80,0.15);
     }
-
     .lf-simple-card {
         background: #ffffff;
         border-left: 6px solid #4caf50;
@@ -268,7 +180,6 @@ st.markdown("""
         border-radius: 10px;
         text-align: center;
         min-width: 90px;
-        box-shadow: 0 2px 6px rgba(76,175,80,0.35);
     }
     .lf-simple-card .lf-boxes small {
         display: block;
@@ -295,78 +206,6 @@ st.markdown("""
     hr { border-color: #a5d6a7 !important; opacity: 0.6 !important; }
 </style>
 """, unsafe_allow_html=True)
-
-# ============================================================
-# JS: Aggressive removal of "Manage app" + ensure sidebar toggle alive
-# ============================================================
-components.html("""
-<script>
-(function() {
-    function nuke_manage_app() {
-        try {
-            var doc = window.parent.document;
-            var sel = [
-                '[data-testid="manage-app-button"]',
-                '[data-testid="stAppDeployButton"]',
-                '[data-testid="stCloudAppManageButton"]',
-                '.stAppDeployButton',
-                'iframe[title="streamlit_cloud_status"]',
-                'div[class*="manageApp"]',
-                'div[class*="ManageApp"]',
-                'div[class*="manage-app"]',
-                'button[class*="manageApp"]',
-                'button[class*="ManageApp"]',
-                'a[class*="manageApp"]',
-                'a[class*="ManageApp"]'
-            ];
-            sel.forEach(function(s){
-                doc.querySelectorAll(s).forEach(function(el){
-                    el.style.setProperty('display','none','important');
-                    el.style.setProperty('visibility','hidden','important');
-                    el.style.setProperty('opacity','0','important');
-                    el.style.setProperty('pointer-events','none','important');
-                });
-            });
-            doc.querySelectorAll('button, a, div, span').forEach(function(el){
-                try {
-                    var t = (el.textContent || '').trim();
-                    if (t === 'Manage app' || t === 'Manage App') {
-                        var target = el.closest('button') || el.closest('a') || el;
-                        target.style.setProperty('display','none','important');
-                        target.style.setProperty('visibility','hidden','important');
-                    }
-                } catch(e){}
-            });
-        } catch(e) {}
-    }
-
-    function fix_sidebar_toggle() {
-        try {
-            var doc = window.parent.document;
-            doc.querySelectorAll('[data-testid="stSidebarCollapsedControl"], [data-testid="collapsedControl"]').forEach(function(el){
-                el.style.setProperty('display', 'flex', 'important');
-                el.style.setProperty('visibility', 'visible', 'important');
-                el.style.setProperty('opacity', '1', 'important');
-                el.style.setProperty('z-index', '999999', 'important');
-            });
-        } catch(e) {}
-    }
-
-    function tick() { nuke_manage_app(); fix_sidebar_toggle(); }
-
-    setTimeout(tick, 200);
-    setTimeout(tick, 600);
-    setTimeout(tick, 1200);
-    setTimeout(tick, 2500);
-    setInterval(tick, 800);
-
-    try {
-        var obs = new MutationObserver(function(){ tick(); });
-        obs.observe(window.parent.document.body, { childList: true, subtree: true });
-    } catch(e) {}
-})();
-</script>
-""", height=0)
 
 COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
 DATA_FILE = "billing_database.json"
