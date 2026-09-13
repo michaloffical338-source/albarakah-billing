@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# With Bookers Management Page
+# With Bookers + Salesmen Management
 # ============================================================
 
 import os
@@ -218,7 +218,7 @@ PRODUCTS = sorted([
     {"code":"109","name":"KIMS – CHOCO DELIGHT CREAMY CHOCOLATE","price":219},
     {"code":"110","name":"KIMS – GUMMY GUAVA JELLY","price":202},
     {"code":"111","name":"KIMS – GUMMY STRAWBERRY JELLY","price":202},
-    {"code":"112","name":"KIMS – AMROOS CANDY","price":139},
+    {"code":"112","name":"KIMS – AMROOD CANDY","price":139},
     {"code":"113","name":"KIMS – KHOPRA PLUS","price":139},
     {"code":"114","name":"KIMS – AAM MAZA CANDY","price":139},
     {"code":"115","name":"KIMS – FRUITO CANDY","price":139},
@@ -246,10 +246,12 @@ def load_database():
                 data = json.load(f)
                 if "bookers" not in data:
                     data["bookers"] = []
+                if "salesmen" not in data:
+                    data["salesmen"] = []
                 return data
         except Exception:
             pass
-    return {"next_bill_no": 1, "bills": [], "bookers": []}
+    return {"next_bill_no": 1, "bills": [], "bookers": [], "salesmen": []}
 
 if "database" not in st.session_state:
     st.session_state.database = load_database()
@@ -265,6 +267,8 @@ if "page" not in st.session_state:
 db = st.session_state.database
 if "bookers" not in db:
     db["bookers"] = []
+if "salesmen" not in db:
+    db["salesmen"] = []
 
 # ============================================================
 # SIDEBAR NAVIGATION
@@ -280,7 +284,7 @@ with st.sidebar:
 
     page = st.radio(
         "MENU",
-        ["📊 Dashboard", "🧾 Billing", "👤 Bookers", "📋 Bills List", "📦 Load Form"],
+        ["📊 Dashboard", "🧾 Billing", "👤 Bookers", "🧑‍💼 Salesmen", "📋 Bills List", "📦 Load Form"],
         key="page_selector",
         label_visibility="collapsed"
     )
@@ -292,6 +296,7 @@ with st.sidebar:
         <p>📅 {datetime.now().strftime('%d-%m-%Y')}</p>
         <p>📦 Products: {len(PRODUCTS)}</p>
         <p>👤 Bookers: {len(db.get('bookers', []))}</p>
+        <p>🧑‍💼 Salesmen: {len(db.get('salesmen', []))}</p>
         <p>🧾 Total Bills: {len(db['bills'])}</p>
     </div>
     """, unsafe_allow_html=True)
@@ -358,7 +363,6 @@ def render_bookers():
     st.markdown("<p style='color:#00695c;font-weight:500;'>Order Bookers ko add aur manage karo</p>", unsafe_allow_html=True)
     st.markdown("---")
 
-    # Add new booker
     st.markdown("### ➕ Add New Booker")
     c1, c2 = st.columns([3, 1])
     with c1:
@@ -396,7 +400,6 @@ def render_bookers():
         st.info("Abhi tak koi booker add nahi hua. Upar se add karo.")
         return
 
-    # Display each booker with delete option
     for i, booker_name in enumerate(bookers):
         c1, c2 = st.columns([5, 1])
         with c1:
@@ -410,6 +413,66 @@ def render_bookers():
                 db["bookers"].remove(booker_name)
                 save_database(db)
                 st.session_state["booker_msg"] = f"🗑 '{booker_name}' deleted"
+                st.rerun()
+
+# ============================================================
+# PAGE: SALESMEN
+# ============================================================
+def render_salesmen():
+    st.markdown(f"<h1 style='color:#2e7d32 !important;'>🧑‍💼 Salesmen</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#00695c;font-weight:500;'>Salesmen ko add aur manage karo</p>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    st.markdown("### ➕ Add New Salesman")
+    c1, c2 = st.columns([3, 1])
+    with c1:
+        new_salesman = st.text_input(
+            "Salesman Name:",
+            key="new_salesman_name",
+            placeholder="Enter salesman name...",
+            label_visibility="collapsed"
+        )
+    with c2:
+        add_clicked = st.button("➕ Add Salesman", key="btn_add_salesman", use_container_width=True, type="primary")
+
+    if add_clicked:
+        name = new_salesman.strip() if new_salesman else ""
+        if name == "":
+            st.error("❌ Please enter a salesman name")
+        elif name in db.get("salesmen", []):
+            st.warning(f"⚠️ '{name}' already exists in the list")
+        else:
+            db.setdefault("salesmen", []).append(name)
+            db["salesmen"] = sorted(db["salesmen"])
+            save_database(db)
+            st.session_state["salesman_msg"] = f"✅ '{name}' added successfully"
+            st.rerun()
+
+    if st.session_state.get("salesman_msg"):
+        st.success(st.session_state["salesman_msg"])
+        st.session_state["salesman_msg"] = None
+
+    st.markdown("---")
+    st.markdown(f"### 📋 Saved Salesmen ({len(db.get('salesmen', []))})")
+
+    salesmen = db.get("salesmen", [])
+    if not salesmen:
+        st.info("Abhi tak koi salesman add nahi hua. Upar se add karo.")
+        return
+
+    for i, salesman_name in enumerate(salesmen):
+        c1, c2 = st.columns([5, 1])
+        with c1:
+            st.markdown(f"""
+            <div class='booker-row'>
+                <b style='font-size:16px;color:#2e7d32;'>🧑‍💼 {salesman_name}</b>
+            </div>
+            """, unsafe_allow_html=True)
+        with c2:
+            if st.button("🗑 Delete", key=f"del_salesman_{i}_{salesman_name}", use_container_width=True):
+                db["salesmen"].remove(salesman_name)
+                save_database(db)
+                st.session_state["salesman_msg"] = f"🗑 '{salesman_name}' deleted"
                 st.rerun()
 
 # ============================================================
@@ -427,7 +490,7 @@ def render_billing():
 
     shop_name = st.text_input("Shop:", key="shop_name", placeholder="Enter Shop Name")
 
-    # Order Booker - dropdown if bookers saved, else text input
+    # Order Booker - dropdown if bookers saved
     saved_bookers = db.get("bookers", [])
     if saved_bookers:
         booker_options = ["-- Select Booker --"] + saved_bookers
@@ -438,7 +501,17 @@ def render_billing():
         order_booker = st.text_input("Order Booker:", key="order_booker", placeholder="Enter Order Booker")
         st.caption("💡 Tip: 'Bookers' page pe jao aur pehle bookers add karo — phir yahan dropdown milega")
 
-    salesman = st.text_input("Salesman:", key="salesman", placeholder="Enter Salesman")
+    # Salesman - dropdown if salesmen saved
+    saved_salesmen = db.get("salesmen", [])
+    if saved_salesmen:
+        salesman_options = ["-- Select Salesman --"] + saved_salesmen
+        selected_sm = st.selectbox("Salesman:", options=salesman_options, key="salesman_select")
+        salesman_value = "" if selected_sm == "-- Select Salesman --" else selected_sm
+        st.session_state["salesman"] = salesman_value
+    else:
+        salesman = st.text_input("Salesman:", key="salesman", placeholder="Enter Salesman")
+        st.caption("💡 Tip: 'Salesmen' page pe jao aur pehle salesmen add karo — phir yahan dropdown milega")
+
     delivery_man = st.text_input("Delivery Man:", key="delivery_man", placeholder="Enter Delivery Man")
 
     st.markdown("---")
@@ -828,6 +901,8 @@ elif st.session_state["page"] == "🧾 Billing":
     render_billing()
 elif st.session_state["page"] == "👤 Bookers":
     render_bookers()
+elif st.session_state["page"] == "🧑‍💼 Salesmen":
+    render_salesmen()
 elif st.session_state["page"] == "📋 Bills List":
     render_bills_list()
 elif st.session_state["page"] == "📦 Load Form":
