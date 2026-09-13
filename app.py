@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# BLUE THEME + WHITE DATE FIELDS + FORCE BLACK TEXT
+# BLUE THEME + COMPACT BILLING
 # ============================================================
 
 import os
@@ -101,7 +101,7 @@ components.html("""
 """, height=0)
 
 # ============================================================
-# THEME CSS — BLUE THEME + WHITE DATE FIELDS + BLACK TEXT
+# THEME CSS — BLUE + COMPACT BILLING
 # ============================================================
 st.markdown("""
 <style>
@@ -116,7 +116,7 @@ st.markdown("""
         color: #000000 !important;
     }
 
-    /* ========== WHITE DATE FIELDS (Fix for both places) ========== */
+    /* ========== WHITE DATE FIELDS ========== */
     .stDateInput,
     .stDateInput > div,
     .stDateInput > div > div,
@@ -137,7 +137,6 @@ st.markdown("""
         -webkit-text-fill-color: #000000 !important;
         border-color: #90caf9 !important;
     }
-    /* Calendar dropdown / popup */
     div[data-baseweb="calendar"],
     div[data-baseweb="calendar"] *,
     div[data-baseweb="datepicker"] *,
@@ -148,7 +147,6 @@ st.markdown("""
         color: #000000 !important;
         -webkit-text-fill-color: #000000 !important;
     }
-    /* Calendar SVG icon */
     [data-testid="stDateInput"] svg,
     div[data-baseweb="datepicker"] svg {
         fill: #1976d2 !important;
@@ -201,17 +199,67 @@ st.markdown("""
     footer { visibility: hidden !important; }
     header[data-testid="stHeader"] { background: transparent !important; box-shadow: none !important; }
 
-    /* ====== BLUE THEME BACKGROUND ====== */
     .stApp {
         background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important;
     }
     .block-container {
-        padding-top: 1rem !important;
-        padding-left: 2rem !important;
-        padding-right: 2rem !important;
-        padding-bottom: 1rem !important;
+        padding-top: 0.5rem !important;
+        padding-left: 1.5rem !important;
+        padding-right: 1.5rem !important;
+        padding-bottom: 0.5rem !important;
         max-width: 100% !important;
     }
+
+    /* ====== COMPACT EVERYTHING (billing friendly) ====== */
+    /* Reduce vertical gaps between elements */
+    .stApp .element-container {
+        margin-bottom: 0.35rem !important;
+    }
+    .stApp [data-testid="stVerticalBlock"] > div {
+        gap: 0.35rem !important;
+    }
+    .stApp [data-testid="stVerticalBlockBorderWrapper"] > div {
+        gap: 0.35rem !important;
+    }
+    /* Reduce label size */
+    .stApp label,
+    .stApp [data-testid="stWidgetLabel"] label,
+    .stApp [data-testid="stWidgetLabel"] p {
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        margin-bottom: 2px !important;
+    }
+    /* Reduce input height & padding */
+    .stTextInput > div > div > input,
+    .stNumberInput > div > div > input,
+    .stDateInput > div > div > input,
+    .stSelectbox > div > div > div,
+    div[data-baseweb="input"] input,
+    div[data-baseweb="select"] > div {
+        padding: 4px 8px !important;
+        min-height: 34px !important;
+        font-size: 14px !important;
+    }
+    .stNumberInput button {
+        padding: 2px 4px !important;
+        min-height: 34px !important;
+    }
+    /* Reduce button height */
+    .stButton > button {
+        padding: 4px 10px !important;
+        min-height: 36px !important;
+        font-size: 14px !important;
+    }
+    /* Reduce hr margins */
+    .stApp hr {
+        margin: 6px 0 !important;
+    }
+    /* Reduce markdown p margins */
+    .stApp p {
+        margin-bottom: 3px !important;
+    }
+    /* Reduce heading sizes on billing etc */
+    .stApp h3 { margin-top: 6px !important; margin-bottom: 4px !important; font-size: 18px !important; }
 
     /* Sidebar — Blue */
     section[data-testid="stSidebar"] {
@@ -333,7 +381,7 @@ st.markdown("""
         height: 0 !important;
     }
 
-    /* ====== CARDS — Blue borders ====== */
+    /* ====== CARDS ====== */
     .metric-card {
         background: #ffffff;
         border: 2px solid #90caf9;
@@ -399,17 +447,17 @@ st.markdown("""
     .hint-box {
         background: #e3f2fd;
         border-left: 4px solid #2196f3;
-        padding: 8px 12px;
+        padding: 6px 10px;
         border-radius: 6px;
-        font-size: 13px;
-        margin-top: 4px;
+        font-size: 12px;
+        margin-top: 2px;
     }
     .summary-box {
         background: #ffffff;
         border: 2px solid #2196f3;
         border-radius: 12px;
-        padding: 15px 20px;
-        margin-bottom: 15px;
+        padding: 12px 18px;
+        margin-bottom: 12px;
     }
     .lf-simple-card {
         background: #ffffff;
@@ -1109,51 +1157,49 @@ def render_salaries(role_type):
                 st.info("Koi transaction nahi. Upar se add karo.")
 
 # ============================================================
-# PAGE: BILLING
+# PAGE: BILLING (COMPACT LAYOUT)
 # ============================================================
 def render_billing():
-    st.markdown(f"<h1 style='color:#1976d2 !important;'>🧾 Billing</h1>", unsafe_allow_html=True)
-    st.markdown("---")
+    st.markdown(f"<h2 style='color:#1976d2 !important;margin:0 0 6px 0;'>🧾 Billing</h2>", unsafe_allow_html=True)
 
+    # Row 1: Bill No + Date
     c1, c2 = st.columns(2)
     with c1: st.text_input("Bill No:", value=str(db["next_bill_no"]), disabled=True, key="dash_bill_no")
     with c2: st.text_input("Date:", value=datetime.now().strftime("%d-%m-%Y"), disabled=True, key="dash_bill_date")
 
-    shop_name = st.text_input("Shop:", key="shop_name", placeholder="Enter Shop Name")
+    # Row 2: Shop / Booker / Salesman / Delivery  — 4 columns
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        shop_name = st.text_input("Shop:", key="shop_name", placeholder="Shop Name")
+    with c2:
+        saved_bookers = db.get("bookers", [])
+        if saved_bookers:
+            booker_options = ["-- Select --"] + saved_bookers
+            selected_bk = st.selectbox("Order Booker:", options=booker_options, key="order_booker_select")
+            st.session_state["order_booker"] = "" if selected_bk == "-- Select --" else selected_bk
+        else:
+            st.text_input("Order Booker:", key="order_booker", placeholder="Booker")
+    with c3:
+        saved_salesmen = db.get("salesmen", [])
+        if saved_salesmen:
+            salesman_options = ["-- Select --"] + saved_salesmen
+            selected_sm = st.selectbox("Salesman:", options=salesman_options, key="salesman_select")
+            st.session_state["salesman"] = "" if selected_sm == "-- Select --" else selected_sm
+        else:
+            st.text_input("Salesman:", key="salesman", placeholder="Salesman")
+    with c4:
+        st.text_input("Delivery Man:", key="delivery_man", placeholder="Delivery")
 
-    saved_bookers = db.get("bookers", [])
-    if saved_bookers:
-        booker_options = ["-- Select Booker --"] + saved_bookers
-        selected_bk = st.selectbox("Order Booker:", options=booker_options, key="order_booker_select")
-        st.session_state["order_booker"] = "" if selected_bk == "-- Select Booker --" else selected_bk
-        st.markdown(f"<div class='hint-box'>💡 {len(saved_bookers)} bookers available</div>", unsafe_allow_html=True)
-    else:
-        st.text_input("Order Booker:", key="order_booker", placeholder="Enter Order Booker")
-        st.markdown("<div class='hint-box'>💡 Tip: 'Bookers' page pe jao aur bookers add karo</div>", unsafe_allow_html=True)
-
-    saved_salesmen = db.get("salesmen", [])
-    if saved_salesmen:
-        salesman_options = ["-- Select Salesman --"] + saved_salesmen
-        selected_sm = st.selectbox("Salesman:", options=salesman_options, key="salesman_select")
-        st.session_state["salesman"] = "" if selected_sm == "-- Select Salesman --" else selected_sm
-        st.markdown(f"<div class='hint-box'>💡 {len(saved_salesmen)} salesmen available</div>", unsafe_allow_html=True)
-    else:
-        st.text_input("Salesman:", key="salesman", placeholder="Enter Salesman")
-        st.markdown("<div class='hint-box'>💡 Tip: 'Salesmen' page pe jao aur salesmen add karo</div>", unsafe_allow_html=True)
-
-    st.text_input("Delivery Man:", key="delivery_man", placeholder="Enter Delivery Man")
-
-    st.markdown("---")
-    st.markdown("**🔍 Search Product by Name:**")
-
-    search_text = st.text_input("Search:", key="search_text", placeholder="Type product name...")
-    search_upper = search_text.strip().upper()
-    filtered_names = [p["name"] for p in PRODUCTS if search_upper in p["name"].upper()] if search_upper else PRODUCT_NAMES
-
-    if st.session_state.get("product_sel") and st.session_state["product_sel"] not in filtered_names:
-        st.session_state["product_sel"] = ""
-
-    product_sel = st.selectbox("Select Product:", options=[""] + filtered_names, key="product_sel")
+    # Row 3: Search + Product  — 2 columns
+    c1, c2 = st.columns([1, 3])
+    with c1:
+        search_text = st.text_input("🔍 Search:", key="search_text", placeholder="Type name...")
+    with c2:
+        search_upper = search_text.strip().upper()
+        filtered_names = [p["name"] for p in PRODUCTS if search_upper in p["name"].upper()] if search_upper else PRODUCT_NAMES
+        if st.session_state.get("product_sel") and st.session_state["product_sel"] not in filtered_names:
+            st.session_state["product_sel"] = ""
+        product_sel = st.selectbox("Select Product:", options=[""] + filtered_names, key="product_sel")
 
     selected_product = None
     if product_sel:
@@ -1165,7 +1211,7 @@ def render_billing():
         current_price = get_price(selected_product["code"], selected_product["price"])
         base_price = float(selected_product["price"])
         price_note = f"  (edited — original Rs {base_price:,.0f})" if current_price != base_price else ""
-        st.success(f"✅ {selected_product['name']}  (Code: {selected_product['code']}) — Rs {current_price:,.0f}{price_note}")
+        st.success(f"✅ {selected_product['name']} (Code: {selected_product['code']}) — Rs {current_price:,.0f}{price_note}")
         tp_default = float(current_price)
     else:
         st.error("No Product Selected"); tp_default = 0.0
@@ -1174,35 +1220,31 @@ def render_billing():
         st.session_state["tp_box"] = tp_default
         st.session_state["_prev_prod"] = product_sel
 
-    st.markdown("---")
-
-    c1, c2, c3 = st.columns(3)
+    # Row 4: Boxes / TP / Discount / Gross / Net  — 5 columns
+    c1, c2, c3, c4, c5 = st.columns(5)
     with c1: boxes = st.number_input("Boxes:", min_value=0, step=1, key="boxes")
     with c2: tp_box = st.number_input("TP/Box:", min_value=0.0, step=1.0, key="tp_box")
-    with c3: discount = st.number_input("Discount %:", min_value=0.0, step=0.5, key="discount")
-
+    with c3: discount = st.number_input("Disc %:", min_value=0.0, step=0.5, key="discount")
     gross = boxes * tp_box
     net = gross - (gross * discount / 100)
+    with c4: st.text_input("Gross:", value=f"{gross:.0f}", disabled=True, key="gross_disp")
+    with c5: st.text_input("Net:", value=f"{net:.0f}", disabled=True, key="net_disp")
 
-    c1, c2 = st.columns(2)
-    with c1: st.text_input("Gross:", value=f"{gross:.2f}", disabled=True, key="gross_disp")
-    with c2: st.text_input("Net:", value=f"{net:.2f}", disabled=True, key="net_disp")
-
+    # Messages
     if st.session_state.get("success_msg"):
         st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
     if st.session_state.get("error_msg"):
         st.error(st.session_state["error_msg"]); st.session_state["error_msg"] = None
 
-    st.markdown("---")
+    # Buttons: Row 1 (Add + Refresh), Row 2 (Export Bill + Export Load Form + Refresh Load Form)
+    b1, b2 = st.columns(2)
+    with b1: st.button("➕ Add Bill", key="btn_add", on_click=add_bill_callback, use_container_width=True, type="primary")
+    with b2: st.button("🔄 Refresh", key="btn_refresh", on_click=refresh_callback, use_container_width=True)
 
-    c1, c2 = st.columns(2)
-    with c1: st.button("➕ Add Bill", key="btn_add", on_click=add_bill_callback, use_container_width=True, type="primary")
-    with c2: st.button("🔄 Refresh", key="btn_refresh", on_click=refresh_callback, use_container_width=True)
-
-    c1, c2, c3 = st.columns(3)
-    with c1: st.button("📄 Export Bill", key="btn_export", on_click=export_bill_callback, use_container_width=True)
-    with c2: st.button("📦 Export Load Form", key="btn_export_lf", on_click=export_load_form_from_billing_callback, use_container_width=True)
-    with c3: st.button("🗑 Refresh Load Form", key="btn_load_refresh", on_click=refresh_load_form_callback, use_container_width=True)
+    e1, e2, e3 = st.columns(3)
+    with e1: st.button("📄 Export Bill", key="btn_export", on_click=export_bill_callback, use_container_width=True)
+    with e2: st.button("📦 Export Load Form", key="btn_export_lf", on_click=export_load_form_from_billing_callback, use_container_width=True)
+    with e3: st.button("🗑 Refresh Load Form", key="btn_load_refresh", on_click=refresh_load_form_callback, use_container_width=True)
 
     show_auto_download()
 
