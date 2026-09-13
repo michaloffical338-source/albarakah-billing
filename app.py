@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# FINAL - Force Black Text + All Features
+# BLUE THEME + WHITE DATE FIELDS + FORCE BLACK TEXT
 # ============================================================
 
 import os
@@ -68,10 +68,10 @@ components.html("""
             btn.innerHTML = '\\u2630';
             var s = {
                 'position':'fixed','top':'14px','left':'14px','z-index':'2147483647',
-                'background':'linear-gradient(135deg, #4caf50 0%, #26a69a 100%)',
+                'background':'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
                 'color':'#fff','border':'none','border-radius':'10px','padding':'8px 14px',
                 'font-size':'20px','font-weight':'bold','cursor':'pointer',
-                'box-shadow':'0 3px 10px rgba(76,175,80,0.5)'
+                'box-shadow':'0 3px 10px rgba(33,150,243,0.5)'
             };
             for (var k in s) btn.style.setProperty(k, s[k], 'important');
             btn.onclick = function() {
@@ -101,7 +101,7 @@ components.html("""
 """, height=0)
 
 # ============================================================
-# THEME CSS — FORCE BLACK TEXT
+# THEME CSS — BLUE THEME + WHITE DATE FIELDS + BLACK TEXT
 # ============================================================
 st.markdown("""
 <style>
@@ -112,9 +112,47 @@ st.markdown("""
     [data-testid="stMarkdownContainer"] *,
     [data-testid="stText"], [data-testid="stCaptionContainer"] *,
     [data-testid="stWidgetLabel"] *, [data-testid="stSelectbox"] *,
-    [data-testid="stTextInput"] *, [data-testid="stNumberInput"] *,
-    [data-testid="stDateInput"] * {
+    [data-testid="stTextInput"] *, [data-testid="stNumberInput"] * {
         color: #000000 !important;
+    }
+
+    /* ========== WHITE DATE FIELDS (Fix for both places) ========== */
+    .stDateInput,
+    .stDateInput > div,
+    .stDateInput > div > div,
+    .stDateInput > div > div > input,
+    [data-testid="stDateInput"],
+    [data-testid="stDateInput"] > div,
+    [data-testid="stDateInput"] > div > div,
+    [data-testid="stDateInput"] input,
+    [data-testid="stDateInput"] div[data-baseweb="input"],
+    [data-testid="stDateInput"] div[data-baseweb="input"] > div,
+    [data-testid="stDateInput"] div[data-baseweb="base-input"],
+    [data-baseweb="datepicker"] input,
+    div[data-baseweb="input"] > div,
+    div[data-baseweb="base-input"],
+    div[data-baseweb="base-input"] input {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+        border-color: #90caf9 !important;
+    }
+    /* Calendar dropdown / popup */
+    div[data-baseweb="calendar"],
+    div[data-baseweb="calendar"] *,
+    div[data-baseweb="datepicker"] *,
+    div[data-baseweb="popover"] *,
+    div[role="dialog"] *,
+    div[role="dialog"] {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+    }
+    /* Calendar SVG icon */
+    [data-testid="stDateInput"] svg,
+    div[data-baseweb="datepicker"] svg {
+        fill: #1976d2 !important;
+        color: #1976d2 !important;
     }
 
     /* ========== KEEP BUTTON TEXT WHITE ========== */
@@ -130,19 +168,19 @@ st.markdown("""
     }
 
     /* Custom colored headings */
-    h1[style*="color:#2e7d32"], h1[style*="color: #2e7d32"] {
-        color: #2e7d32 !important;
+    h1[style*="color:#1976d2"], h1[style*="color: #1976d2"] {
+        color: #1976d2 !important;
     }
 
-    .metric-card h3 { color: #00796b !important; }
-    .metric-card h1 { color: #2e7d32 !important; }
+    .metric-card h3 { color: #0277bd !important; }
+    .metric-card h1 { color: #1976d2 !important; }
 
-    .person-card .name { color: #2e7d32 !important; }
-    .person-card .sub { color: #00695c !important; }
+    .person-card .name { color: #1976d2 !important; }
+    .person-card .sub { color: #0277bd !important; }
     .person-card .badge { color: #ffffff !important; }
 
-    .lf-simple-card .lf-line1 { color: #2e7d32 !important; }
-    .lf-simple-card .lf-line2 { color: #00695c !important; }
+    .lf-simple-card .lf-line1 { color: #1976d2 !important; }
+    .lf-simple-card .lf-line2 { color: #0277bd !important; }
     .lf-simple-card .lf-boxes { color: #ffffff !important; }
 
     .sal-metric { color: #000000 !important; }
@@ -151,9 +189,9 @@ st.markdown("""
     .sal-metric.short { color: #c62828 !important; }
     .sal-metric.remain { color: #1b5e20 !important; }
 
-    .hint-box { color: #2e7d32 !important; }
+    .hint-box { color: #1976d2 !important; }
     .summary-box { color: #000000 !important; }
-    .booker-row { color: #2e7d32 !important; }
+    .booker-row { color: #1976d2 !important; }
 
     /* ========== Layout ========== */
     [data-testid="stToolbar"] { display: none !important; }
@@ -163,7 +201,10 @@ st.markdown("""
     footer { visibility: hidden !important; }
     header[data-testid="stHeader"] { background: transparent !important; box-shadow: none !important; }
 
-    .stApp { background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%) !important; }
+    /* ====== BLUE THEME BACKGROUND ====== */
+    .stApp {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important;
+    }
     .block-container {
         padding-top: 1rem !important;
         padding-left: 2rem !important;
@@ -172,9 +213,9 @@ st.markdown("""
         max-width: 100% !important;
     }
 
-    /* Sidebar */
+    /* Sidebar — Blue */
     section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #c8e6c9 0%, #b2ebf2 100%) !important;
+        background: linear-gradient(180deg, #bbdefb 0%, #90caf9 100%) !important;
     }
     section[data-testid="stSidebar"] * {
         color: #000000 !important;
@@ -185,17 +226,17 @@ st.markdown("""
     }
     section[data-testid="stSidebar"] div[role="radiogroup"] > label {
         background-color: #ffffff !important;
-        border: 1px solid #a5d6a7 !important;
+        border: 1px solid #90caf9 !important;
         border-radius: 8px !important;
         margin-bottom: 6px !important;
         padding: 6px 10px !important;
     }
     section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover {
-        background-color: #e8f5e9 !important;
-        border-color: #4caf50 !important;
+        background-color: #e3f2fd !important;
+        border-color: #2196f3 !important;
     }
     section[data-testid="stSidebar"] div[role="radiogroup"] input[type="radio"] {
-        accent-color: #4caf50 !important;
+        accent-color: #2196f3 !important;
     }
 
     /* Inputs */
@@ -203,13 +244,12 @@ st.markdown("""
     .stNumberInput > div > div > input,
     .stSelectbox > div > div > div,
     .stSelectbox > div > div,
-    .stDateInput > div > div > input,
     div[data-baseweb="select"] > div,
     div[data-baseweb="input"] input {
         background-color: #ffffff !important;
         color: #000000 !important;
         -webkit-text-fill-color: #000000 !important;
-        border: 2px solid #b2dfdb !important;
+        border: 2px solid #90caf9 !important;
         border-radius: 8px !important;
     }
     div[data-baseweb="select"] * {
@@ -222,7 +262,7 @@ st.markdown("""
     }
     .stTextInput > div > div > input:focus,
     .stNumberInput > div > div > input:focus {
-        border-color: #4caf50 !important;
+        border-color: #2196f3 !important;
     }
     .stTextInput input::placeholder,
     .stNumberInput input::placeholder {
@@ -231,18 +271,18 @@ st.markdown("""
         opacity: 1 !important;
     }
 
-    /* Buttons */
+    /* Buttons — Blue */
     .stButton > button {
-        background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%) !important;
+        background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%) !important;
         border: none !important;
         font-weight: bold !important;
         border-radius: 8px !important;
     }
     .stButton > button:hover {
-        background: linear-gradient(135deg, #388e3c 0%, #00897b 100%) !important;
+        background: linear-gradient(135deg, #1976d2 0%, #0d47a1 100%) !important;
     }
     .stDownloadButton > button {
-        background: linear-gradient(135deg, #0288d1 0%, #26a69a 100%) !important;
+        background: linear-gradient(135deg, #0288d1 0%, #0277bd 100%) !important;
         color: #ffffff !important;
         font-weight: bold !important;
         border-radius: 8px !important;
@@ -283,7 +323,7 @@ st.markdown("""
         color: #555555 !important;
     }
 
-    .empty-box { color: #00695c !important; }
+    .empty-box { color: #0277bd !important; }
 
     .auto-dl-hidden div[data-testid="stDownloadButton"] {
         position: absolute !important;
@@ -293,14 +333,14 @@ st.markdown("""
         height: 0 !important;
     }
 
-    /* Cards */
+    /* ====== CARDS — Blue borders ====== */
     .metric-card {
         background: #ffffff;
-        border: 2px solid #a5d6a7;
+        border: 2px solid #90caf9;
         border-radius: 14px;
         padding: 22px;
         text-align: center;
-        box-shadow: 0 3px 10px rgba(76,175,80,0.15);
+        box-shadow: 0 3px 10px rgba(33,150,243,0.15);
     }
     .metric-card h3 {
         font-size: 13px !important;
@@ -316,7 +356,7 @@ st.markdown("""
 
     .booker-row {
         background: #ffffff;
-        border: 1px solid #a5d6a7;
+        border: 1px solid #90caf9;
         border-radius: 10px;
         padding: 12px 18px;
         margin-bottom: 8px;
@@ -324,11 +364,11 @@ st.markdown("""
 
     .person-card {
         background: #ffffff;
-        border-left: 6px solid #4caf50;
+        border-left: 6px solid #2196f3;
         border-radius: 12px;
         padding: 14px 18px;
         margin-bottom: 10px;
-        box-shadow: 0 3px 10px rgba(76,175,80,0.12);
+        box-shadow: 0 3px 10px rgba(33,150,243,0.12);
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -337,7 +377,7 @@ st.markdown("""
     .person-card .name { font-size: 16px; font-weight: 700; }
     .person-card .sub { font-size: 12px; }
     .person-card .badge {
-        background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%);
+        background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
         font-weight: 800;
         font-size: 14px;
         padding: 6px 12px;
@@ -345,11 +385,11 @@ st.markdown("""
         min-width: 60px;
         text-align: center;
     }
-    .sal-badge { background: linear-gradient(135deg, #0288d1 0%, #26a69a 100%); }
+    .sal-badge { background: linear-gradient(135deg, #0288d1 0%, #0277bd 100%); }
 
     .empty-box {
         background: #ffffff;
-        border: 2px dashed #a5d6a7;
+        border: 2px dashed #90caf9;
         border-radius: 12px;
         padding: 20px;
         text-align: center;
@@ -357,8 +397,8 @@ st.markdown("""
     }
 
     .hint-box {
-        background: #e8f5e9;
-        border-left: 4px solid #4caf50;
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
         padding: 8px 12px;
         border-radius: 6px;
         font-size: 13px;
@@ -366,18 +406,18 @@ st.markdown("""
     }
     .summary-box {
         background: #ffffff;
-        border: 2px solid #4caf50;
+        border: 2px solid #2196f3;
         border-radius: 12px;
         padding: 15px 20px;
         margin-bottom: 15px;
     }
     .lf-simple-card {
         background: #ffffff;
-        border-left: 6px solid #4caf50;
+        border-left: 6px solid #2196f3;
         border-radius: 12px;
         padding: 16px 22px;
         margin-bottom: 12px;
-        box-shadow: 0 3px 10px rgba(76,175,80,0.15);
+        box-shadow: 0 3px 10px rgba(33,150,243,0.15);
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -386,7 +426,7 @@ st.markdown("""
     .lf-simple-card .lf-line1 { font-size: 17px; font-weight: 700; }
     .lf-simple-card .lf-line2 { font-size: 13px; }
     .lf-simple-card .lf-boxes {
-        background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%);
+        background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
         font-weight: 800;
         font-size: 20px;
         padding: 10px 18px;
@@ -416,7 +456,7 @@ st.markdown("""
     .sal-metric.remain { background: #e8f5e9; }
 
     .stAlert { border-radius: 10px !important; }
-    hr { border-color: #a5d6a7 !important; opacity: 0.6 !important; }
+    hr { border-color: #90caf9 !important; opacity: 0.6 !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -644,8 +684,8 @@ def show_auto_download():
 with st.sidebar:
     st.markdown("""
     <div style='text-align:center; padding: 15px 0;'>
-        <h2 style='color:#2e7d32 !important; margin:0;'>🧾 AL-BARAKAH</h2>
-        <p style='color:#00695c !important; font-size:12px; margin:0; font-weight:600;'>ENTERPRISES</p>
+        <h2 style='color:#1976d2 !important; margin:0;'>🧾 AL-BARAKAH</h2>
+        <p style='color:#0277bd !important; font-size:12px; margin:0; font-weight:600;'>ENTERPRISES</p>
     </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -665,7 +705,7 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown(f"""
-    <div style='padding:10px; color:#00695c !important; font-size:12px;'>
+    <div style='padding:10px; color:#0277bd !important; font-size:12px;'>
         <p>📅 {datetime.now().strftime('%d-%m-%Y')}</p>
         <p>📦 Products: {len(PRODUCTS)}</p>
         <p>👤 Bookers: {len(db.get('bookers', []))}</p>
@@ -679,8 +719,8 @@ with st.sidebar:
 # PAGE: DASHBOARD
 # ============================================================
 def render_dashboard():
-    st.markdown(f"<h1 style='color:#2e7d32 !important;'>📊 Dashboard</h1>", unsafe_allow_html=True)
-    st.markdown(f"<p style='color:#00695c;font-weight:500;'>Welcome to {COMPANY_NAME}</p>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='color:#1976d2 !important;'>📊 Dashboard</h1>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color:#0277bd;font-weight:500;'>Welcome to {COMPANY_NAME}</p>", unsafe_allow_html=True)
     st.markdown("---")
 
     bookers = db.get("bookers", [])
@@ -745,8 +785,8 @@ def render_dashboard():
 # PAGE: ALL PRODUCTS
 # ============================================================
 def render_all_products():
-    st.markdown(f"<h1 style='color:#2e7d32 !important;'>🛒 All Products</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#00695c;font-weight:500;'>Kisi bhi product ka price change karo — billing me wahi naya price use hoga</p>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='color:#1976d2 !important;'>🛒 All Products</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#0277bd;font-weight:500;'>Kisi bhi product ka price change karo — billing me wahi naya price use hoga</p>", unsafe_allow_html=True)
     st.markdown("---")
 
     c1, c2 = st.columns([3, 1])
@@ -766,8 +806,8 @@ def render_all_products():
 
     st.markdown(f"""
     <div class='summary-box'>
-        <b style='color:#2e7d32;font-size:16px;'>📊 Summary</b><br>
-        <span style='color:#00695c;'>
+        <b style='color:#1976d2;font-size:16px;'>📊 Summary</b><br>
+        <span style='color:#0277bd;'>
             Total Products: <b>{len(PRODUCTS)}</b> &nbsp;|&nbsp;
             Showing: <b>{len(shown)}</b> &nbsp;|&nbsp;
             Edited Prices: <b>{len(edited_prices)}</b>
@@ -805,10 +845,10 @@ def render_all_products():
 
         c1, c2, c3, c4 = st.columns([1, 4, 2, 2])
         with c1:
-            st.markdown(f"<div style='padding-top:8px;color:#2e7d32;font-weight:700;'>{code}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='padding-top:8px;color:#1976d2;font-weight:700;'>{code}</div>", unsafe_allow_html=True)
         with c2:
             edited_mark = " ✏️" if is_edited else ""
-            color = "#c62828" if is_edited else "#2e7d32"
+            color = "#c62828" if is_edited else "#1976d2"
             st.markdown(f"<div style='padding-top:6px;color:{color};font-weight:600;font-size:14px;'>{p['name']}{edited_mark}</div>", unsafe_allow_html=True)
         with c3:
             new_price = st.number_input("Price", value=float(current), min_value=0.0, step=1.0,
@@ -842,8 +882,8 @@ def render_all_products():
 # PAGE: BOOKERS
 # ============================================================
 def render_bookers():
-    st.markdown(f"<h1 style='color:#2e7d32 !important;'>👤 Bookers</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#00695c;font-weight:500;'>Order Bookers ko add aur manage karo</p>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='color:#1976d2 !important;'>👤 Bookers</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#0277bd;font-weight:500;'>Order Bookers ko add aur manage karo</p>", unsafe_allow_html=True)
     st.markdown("---")
 
     st.markdown("### ➕ Add New Booker")
@@ -880,7 +920,7 @@ def render_bookers():
     for i, booker_name in enumerate(bookers):
         c1, c2 = st.columns([5, 1])
         with c1:
-            st.markdown(f"<div class='booker-row'><b style='font-size:16px;color:#2e7d32;'>👤 {booker_name}</b></div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='booker-row'><b style='font-size:16px;color:#1976d2;'>👤 {booker_name}</b></div>", unsafe_allow_html=True)
         with c2:
             if st.button("🗑 Delete", key=f"del_booker_{i}_{booker_name}", use_container_width=True):
                 db["bookers"].remove(booker_name)
@@ -892,8 +932,8 @@ def render_bookers():
 # PAGE: SALESMEN
 # ============================================================
 def render_salesmen():
-    st.markdown(f"<h1 style='color:#2e7d32 !important;'>🧑‍💼 Salesmen</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#00695c;font-weight:500;'>Salesmen ko add aur manage karo</p>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='color:#1976d2 !important;'>🧑‍💼 Salesmen</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#0277bd;font-weight:500;'>Salesmen ko add aur manage karo</p>", unsafe_allow_html=True)
     st.markdown("---")
 
     st.markdown("### ➕ Add New Salesman")
@@ -930,7 +970,7 @@ def render_salesmen():
     for i, salesman_name in enumerate(salesmen):
         c1, c2 = st.columns([5, 1])
         with c1:
-            st.markdown(f"<div class='booker-row'><b style='font-size:16px;color:#2e7d32;'>🧑‍💼 {salesman_name}</b></div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='booker-row'><b style='font-size:16px;color:#1976d2;'>🧑‍💼 {salesman_name}</b></div>", unsafe_allow_html=True)
         with c2:
             if st.button("🗑 Delete", key=f"del_salesman_{i}_{salesman_name}", use_container_width=True):
                 db["salesmen"].remove(salesman_name)
@@ -949,8 +989,8 @@ def render_salaries(role_type):
         title = "💰 Salesmen Salary"; emoji = "🧑‍💼"; names = db.get("salesmen", [])
         sal_key = "salesmen_salaries"; other_page = "🧑‍💼 Salesmen"
 
-    st.markdown(f"<h1 style='color:#2e7d32 !important;'>{title}</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#00695c;font-weight:500;'>Base Salary + Advanced + Shortage = Remaining</p>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='color:#1976d2 !important;'>{title}</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#0277bd;font-weight:500;'>Base Salary + Advanced + Shortage = Remaining</p>", unsafe_allow_html=True)
     st.markdown("---")
 
     if sal_key not in db: db[sal_key] = {}
@@ -970,8 +1010,8 @@ def render_salaries(role_type):
 
     st.markdown(f"""
     <div class='summary-box'>
-        <b style='color:#2e7d32;font-size:16px;'>📊 Overall Summary</b><br>
-        <span style='color:#00695c;'>
+        <b style='color:#1976d2;font-size:16px;'>📊 Overall Summary</b><br>
+        <span style='color:#0277bd;'>
             Total Base: <b>Rs {total_base:,.0f}</b> | Advanced: <b>Rs {total_adv:,.0f}</b> |
             Shortage: <b>Rs {total_short:,.0f}</b> | Remaining: <b>Rs {total_remaining:,.0f}</b>
         </span>
@@ -1051,9 +1091,9 @@ def render_salaries(role_type):
                     with c1:
                         st.markdown(f"""
                         <div style='background:#ffffff;border:1px solid #e0e0e0;border-radius:8px;padding:10px 14px;margin-bottom:6px;'>
-                            <span style='color:#00695c;font-size:13px;'>📅 {t.get('date','')} · 🕐 {t.get('time','')}</span><br>
+                            <span style='color:#0277bd;font-size:13px;'>📅 {t.get('date','')} · 🕐 {t.get('time','')}</span><br>
                             <span style='background:{badge_bg};color:{badge_color};padding:3px 10px;border-radius:6px;font-size:12px;font-weight:700;'>{badge_text}</span>
-                            <b style='color:#2e7d32;font-size:15px;margin-left:8px;'>Rs {t['amount']:,.0f}</b>
+                            <b style='color:#1976d2;font-size:15px;margin-left:8px;'>Rs {t['amount']:,.0f}</b>
                             <span style='color:#666;font-size:12px;'>{note_txt}</span>
                         </div>
                         """, unsafe_allow_html=True)
@@ -1072,7 +1112,7 @@ def render_salaries(role_type):
 # PAGE: BILLING
 # ============================================================
 def render_billing():
-    st.markdown(f"<h1 style='color:#2e7d32 !important;'>🧾 Billing</h1>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='color:#1976d2 !important;'>🧾 Billing</h1>", unsafe_allow_html=True)
     st.markdown("---")
 
     c1, c2 = st.columns(2)
@@ -1170,8 +1210,8 @@ def render_billing():
 # PAGE: BILLS LIST
 # ============================================================
 def render_bills_list():
-    st.markdown(f"<h1 style='color:#2e7d32 !important;'>📋 Bills List</h1>", unsafe_allow_html=True)
-    st.markdown(f"<p style='color:#00695c;font-weight:500;'>Total {len(db['bills'])} bills in database</p>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='color:#1976d2 !important;'>📋 Bills List</h1>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color:#0277bd;font-weight:500;'>Total {len(db['bills'])} bills in database</p>", unsafe_allow_html=True)
     st.markdown("---")
 
     if len(db["bills"]) == 0:
@@ -1226,8 +1266,8 @@ def render_bills_list():
         unique_shops = len(set(r.get("Shop","") for r in filtered_records if r.get("Shop")))
         st.markdown(f"""
         <div class='summary-box'>
-            <b style='color:#2e7d32;font-size:16px;'>📊 Summary</b><br>
-            <span style='color:#00695c;'>
+            <b style='color:#1976d2;font-size:16px;'>📊 Summary</b><br>
+            <span style='color:#0277bd;'>
                 Bills: <b>{len(filtered_records)}</b> | Boxes: <b>{total_boxes}</b> |
                 Shops: <b>{unique_shops}</b> |
                 Gross: <b>Rs {total_gross:,.0f}</b> | Net: <b>Rs {total_net:,.0f}</b>
@@ -1311,14 +1351,14 @@ def render_bills_list():
                                    disabled=(n_sel == 0))
     with c3:
         if n_sel > 0:
-            st.markdown(f"<div style='padding-top:6px;color:#00695c;'>✅ <b>{n_sel}</b> bill(s) selected</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='padding-top:6px;color:#0277bd;'>✅ <b>{n_sel}</b> bill(s) selected</div>", unsafe_allow_html=True)
 
     if download_clicked and n_sel > 0:
         df_export = selected_rows.drop(columns=["Select"]).reset_index(drop=True)
         output = BytesIO()
         wb = xlsxwriter.Workbook(output, {'in_memory': True})
         ws = wb.add_worksheet("Selected Bills")
-        header_fmt = wb.add_format({"bold": True, "bg_color": "#D9EAD3", "border": 1, "align": "center"})
+        header_fmt = wb.add_format({"bold": True, "bg_color": "#BBDEFB", "border": 1, "align": "center"})
         cell_fmt = wb.add_format({"border": 1})
         for i, col in enumerate(df_export.columns):
             ws.write(0, i, col, header_fmt)
@@ -1366,8 +1406,8 @@ def render_bills_list():
 # PAGE: LOAD FORM
 # ============================================================
 def render_load_form():
-    st.markdown(f"<h1 style='color:#2e7d32 !important;'>📦 Saved Load Forms</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#00695c;font-weight:500;'>Billing page se export kiye gaye load forms</p>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='color:#1976d2 !important;'>📦 Saved Load Forms</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#0277bd;font-weight:500;'>Billing page se export kiye gaye load forms</p>", unsafe_allow_html=True)
     st.markdown("---")
 
     load_forms = db.get("load_forms", [])
@@ -1410,8 +1450,8 @@ def render_load_form():
 
     st.markdown(f"""
     <div class='summary-box'>
-        <b style='color:#2e7d32;font-size:16px;'>📊 Summary</b><br>
-        <span style='color:#00695c;'>
+        <b style='color:#1976d2;font-size:16px;'>📊 Summary</b><br>
+        <span style='color:#0277bd;'>
             Load Forms: <b>{total_forms}</b> | Total Boxes: <b>{total_boxes_all}</b>
         </span>
     </div>
@@ -1513,7 +1553,7 @@ def export_bill_callback():
     worksheet.set_column("E:E", 12.71); worksheet.set_column("F:F", 12.14)
     worksheet.set_column("G:G", 13.14); worksheet.set_column("H:H", 14.14)
     title = workbook.add_format({"bold":True, "font_size":18, "align":"center", "border":2})
-    header = workbook.add_format({"bold":True, "font_size":12, "bg_color":"#D9EAD3", "align":"center", "border":2})
+    header = workbook.add_format({"bold":True, "font_size":12, "bg_color":"#BBDEFB", "align":"center", "border":2})
     cell_left = workbook.add_format({"font_size":14, "border":1, "align":"left"})
     cell_center = workbook.add_format({"font_size":14, "border":1, "align":"center"})
     total = workbook.add_format({"bold":True, "font_size":14, "bg_color":"#FFF2CC", "align":"center", "border":2})
@@ -1593,7 +1633,7 @@ def export_load_form_for_booker(booker, booker_bills=None):
     workbook = xlsxwriter.Workbook(output, {'in_memory': True})
     worksheet = workbook.add_worksheet("Load Form")
     title = workbook.add_format({"bold":True, "font_size":16, "align":"center", "border":2})
-    header = workbook.add_format({"bold":True, "font_size":12, "bg_color":"#D9EAD3", "align":"center", "border":2})
+    header = workbook.add_format({"bold":True, "font_size":12, "bg_color":"#BBDEFB", "align":"center", "border":2})
     cell_left = workbook.add_format({"font_size":14, "border":1, "align":"left"})
     cell_center = workbook.add_format({"font_size":14, "border":1, "align":"center"})
     total = workbook.add_format({"bold":True, "font_size":14, "bg_color":"#FFF2CC", "align":"center", "border":2})
@@ -1614,8 +1654,8 @@ def export_all_filtered_load_forms(filtered_lfs):
     if not filtered_lfs:
         st.session_state["error_msg"] = "❌ No Load Forms to export"; return
     output = BytesIO(); wb = xlsxwriter.Workbook(output, {'in_memory': True})
-    title_fmt = wb.add_format({"bold": True, "font_size": 14, "align": "center", "border": 2, "bg_color": "#D9EAD3"})
-    header_fmt = wb.add_format({"bold": True, "bg_color": "#E8F5E9", "border": 1, "align": "center"})
+    title_fmt = wb.add_format({"bold": True, "font_size": 14, "align": "center", "border": 2, "bg_color": "#BBDEFB"})
+    header_fmt = wb.add_format({"bold": True, "bg_color": "#E3F2FD", "border": 1, "align": "center"})
     cell_fmt = wb.add_format({"border": 1}); cell_center = wb.add_format({"border": 1, "align": "center"})
     total_fmt = wb.add_format({"bold": True, "bg_color": "#FFF2CC", "border": 1, "align": "center"})
     for lf in filtered_lfs:
