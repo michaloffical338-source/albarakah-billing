@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# Simple Clean Version - No Header Tricks
+# With Bookers Management Page
 # ============================================================
 
 import os
@@ -19,16 +19,13 @@ st.set_page_config(
 )
 
 # ============================================================
-# THEME CSS - SIRF COLORS, NO HEADER/BUTTON TRICKS
+# THEME CSS
 # ============================================================
 st.markdown("""
 <style>
-    /* Main background */
     .stApp {
         background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%) !important;
     }
-
-    /* Full width layout */
     .block-container {
         padding-top: 1rem !important;
         padding-left: 2rem !important;
@@ -36,13 +33,9 @@ st.markdown("""
         padding-bottom: 1rem !important;
         max-width: 100% !important;
     }
-
-    /* Sidebar background */
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #c8e6c9 0%, #b2ebf2 100%) !important;
     }
-
-    /* Inputs */
     .stTextInput > div > div > input,
     .stNumberInput > div > div > input,
     .stSelectbox > div > div > div {
@@ -55,8 +48,6 @@ st.markdown("""
     .stNumberInput > div > div > input:focus {
         border-color: #4caf50 !important;
     }
-
-    /* Buttons */
     .stButton > button {
         background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%) !important;
         color: #ffffff !important;
@@ -76,8 +67,6 @@ st.markdown("""
         border-radius: 8px !important;
     }
     .stDownloadButton > button p { color: #ffffff !important; }
-
-    /* Metric cards */
     .metric-card {
         background: #ffffff;
         border: 2px solid #a5d6a7;
@@ -100,8 +89,14 @@ st.markdown("""
         margin: 10px 0 0 0 !important;
         font-weight: 800 !important;
     }
-
-    /* Alerts */
+    .booker-row {
+        background: #ffffff;
+        border: 1px solid #a5d6a7;
+        border-radius: 10px;
+        padding: 12px 18px;
+        margin-bottom: 8px;
+        box-shadow: 0 2px 6px rgba(76,175,80,0.1);
+    }
     .stAlert { border-radius: 10px !important; }
     hr { border-color: #a5d6a7 !important; opacity: 0.6 !important; }
 </style>
@@ -223,7 +218,7 @@ PRODUCTS = sorted([
     {"code":"109","name":"KIMS – CHOCO DELIGHT CREAMY CHOCOLATE","price":219},
     {"code":"110","name":"KIMS – GUMMY GUAVA JELLY","price":202},
     {"code":"111","name":"KIMS – GUMMY STRAWBERRY JELLY","price":202},
-    {"code":"112","name":"KIMS – AMROOD CANDY","price":139},
+    {"code":"112","name":"KIMS – AMROOS CANDY","price":139},
     {"code":"113","name":"KIMS – KHOPRA PLUS","price":139},
     {"code":"114","name":"KIMS – AAM MAZA CANDY","price":139},
     {"code":"115","name":"KIMS – FRUITO CANDY","price":139},
@@ -248,10 +243,13 @@ def load_database():
     if os.path.exists(DATA_FILE):
         try:
             with open(DATA_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
+                data = json.load(f)
+                if "bookers" not in data:
+                    data["bookers"] = []
+                return data
         except Exception:
             pass
-    return {"next_bill_no": 1, "bills": []}
+    return {"next_bill_no": 1, "bills": [], "bookers": []}
 
 if "database" not in st.session_state:
     st.session_state.database = load_database()
@@ -265,6 +263,8 @@ if "page" not in st.session_state:
     st.session_state["page"] = "📊 Dashboard"
 
 db = st.session_state.database
+if "bookers" not in db:
+    db["bookers"] = []
 
 # ============================================================
 # SIDEBAR NAVIGATION
@@ -280,7 +280,7 @@ with st.sidebar:
 
     page = st.radio(
         "MENU",
-        ["📊 Dashboard", "🧾 Billing", "📋 Bills List", "📦 Load Form"],
+        ["📊 Dashboard", "🧾 Billing", "👤 Bookers", "📋 Bills List", "📦 Load Form"],
         key="page_selector",
         label_visibility="collapsed"
     )
@@ -291,6 +291,7 @@ with st.sidebar:
     <div style='padding:10px; color:#00695c !important; font-size:12px;'>
         <p>📅 {datetime.now().strftime('%d-%m-%Y')}</p>
         <p>📦 Products: {len(PRODUCTS)}</p>
+        <p>👤 Bookers: {len(db.get('bookers', []))}</p>
         <p>🧾 Total Bills: {len(db['bills'])}</p>
     </div>
     """, unsafe_allow_html=True)
@@ -350,6 +351,68 @@ def render_dashboard():
         st.dataframe(pd.DataFrame(top_products), use_container_width=True, hide_index=True)
 
 # ============================================================
+# PAGE: BOOKERS
+# ============================================================
+def render_bookers():
+    st.markdown(f"<h1 style='color:#2e7d32 !important;'>👤 Bookers</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#00695c;font-weight:500;'>Order Bookers ko add aur manage karo</p>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    # Add new booker
+    st.markdown("### ➕ Add New Booker")
+    c1, c2 = st.columns([3, 1])
+    with c1:
+        new_booker = st.text_input(
+            "Booker Name:",
+            key="new_booker_name",
+            placeholder="Enter booker name...",
+            label_visibility="collapsed"
+        )
+    with c2:
+        add_clicked = st.button("➕ Add Booker", key="btn_add_booker", use_container_width=True, type="primary")
+
+    if add_clicked:
+        name = new_booker.strip() if new_booker else ""
+        if name == "":
+            st.error("❌ Please enter a booker name")
+        elif name in db.get("bookers", []):
+            st.warning(f"⚠️ '{name}' already exists in the list")
+        else:
+            db.setdefault("bookers", []).append(name)
+            db["bookers"] = sorted(db["bookers"])
+            save_database(db)
+            st.session_state["booker_msg"] = f"✅ '{name}' added successfully"
+            st.rerun()
+
+    if st.session_state.get("booker_msg"):
+        st.success(st.session_state["booker_msg"])
+        st.session_state["booker_msg"] = None
+
+    st.markdown("---")
+    st.markdown(f"### 📋 Saved Bookers ({len(db.get('bookers', []))})")
+
+    bookers = db.get("bookers", [])
+    if not bookers:
+        st.info("Abhi tak koi booker add nahi hua. Upar se add karo.")
+        return
+
+    # Display each booker with delete option
+    for i, booker_name in enumerate(bookers):
+        c1, c2 = st.columns([5, 1])
+        with c1:
+            st.markdown(f"""
+            <div class='booker-row'>
+                <b style='font-size:16px;color:#2e7d32;'>👤 {booker_name}</b>
+            </div>
+            """, unsafe_allow_html=True)
+        with c2:
+            if st.button("🗑 Delete", key=f"del_booker_{i}_{booker_name}", use_container_width=True):
+                db["bookers"].remove(booker_name)
+                save_database(db)
+                st.session_state["booker_msg"] = f"🗑 '{booker_name}' deleted"
+                st.rerun()
+
+# ============================================================
 # PAGE: BILLING
 # ============================================================
 def render_billing():
@@ -363,7 +426,18 @@ def render_billing():
         st.text_input("Date:", value=datetime.now().strftime("%d-%m-%Y"), disabled=True, key="dash_bill_date")
 
     shop_name = st.text_input("Shop:", key="shop_name", placeholder="Enter Shop Name")
-    order_booker = st.text_input("Order Booker:", key="order_booker", placeholder="Enter Order Booker")
+
+    # Order Booker - dropdown if bookers saved, else text input
+    saved_bookers = db.get("bookers", [])
+    if saved_bookers:
+        booker_options = ["-- Select Booker --"] + saved_bookers
+        selected_bk = st.selectbox("Order Booker:", options=booker_options, key="order_booker_select")
+        order_booker_value = "" if selected_bk == "-- Select Booker --" else selected_bk
+        st.session_state["order_booker"] = order_booker_value
+    else:
+        order_booker = st.text_input("Order Booker:", key="order_booker", placeholder="Enter Order Booker")
+        st.caption("💡 Tip: 'Bookers' page pe jao aur pehle bookers add karo — phir yahan dropdown milega")
+
     salesman = st.text_input("Salesman:", key="salesman", placeholder="Enter Salesman")
     delivery_man = st.text_input("Delivery Man:", key="delivery_man", placeholder="Enter Delivery Man")
 
@@ -752,6 +826,8 @@ if st.session_state["page"] == "📊 Dashboard":
     render_dashboard()
 elif st.session_state["page"] == "🧾 Billing":
     render_billing()
+elif st.session_state["page"] == "👤 Bookers":
+    render_bookers()
 elif st.session_state["page"] == "📋 Bills List":
     render_bills_list()
 elif st.session_state["page"] == "📦 Load Form":
