@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# BLUE THEME + Salary Paid Feature
+# + Discount Packages (Auto apply on Bill Export)
 # ============================================================
 
 import os
@@ -115,12 +115,9 @@ st.markdown("""
         color: #000000 !important;
     }
 
-    .stDateInput,
-    .stDateInput > div,
-    .stDateInput > div > div,
+    .stDateInput, .stDateInput > div, .stDateInput > div > div,
     .stDateInput > div > div > input,
-    [data-testid="stDateInput"],
-    [data-testid="stDateInput"] > div,
+    [data-testid="stDateInput"], [data-testid="stDateInput"] > div,
     [data-testid="stDateInput"] > div > div,
     [data-testid="stDateInput"] input,
     [data-testid="stDateInput"] div[data-baseweb="input"],
@@ -135,55 +132,39 @@ st.markdown("""
         -webkit-text-fill-color: #000000 !important;
         border-color: #90caf9 !important;
     }
-    div[data-baseweb="calendar"],
-    div[data-baseweb="calendar"] *,
-    div[data-baseweb="datepicker"] *,
-    div[data-baseweb="popover"] *,
-    div[role="dialog"] *,
-    div[role="dialog"] {
+    div[data-baseweb="calendar"], div[data-baseweb="calendar"] *,
+    div[data-baseweb="datepicker"] *, div[data-baseweb="popover"] *,
+    div[role="dialog"] *, div[role="dialog"] {
         background-color: #ffffff !important;
         color: #000000 !important;
         -webkit-text-fill-color: #000000 !important;
     }
-    [data-testid="stDateInput"] svg,
-    div[data-baseweb="datepicker"] svg {
+    [data-testid="stDateInput"] svg, div[data-baseweb="datepicker"] svg {
         fill: #1976d2 !important;
         color: #1976d2 !important;
     }
 
-    .stButton > button,
-    .stButton > button p,
-    .stButton > button span,
-    .stButton > button div,
-    .stDownloadButton > button,
-    .stDownloadButton > button p,
-    .stDownloadButton > button span,
-    .stDownloadButton > button div {
+    .stButton > button, .stButton > button p, .stButton > button span, .stButton > button div,
+    .stDownloadButton > button, .stDownloadButton > button p,
+    .stDownloadButton > button span, .stDownloadButton > button div {
         color: #ffffff !important;
     }
 
-    h1[style*="color:#1976d2"], h1[style*="color: #1976d2"] {
-        color: #1976d2 !important;
-    }
-
+    h1[style*="color:#1976d2"], h1[style*="color: #1976d2"] { color: #1976d2 !important; }
     .metric-card h3 { color: #0277bd !important; }
     .metric-card h1 { color: #1976d2 !important; }
-
     .person-card .name { color: #1976d2 !important; }
     .person-card .sub { color: #0277bd !important; }
     .person-card .badge { color: #ffffff !important; }
-
     .lf-simple-card .lf-line1 { color: #1976d2 !important; }
     .lf-simple-card .lf-line2 { color: #0277bd !important; }
     .lf-simple-card .lf-boxes { color: #ffffff !important; }
-
     .sal-metric { color: #000000 !important; }
     .sal-metric.base { color: #0d47a1 !important; }
     .sal-metric.adv { color: #e65100 !important; }
     .sal-metric.short { color: #c62828 !important; }
     .sal-metric.remain { color: #1b5e20 !important; }
     .sal-metric.paid { color: #2e7d32 !important; }
-
     .hint-box { color: #1976d2 !important; }
     .summary-box { color: #000000 !important; }
     .booker-row { color: #1976d2 !important; }
@@ -195,262 +176,138 @@ st.markdown("""
     footer { visibility: hidden !important; }
     header[data-testid="stHeader"] { background: transparent !important; box-shadow: none !important; }
 
-    .stApp {
-        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important;
-    }
+    .stApp { background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important; }
     .block-container {
-        padding-top: 0.5rem !important;
-        padding-left: 1.5rem !important;
-        padding-right: 1.5rem !important;
-        padding-bottom: 0.5rem !important;
+        padding-top: 0.5rem !important; padding-left: 1.5rem !important;
+        padding-right: 1.5rem !important; padding-bottom: 0.5rem !important;
         max-width: 100% !important;
     }
-
     .stApp .element-container { margin-bottom: 0.35rem !important; }
     .stApp [data-testid="stVerticalBlock"] > div { gap: 0.35rem !important; }
     .stApp [data-testid="stVerticalBlockBorderWrapper"] > div { gap: 0.35rem !important; }
-    .stApp label,
-    .stApp [data-testid="stWidgetLabel"] label,
-    .stApp [data-testid="stWidgetLabel"] p {
-        font-size: 13px !important;
-        font-weight: 600 !important;
-        margin-bottom: 2px !important;
+    .stApp label, .stApp [data-testid="stWidgetLabel"] label, .stApp [data-testid="stWidgetLabel"] p {
+        font-size: 13px !important; font-weight: 600 !important; margin-bottom: 2px !important;
     }
-    .stTextInput > div > div > input,
-    .stNumberInput > div > div > input,
-    .stDateInput > div > div > input,
-    .stSelectbox > div > div > div,
-    div[data-baseweb="input"] input,
-    div[data-baseweb="select"] > div {
-        padding: 4px 8px !important;
-        min-height: 34px !important;
-        font-size: 14px !important;
+    .stTextInput > div > div > input, .stNumberInput > div > div > input,
+    .stDateInput > div > div > input, .stSelectbox > div > div > div,
+    div[data-baseweb="input"] input, div[data-baseweb="select"] > div {
+        padding: 4px 8px !important; min-height: 34px !important; font-size: 14px !important;
     }
-    .stNumberInput button {
-        padding: 2px 4px !important;
-        min-height: 34px !important;
-    }
-    .stButton > button {
-        padding: 4px 10px !important;
-        min-height: 36px !important;
-        font-size: 14px !important;
-    }
+    .stNumberInput button { padding: 2px 4px !important; min-height: 34px !important; }
+    .stButton > button { padding: 4px 10px !important; min-height: 36px !important; font-size: 14px !important; }
     .stApp hr { margin: 6px 0 !important; }
     .stApp p { margin-bottom: 3px !important; }
     .stApp h3 { margin-top: 6px !important; margin-bottom: 4px !important; font-size: 18px !important; }
 
-    section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #bbdefb 0%, #90caf9 100%) !important;
-    }
+    section[data-testid="stSidebar"] { background: linear-gradient(180deg, #bbdefb 0%, #90caf9 100%) !important; }
     section[data-testid="stSidebar"] * { color: #000000 !important; }
-    section[data-testid="stSidebar"] .stRadio label {
-        font-size: 15px !important;
-        font-weight: 600 !important;
-    }
+    section[data-testid="stSidebar"] .stRadio label { font-size: 15px !important; font-weight: 600 !important; }
     section[data-testid="stSidebar"] div[role="radiogroup"] > label {
-        background-color: #ffffff !important;
-        border: 1px solid #90caf9 !important;
-        border-radius: 8px !important;
-        margin-bottom: 6px !important;
-        padding: 6px 10px !important;
+        background-color: #ffffff !important; border: 1px solid #90caf9 !important;
+        border-radius: 8px !important; margin-bottom: 6px !important; padding: 6px 10px !important;
     }
     section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover {
-        background-color: #e3f2fd !important;
-        border-color: #2196f3 !important;
+        background-color: #e3f2fd !important; border-color: #2196f3 !important;
     }
-    section[data-testid="stSidebar"] div[role="radiogroup"] input[type="radio"] {
-        accent-color: #2196f3 !important;
-    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] input[type="radio"] { accent-color: #2196f3 !important; }
 
-    .stTextInput > div > div > input,
-    .stNumberInput > div > div > input,
-    .stSelectbox > div > div > div,
-    .stSelectbox > div > div,
-    div[data-baseweb="select"] > div,
-    div[data-baseweb="input"] input {
-        background-color: #ffffff !important;
-        color: #000000 !important;
+    .stTextInput > div > div > input, .stNumberInput > div > div > input,
+    .stSelectbox > div > div > div, .stSelectbox > div > div,
+    div[data-baseweb="select"] > div, div[data-baseweb="input"] input {
+        background-color: #ffffff !important; color: #000000 !important;
         -webkit-text-fill-color: #000000 !important;
-        border: 2px solid #90caf9 !important;
-        border-radius: 8px !important;
+        border: 2px solid #90caf9 !important; border-radius: 8px !important;
     }
     div[data-baseweb="select"] * { color: #000000 !important; }
-    ul[role="listbox"] li, div[role="option"] {
-        color: #000000 !important;
-        background-color: #ffffff !important;
-    }
-    .stTextInput > div > div > input:focus,
-    .stNumberInput > div > div > input:focus {
-        border-color: #2196f3 !important;
-    }
-    .stTextInput input::placeholder,
-    .stNumberInput input::placeholder {
-        color: #888888 !important;
-        -webkit-text-fill-color: #888888 !important;
-        opacity: 1 !important;
+    ul[role="listbox"] li, div[role="option"] { color: #000000 !important; background-color: #ffffff !important; }
+    .stTextInput > div > div > input:focus, .stNumberInput > div > div > input:focus { border-color: #2196f3 !important; }
+    .stTextInput input::placeholder, .stNumberInput input::placeholder {
+        color: #888888 !important; -webkit-text-fill-color: #888888 !important; opacity: 1 !important;
     }
 
     .stButton > button {
         background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%) !important;
-        border: none !important;
-        font-weight: bold !important;
-        border-radius: 8px !important;
+        border: none !important; font-weight: bold !important; border-radius: 8px !important;
     }
-    .stButton > button:hover {
-        background: linear-gradient(135deg, #1976d2 0%, #0d47a1 100%) !important;
-    }
+    .stButton > button:hover { background: linear-gradient(135deg, #1976d2 0%, #0d47a1 100%) !important; }
     .stDownloadButton > button {
         background: linear-gradient(135deg, #0288d1 0%, #0277bd 100%) !important;
-        color: #ffffff !important;
-        font-weight: bold !important;
-        border-radius: 8px !important;
+        color: #ffffff !important; font-weight: bold !important; border-radius: 8px !important;
     }
 
     .stDataFrame, .stDataFrame * { color: #000000 !important; }
     .stDataFrame { background-color: #ffffff !important; border-radius: 10px !important; }
-
     label[data-baseweb="checkbox"] * { color: #000000 !important; }
-
-    details summary, details summary *,
-    .streamlit-expanderHeader, .streamlit-expanderHeader * {
-        color: #000000 !important;
-    }
+    details summary, details summary *, .streamlit-expanderHeader, .streamlit-expanderHeader * { color: #000000 !important; }
 
     .stAlert, .stAlert * { color: #000000 !important; }
     .stSuccess, .stSuccess * { color: #1b5e20 !important; }
     .stError, .stError * { color: #b71c1c !important; }
     .stWarning, .stWarning * { color: #e65100 !important; }
     .stInfo, .stInfo * { color: #0d47a1 !important; }
-
-    [data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] * {
-        color: #555555 !important;
-    }
-
+    [data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] * { color: #555555 !important; }
     .empty-box { color: #0277bd !important; }
-
     .auto-dl-hidden div[data-testid="stDownloadButton"] {
-        position: absolute !important;
-        left: -9999px !important;
-        top: -9999px !important;
-        opacity: 0 !important;
-        height: 0 !important;
+        position: absolute !important; left: -9999px !important; top: -9999px !important;
+        opacity: 0 !important; height: 0 !important;
     }
 
     .metric-card {
-        background: #ffffff;
-        border: 2px solid #90caf9;
-        border-radius: 14px;
-        padding: 22px;
-        text-align: center;
-        box-shadow: 0 3px 10px rgba(33,150,243,0.15);
+        background: #ffffff; border: 2px solid #90caf9; border-radius: 14px;
+        padding: 22px; text-align: center; box-shadow: 0 3px 10px rgba(33,150,243,0.15);
     }
-    .metric-card h3 {
-        font-size: 13px !important;
-        margin: 0 !important;
-        font-weight: 700 !important;
-        text-transform: uppercase;
-    }
-    .metric-card h1 {
-        font-size: 34px !important;
-        margin: 10px 0 0 0 !important;
-        font-weight: 800 !important;
-    }
+    .metric-card h3 { font-size: 13px !important; margin: 0 !important; font-weight: 700 !important; text-transform: uppercase; }
+    .metric-card h1 { font-size: 34px !important; margin: 10px 0 0 0 !important; font-weight: 800 !important; }
 
-    .booker-row {
-        background: #ffffff;
-        border: 1px solid #90caf9;
-        border-radius: 10px;
-        padding: 12px 18px;
-        margin-bottom: 8px;
-    }
+    .booker-row { background: #ffffff; border: 1px solid #90caf9; border-radius: 10px; padding: 12px 18px; margin-bottom: 8px; }
 
     .person-card {
-        background: #ffffff;
-        border-left: 6px solid #2196f3;
-        border-radius: 12px;
-        padding: 14px 18px;
-        margin-bottom: 10px;
+        background: #ffffff; border-left: 6px solid #2196f3; border-radius: 12px;
+        padding: 14px 18px; margin-bottom: 10px;
         box-shadow: 0 3px 10px rgba(33,150,243,0.12);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+        display: flex; align-items: center; justify-content: space-between;
     }
     .person-card .info { display: flex; flex-direction: column; gap: 3px; }
     .person-card .name { font-size: 16px; font-weight: 700; }
     .person-card .sub { font-size: 12px; }
     .person-card .badge {
         background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
-        font-weight: 800;
-        font-size: 14px;
-        padding: 6px 12px;
-        border-radius: 8px;
-        min-width: 60px;
-        text-align: center;
+        font-weight: 800; font-size: 14px; padding: 6px 12px; border-radius: 8px;
+        min-width: 60px; text-align: center;
     }
     .sal-badge { background: linear-gradient(135deg, #0288d1 0%, #0277bd 100%); }
 
     .empty-box {
-        background: #ffffff;
-        border: 2px dashed #90caf9;
-        border-radius: 12px;
-        padding: 20px;
-        text-align: center;
-        font-size: 14px;
+        background: #ffffff; border: 2px dashed #90caf9; border-radius: 12px;
+        padding: 20px; text-align: center; font-size: 14px;
     }
-
     .hint-box {
-        background: #e3f2fd;
-        border-left: 4px solid #2196f3;
-        padding: 6px 10px;
-        border-radius: 6px;
-        font-size: 12px;
-        margin-top: 2px;
+        background: #e3f2fd; border-left: 4px solid #2196f3; padding: 6px 10px;
+        border-radius: 6px; font-size: 12px; margin-top: 2px;
     }
     .summary-box {
-        background: #ffffff;
-        border: 2px solid #2196f3;
-        border-radius: 12px;
-        padding: 12px 18px;
-        margin-bottom: 12px;
+        background: #ffffff; border: 2px solid #2196f3; border-radius: 12px;
+        padding: 12px 18px; margin-bottom: 12px;
     }
     .lf-simple-card {
-        background: #ffffff;
-        border-left: 6px solid #2196f3;
-        border-radius: 12px;
-        padding: 16px 22px;
-        margin-bottom: 12px;
+        background: #ffffff; border-left: 6px solid #2196f3; border-radius: 12px;
+        padding: 16px 22px; margin-bottom: 12px;
         box-shadow: 0 3px 10px rgba(33,150,243,0.15);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+        display: flex; align-items: center; justify-content: space-between;
     }
     .lf-simple-card .lf-info { display: flex; flex-direction: column; gap: 4px; }
     .lf-simple-card .lf-line1 { font-size: 17px; font-weight: 700; }
     .lf-simple-card .lf-line2 { font-size: 13px; }
     .lf-simple-card .lf-boxes {
         background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
-        font-weight: 800;
-        font-size: 20px;
-        padding: 10px 18px;
-        border-radius: 10px;
-        text-align: center;
-        min-width: 90px;
+        font-weight: 800; font-size: 20px; padding: 10px 18px; border-radius: 10px;
+        text-align: center; min-width: 90px;
     }
-    .lf-simple-card .lf-boxes small {
-        display: block;
-        font-size: 10px;
-        font-weight: 500;
-        opacity: 0.9;
-    }
+    .lf-simple-card .lf-boxes small { display: block; font-size: 10px; font-weight: 500; opacity: 0.9; }
 
     .sal-metric {
-        display: inline-block;
-        padding: 8px 14px;
-        margin-right: 8px;
-        margin-bottom: 6px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 600;
+        display: inline-block; padding: 8px 14px; margin-right: 8px; margin-bottom: 6px;
+        border-radius: 8px; font-size: 13px; font-weight: 600;
     }
     .sal-metric.base { background: #e3f2fd; }
     .sal-metric.adv { background: #fff3e0; }
@@ -459,49 +316,49 @@ st.markdown("""
     .sal-metric.paid { background: #c8e6c9; }
 
     .exp-row {
-        background: #ffffff;
-        border: 1px solid #90caf9;
-        border-radius: 10px;
-        padding: 8px 14px;
-        margin-bottom: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+        background: #ffffff; border: 1px solid #90caf9; border-radius: 10px;
+        padding: 8px 14px; margin-bottom: 6px;
+        display: flex; align-items: center; justify-content: space-between;
     }
     .exp-row .exp-left { display: flex; flex-direction: column; gap: 2px; }
     .exp-row .exp-name { font-size: 14px; font-weight: 700; color: #1976d2; }
     .exp-row .exp-date { font-size: 11px; color: #0277bd; }
     .exp-row .exp-amt {
         background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
-        color: #ffffff !important;
-        font-weight: 800;
-        font-size: 15px;
-        padding: 5px 12px;
-        border-radius: 8px;
-        min-width: 80px;
-        text-align: center;
+        color: #ffffff !important; font-weight: 800; font-size: 15px;
+        padding: 5px 12px; border-radius: 8px; min-width: 80px; text-align: center;
     }
-    .exp-row.lunch .exp-amt {
-        background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
-    }
+    .exp-row.lunch .exp-amt { background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); }
     .exp-row.lunch .exp-name { color: #e65100; }
 
-    /* Status badges for salary transactions */
     .status-pending {
-        background: #fff3e0;
-        color: #e65100 !important;
-        padding: 3px 10px;
-        border-radius: 6px;
-        font-size: 11px;
-        font-weight: 700;
+        background: #fff3e0; color: #e65100 !important; padding: 3px 10px;
+        border-radius: 6px; font-size: 11px; font-weight: 700;
     }
     .status-paid {
-        background: #c8e6c9;
-        color: #1b5e20 !important;
-        padding: 3px 10px;
-        border-radius: 6px;
-        font-size: 11px;
-        font-weight: 700;
+        background: #c8e6c9; color: #1b5e20 !important; padding: 3px 10px;
+        border-radius: 6px; font-size: 11px; font-weight: 700;
+    }
+
+    /* Discount package card */
+    .disc-card {
+        background: #ffffff; border: 2px solid #90caf9; border-radius: 12px;
+        padding: 14px 18px; margin-bottom: 10px;
+    }
+    .disc-card.active {
+        border: 3px solid #2e7d32;
+        box-shadow: 0 4px 14px rgba(46,125,50,0.25);
+    }
+    .disc-title {
+        font-size: 16px; font-weight: 800; color: #1976d2; margin-bottom: 6px;
+    }
+    .disc-title-active {
+        color: #2e7d32 !important;
+    }
+    .disc-badge-active {
+        background: #c8e6c9; color: #1b5e20 !important;
+        font-size: 11px; font-weight: 700; padding: 3px 10px;
+        border-radius: 6px; margin-left: 8px;
     }
 
     .stAlert { border-radius: 10px !important; }
@@ -637,6 +494,21 @@ PRODUCTS = sorted([
 PRODUCT_NAMES = [p["name"] for p in PRODUCTS]
 
 # ============================================================
+# DEFAULT DISCOUNT PACKAGES
+# ============================================================
+def default_discount_packages():
+    return [
+        {"id": 1, "name": "Package 1", "tier1_amount": 1200.0, "tier1_pct": 1.0,
+         "tier2_amount": 2100.0, "tier2_pct": 2.0, "active": False},
+        {"id": 2, "name": "Package 2", "tier1_amount": 0.0, "tier1_pct": 0.0,
+         "tier2_amount": 0.0, "tier2_pct": 0.0, "active": False},
+        {"id": 3, "name": "Package 3", "tier1_amount": 0.0, "tier1_pct": 0.0,
+         "tier2_amount": 0.0, "tier2_pct": 0.0, "active": False},
+        {"id": 4, "name": "Package 4", "tier1_amount": 0.0, "tier1_pct": 0.0,
+         "tier2_amount": 0.0, "tier2_pct": 0.0, "active": False},
+    ]
+
+# ============================================================
 # DATABASE
 # ============================================================
 def save_database(db):
@@ -655,13 +527,16 @@ def load_database():
                     if k not in data: data[k] = []
                 for k in ["bookers_salaries", "salesmen_salaries", "product_prices"]:
                     if k not in data: data[k] = {}
+                if "discount_packages" not in data or not data["discount_packages"]:
+                    data["discount_packages"] = default_discount_packages()
                 return data
         except Exception:
             pass
     return {
         "next_bill_no": 1, "bills": [], "bookers": [], "salesmen": [],
         "load_forms": [], "bookers_salaries": {}, "salesmen_salaries": {},
-        "product_prices": {}, "petrol_expenses": [], "lunch_expenses": []
+        "product_prices": {}, "petrol_expenses": [], "lunch_expenses": [],
+        "discount_packages": default_discount_packages()
     }
 
 def parse_date(dstr):
@@ -688,6 +563,8 @@ for k in ["bookers", "salesmen", "load_forms", "petrol_expenses", "lunch_expense
     if k not in db: db[k] = []
 for k in ["bookers_salaries", "salesmen_salaries", "product_prices"]:
     if k not in db: db[k] = {}
+if "discount_packages" not in db or not db["discount_packages"]:
+    db["discount_packages"] = default_discount_packages()
 
 # ============================================================
 # HELPERS
@@ -698,6 +575,29 @@ def get_price(code, base_price):
         try: return float(custom[str(code)])
         except Exception: return float(base_price)
     return float(base_price)
+
+def get_active_package():
+    """Return the currently active discount package (or None)."""
+    for pkg in db.get("discount_packages", []):
+        if pkg.get("active"):
+            return pkg
+    return None
+
+def get_package_discount_pct(bill_total):
+    """Given bill total, return (pct, package_name, tier_label) based on ACTIVE package."""
+    pkg = get_active_package()
+    if not pkg:
+        return 0.0, None, None
+    t2_amt = float(pkg.get("tier2_amount", 0))
+    t2_pct = float(pkg.get("tier2_pct", 0))
+    t1_amt = float(pkg.get("tier1_amount", 0))
+    t1_pct = float(pkg.get("tier1_pct", 0))
+    # Tier 2 has priority (higher threshold)
+    if t2_amt > 0 and bill_total > t2_amt:
+        return t2_pct, pkg.get("name", "Package"), f"Tier2 (> {t2_amt:,.0f})"
+    if t1_amt > 0 and bill_total > t1_amt:
+        return t1_pct, pkg.get("name", "Package"), f"Tier1 (> {t1_amt:,.0f})"
+    return 0.0, pkg.get("name", "Package"), None
 
 def show_auto_download():
     if st.session_state.get("download_file"):
@@ -743,6 +643,7 @@ with st.sidebar:
         "MENU",
         [
             "📊 Dashboard", "🧾 Billing", "🛒 All Products",
+            "🎁 Discount",
             "👤 Bookers", "💰 Bookers Salary",
             "🧑‍💼 Salesmen", "💰 Salesmen Salary",
             "💵 Daily Expense",
@@ -754,14 +655,16 @@ with st.sidebar:
     st.session_state["page"] = page
 
     st.markdown("---")
+    active_pkg = get_active_package()
+    active_name = active_pkg.get("name", "—") if active_pkg else "Koi nahi"
     st.markdown(f"""
     <div style='padding:10px; color:#0277bd !important; font-size:12px;'>
         <p>📅 {datetime.now().strftime('%d-%m-%Y')}</p>
+        <p>🎁 Active Discount: <b>{active_name}</b></p>
         <p>📦 Products: {len(PRODUCTS)}</p>
         <p>👤 Bookers: {len(db.get('bookers', []))}</p>
         <p>🧑‍💼 Salesmen: {len(db.get('salesmen', []))}</p>
         <p>🧾 Total Bills: {len(db['bills'])}</p>
-        <p>📦 Load Forms: {len(db.get('load_forms', []))}</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -830,6 +733,119 @@ def render_dashboard():
                     <div class='badge sal-badge'>#{i+1}</div>
                 </div>
                 """, unsafe_allow_html=True)
+
+# ============================================================
+# PAGE: DISCOUNT
+# ============================================================
+def render_discount():
+    st.markdown(f"<h1 style='color:#1976d2 !important;'>🎁 Discount Packages</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#0277bd;font-weight:500;'>4 packages — sirf 1 active ho sakta hai. Jab Bill export karoge, active package khud apply ho jayega.</p>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    pkgs = db.get("discount_packages", [])
+    if not pkgs:
+        pkgs = default_discount_packages()
+        db["discount_packages"] = pkgs
+        save_database(db)
+
+    active_id = None
+    for p in pkgs:
+        if p.get("active"):
+            active_id = p.get("id")
+            break
+
+    st.markdown(f"""
+    <div class='summary-box'>
+        <b style='color:#1976d2;font-size:16px;'>📊 Current Active Package</b><br>
+        <span style='color:#0277bd;'>
+            <b style='color:#2e7d32;font-size:15px;'>
+            {"✅ " + next((p["name"] for p in pkgs if p.get("id") == active_id), "Koi nahi") if active_id else "❌ Koi active nahi"}
+            </b>
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ------- Active selection radio -------
+    st.markdown("### 🔘 Active Package Chuno")
+    options = ["❌ Koi nahi"] + [f"🎁 {p.get('name','Package')}" for p in pkgs]
+    default_idx = 0
+    if active_id:
+        for i, p in enumerate(pkgs):
+            if p.get("id") == active_id:
+                default_idx = i + 1
+                break
+    selected = st.radio("Active:", options=options, index=default_idx, key="active_pkg_radio", label_visibility="collapsed")
+
+    new_active_id = None
+    if selected != "❌ Koi nahi":
+        idx = options.index(selected) - 1
+        new_active_id = pkgs[idx].get("id")
+
+    if new_active_id != active_id:
+        for p in pkgs:
+            p["active"] = (p.get("id") == new_active_id)
+        save_database(db)
+        if new_active_id:
+            st.success(f"✅ Package active: {next((p['name'] for p in pkgs if p['id']==new_active_id), '')}")
+        else:
+            st.success("❌ Koi package active nahi")
+        st.rerun()
+
+    st.markdown("---")
+    st.markdown("### 📝 Packages Edit Karo")
+
+    for i, pkg in enumerate(pkgs):
+        pid = pkg.get("id", i+1)
+        is_active = pkg.get("active", False)
+        card_class = "disc-card active" if is_active else "disc-card"
+        badge = '<span class="disc-badge-active">ACTIVE</span>' if is_active else ""
+
+        st.markdown(f"""
+        <div class='{card_class}'>
+            <div class='disc-title {"disc-title-active" if is_active else ""}'>
+                🎁 {pkg.get('name','Package')} {badge}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        c1, c2, c3, c4, c5 = st.columns([2, 2, 2, 2, 2])
+        with c1:
+            new_name = st.text_input("Package Name", value=pkg.get("name", f"Package {pid}"), key=f"pkgname_{pid}")
+        with c2:
+            t1_amt = st.number_input("Tier 1: Min Amount", value=float(pkg.get("tier1_amount", 0)), min_value=0.0, step=50.0, key=f"t1a_{pid}")
+        with c3:
+            t1_pct = st.number_input("Tier 1: Disc %", value=float(pkg.get("tier1_pct", 0)), min_value=0.0, max_value=100.0, step=0.5, key=f"t1p_{pid}")
+        with c4:
+            t2_amt = st.number_input("Tier 2: Min Amount", value=float(pkg.get("tier2_amount", 0)), min_value=0.0, step=50.0, key=f"t2a_{pid}")
+        with c5:
+            t2_pct = st.number_input("Tier 2: Disc %", value=float(pkg.get("tier2_pct", 0)), min_value=0.0, max_value=100.0, step=0.5, key=f"t2p_{pid}")
+
+        cc1, cc2 = st.columns([1, 5])
+        with cc1:
+            if st.button("💾 Save", key=f"savepkg_{pid}", use_container_width=True, type="primary"):
+                for pp in db["discount_packages"]:
+                    if pp.get("id") == pid:
+                        pp["name"] = new_name.strip() or f"Package {pid}"
+                        pp["tier1_amount"] = float(t1_amt)
+                        pp["tier1_pct"] = float(t1_pct)
+                        pp["tier2_amount"] = float(t2_amt)
+                        pp["tier2_pct"] = float(t2_pct)
+                        break
+                save_database(db)
+                st.session_state["success_msg"] = f"✅ Package '{new_name}' saved"
+                st.rerun()
+        with cc2:
+            st.markdown(
+                f"<div style='padding-top:8px;font-size:12px;color:#0277bd;'>"
+                f"<b>Rule:</b> Bill total > Rs {t1_amt:,.0f} → {t1_pct}% discount &nbsp;|&nbsp; "
+                f"Bill total > Rs {t2_amt:,.0f} → {t2_pct}% discount</div>",
+                unsafe_allow_html=True
+            )
+
+        st.markdown("<hr style='margin:6px 0;'>", unsafe_allow_html=True)
+
+    if st.session_state.get("success_msg"):
+        st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
 
 # ============================================================
 # PAGE: ALL PRODUCTS
@@ -1029,7 +1045,7 @@ def render_salesmen():
                 st.rerun()
 
 # ============================================================
-# PAGE: SALARY (With Paid Feature)
+# PAGE: SALARY
 # ============================================================
 def render_salaries(role_type):
     if role_type == "bookers":
@@ -1048,7 +1064,6 @@ def render_salaries(role_type):
         st.info(f"❌ Abhi tak koi {role_type[:-1]} add nahi hua. Pehle **{other_page}** page pe add karo.")
         return
 
-    # Overall summary
     total_base = 0
     total_adv_pending = 0
     total_adv_paid = 0
@@ -1073,11 +1088,9 @@ def render_salaries(role_type):
     <div class='summary-box'>
         <b style='color:#1976d2;font-size:16px;'>📊 Overall Summary</b><br>
         <span style='color:#0277bd;'>
-            Base: <b>Rs {total_base:,.0f}</b> &nbsp;|&nbsp;
-            Adv Pending: <b>Rs {total_adv_pending:,.0f}</b> &nbsp;|&nbsp;
-            Adv Paid: <b>Rs {total_adv_paid:,.0f}</b> &nbsp;|&nbsp;
-            Short Pending: <b>Rs {total_short_pending:,.0f}</b> &nbsp;|&nbsp;
-            Short Paid: <b>Rs {total_short_paid:,.0f}</b> &nbsp;|&nbsp;
+            Base: <b>Rs {total_base:,.0f}</b> | Adv Pending: <b>Rs {total_adv_pending:,.0f}</b> |
+            Adv Paid: <b>Rs {total_adv_paid:,.0f}</b> | Short Pending: <b>Rs {total_short_pending:,.0f}</b> |
+            Short Paid: <b>Rs {total_short_paid:,.0f}</b> |
             <b style='color:#1b5e20;'>Remaining: Rs {total_remaining:,.0f}</b>
         </span>
     </div>
@@ -1149,7 +1162,6 @@ def render_salaries(role_type):
                         st.session_state["success_msg"] = f"✅ {txn_type} Rs {txn_amt:,.0f} added (Pending)"
                         st.rerun()
 
-            # ---------- History ----------
             if txns:
                 st.markdown("**📋 History (date-wise)**")
                 sorted_txns = sorted(txns, key=lambda x: x.get("created_at", ""), reverse=True)
@@ -1160,13 +1172,9 @@ def render_salaries(role_type):
                     is_adv = t["type"] == "advanced"
 
                     if is_adv:
-                        badge_text = "Advanced"
-                        badge_color = "#e65100"
-                        badge_bg = "#fff3e0"
+                        badge_text = "Advanced"; badge_color = "#e65100"; badge_bg = "#fff3e0"
                     else:
-                        badge_text = "Shortage"
-                        badge_color = "#c62828"
-                        badge_bg = "#ffebee"
+                        badge_text = "Shortage"; badge_color = "#c62828"; badge_bg = "#ffebee"
 
                     status_badge = f'<span class="status-pending">⏳ PENDING</span>' if is_pending else f'<span class="status-paid">✅ PAID</span>'
                     note_txt = f" — {t.get('note','')}" if t.get("note") else ""
@@ -1186,7 +1194,6 @@ def render_salaries(role_type):
                         if is_pending:
                             if st.button("✅ Paid", key=f"paid_{role_type}_{person_name}_{t_id}_{idx}",
                                          use_container_width=True, type="primary"):
-                                # Mark as paid
                                 for tx in db[sal_key][person_name]["transactions"]:
                                     if tx.get("id") == t_id:
                                         tx["status"] = "paid"
@@ -1229,31 +1236,22 @@ def render_daily_expense():
     today = date.today()
     c1, c2, c3 = st.columns([2, 2, 2])
     with c1:
-        filter_mode = st.selectbox(
-            "Filter:",
+        filter_mode = st.selectbox("Filter:",
             ["📅 Aaj (Today)", "📆 This Month", "🗓️ Last 30 Days", "📋 All"],
-            key="exp_filter_mode"
-        )
-    with c2:
-        from_date = st.date_input("From:", value=today - timedelta(days=30), key="exp_from_date")
-    with c3:
-        to_date = st.date_input("To:", value=today, key="exp_to_date")
+            key="exp_filter_mode")
+    with c2: from_date = st.date_input("From:", value=today - timedelta(days=30), key="exp_from_date")
+    with c3: to_date = st.date_input("To:", value=today, key="exp_to_date")
 
     def date_match(dstr):
         d = parse_date(dstr)
         if d is None: return False
-        if filter_mode == "📅 Aaj (Today)":
-            return d == today
-        elif filter_mode == "📆 This Month":
-            return d.year == today.year and d.month == today.month
-        elif filter_mode == "🗓️ Last 30 Days":
-            return today - timedelta(days=30) <= d <= today
-        else:
-            return True
+        if filter_mode == "📅 Aaj (Today)": return d == today
+        elif filter_mode == "📆 This Month": return d.year == today.year and d.month == today.month
+        elif filter_mode == "🗓️ Last 30 Days": return today - timedelta(days=30) <= d <= today
+        else: return True
 
     petrol_filtered = [x for x in petrol_list if date_match(x.get("date", ""))]
     lunch_filtered = [x for x in lunch_list if date_match(x.get("date", ""))]
-
     total_petrol = sum(float(x.get("amount", 0)) for x in petrol_filtered)
     total_lunch = sum(float(x.get("amount", 0)) for x in lunch_filtered)
     grand = total_petrol + total_lunch
@@ -1273,7 +1271,6 @@ def render_daily_expense():
 
     with col_left:
         st.markdown(f"### ⛽ Petrol  <span style='font-size:14px;color:#0277bd;'>(Rs {total_petrol:,.0f})</span>", unsafe_allow_html=True)
-
         saved_salesmen = db.get("salesmen", [])
         if not saved_salesmen:
             st.info("💡 Pehle **Salesmen** page pe jao aur salesmen add karo.")
@@ -1294,15 +1291,12 @@ def render_daily_expense():
                         st.session_state["error_msg"] = "❌ Enter petrol amount"
                     else:
                         next_id = max([x.get("id", 0) for x in db["petrol_expenses"]] + [0]) + 1
-                        new_entry = {
-                            "id": next_id,
-                            "date": datetime.now().strftime("%d-%m-%Y"),
+                        db["petrol_expenses"].append({
+                            "id": next_id, "date": datetime.now().strftime("%d-%m-%Y"),
                             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                             "time": datetime.now().strftime("%H:%M"),
-                            "salesman": p_salesman,
-                            "amount": float(p_amount),
-                        }
-                        db["petrol_expenses"].append(new_entry)
+                            "salesman": p_salesman, "amount": float(p_amount),
+                        })
                         save_database(db)
                         st.session_state["success_msg"] = f"✅ Petrol Rs {p_amount:,.0f} ({p_salesman}) added"
                         st.rerun()
@@ -1342,7 +1336,6 @@ def render_daily_expense():
 
     with col_right:
         st.markdown(f"### 🍽️ Lunch  <span style='font-size:14px;color:#e65100;'>(Rs {total_lunch:,.0f})</span>", unsafe_allow_html=True)
-
         st.markdown("**➕ Add Lunch Entry**")
         c1, c2 = st.columns([3, 1])
         with c1:
@@ -1354,14 +1347,12 @@ def render_daily_expense():
                     st.session_state["error_msg"] = "❌ Enter lunch amount"
                 else:
                     next_id = max([x.get("id", 0) for x in db["lunch_expenses"]] + [0]) + 1
-                    new_entry = {
-                        "id": next_id,
-                        "date": datetime.now().strftime("%d-%m-%Y"),
+                    db["lunch_expenses"].append({
+                        "id": next_id, "date": datetime.now().strftime("%d-%m-%Y"),
                         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         "time": datetime.now().strftime("%H:%M"),
                         "amount": float(l_amount),
-                    }
-                    db["lunch_expenses"].append(new_entry)
+                    })
                     save_database(db)
                     st.session_state["success_msg"] = f"✅ Lunch Rs {l_amount:,.0f} added"
                     st.rerun()
@@ -1401,6 +1392,12 @@ def render_daily_expense():
 # ============================================================
 def render_billing():
     st.markdown(f"<h2 style='color:#1976d2 !important;margin:0 0 6px 0;'>🧾 Billing</h2>", unsafe_allow_html=True)
+
+    active_pkg = get_active_package()
+    if active_pkg:
+        st.markdown(f"<div class='hint-box'>🎁 Active Discount Package: <b>{active_pkg.get('name','—')}</b> — Bill export karte waqt khud apply hoga</div>", unsafe_allow_html=True)
+    else:
+        st.markdown("<div class='hint-box'>💡 Koi discount package active nahi. '🎁 Discount' page se activate karo.</div>", unsafe_allow_html=True)
 
     c1, c2 = st.columns(2)
     with c1: st.text_input("Bill No:", value=str(db["next_bill_no"]), disabled=True, key="dash_bill_no")
@@ -1815,53 +1812,117 @@ def export_bill_callback():
     db = st.session_state.database
     if len(db["bills"]) == 0:
         st.session_state["error_msg"] = "❌ No Bills Found"; return
+
     shop = st.session_state.get("shop_name", "").strip() or "Bill"
     for ch in ['\\','/',':','*','?','"','<','>','|']: shop = shop.replace(ch, "")
+
+    # ---- Get this shop's bill lines ----
+    shop_bills = [b for b in db["bills"] if b["Shop"].strip() == shop]
+    if not shop_bills:
+        st.session_state["error_msg"] = "❌ Is shop ke liye koi bill nahi mila"; return
+
+    # ---- Total of Net (used to decide package tier) ----
+    bill_total_net = sum(float(b.get("Net", 0)) for b in shop_bills)
+    pkg_pct, pkg_name, tier_label = get_package_discount_pct(bill_total_net)
+
+    # ---- Build Excel ----
     output = BytesIO()
     workbook = xlsxwriter.Workbook(output, {'in_memory': True})
     worksheet = workbook.add_worksheet("Bill")
     worksheet.set_paper(9); worksheet.set_portrait(); worksheet.fit_to_pages(1, 1)
-    worksheet.set_column("A:A", 47.86); worksheet.set_column("B:B", 23.71)
-    worksheet.set_column("C:C", 12.71); worksheet.set_column("D:D", 12.71)
-    worksheet.set_column("E:E", 12.71); worksheet.set_column("F:F", 12.14)
-    worksheet.set_column("G:G", 13.14); worksheet.set_column("H:H", 14.14)
+    worksheet.set_column("A:A", 42.86); worksheet.set_column("B:B", 12.71)
+    worksheet.set_column("C:C", 10.71); worksheet.set_column("D:D", 10.71)
+    worksheet.set_column("E:E", 11.71); worksheet.set_column("F:F", 11.14)
+    worksheet.set_column("G:G", 11.14); worksheet.set_column("H:H", 12.14)
+    worksheet.set_column("I:I", 13.14); worksheet.set_column("J:J", 13.14)
+
     title = workbook.add_format({"bold":True, "font_size":18, "align":"center", "border":2})
-    header = workbook.add_format({"bold":True, "font_size":12, "bg_color":"#BBDEFB", "align":"center", "border":2})
-    cell_left = workbook.add_format({"font_size":14, "border":1, "align":"left"})
-    cell_center = workbook.add_format({"font_size":14, "border":1, "align":"center"})
-    total = workbook.add_format({"bold":True, "font_size":14, "bg_color":"#FFF2CC", "align":"center", "border":2})
-    worksheet.merge_range("A1:H1", COMPANY_NAME, title)
-    worksheet.write("A3","Shop Name",header); worksheet.write("B3", st.session_state.get("shop_name", ""), cell_center)
+    header = workbook.add_format({"bold":True, "font_size":11, "bg_color":"#BBDEFB", "align":"center", "border":2, "text_wrap": True})
+    cell_left = workbook.add_format({"font_size":12, "border":1, "align":"left"})
+    cell_center = workbook.add_format({"font_size":12, "border":1, "align":"center"})
+    total = workbook.add_format({"bold":True, "font_size":12, "bg_color":"#FFF2CC", "align":"center", "border":2})
+    disc_hl = workbook.add_format({"font_size":12, "border":1, "align":"center", "bg_color":"#E8F5E9", "bold": True})
+    pkg_info = workbook.add_format({"font_size":10, "italic": True, "align":"left", "font_color":"#1b5e20"})
+
+    worksheet.merge_range("A1:J1", COMPANY_NAME, title)
+
+    worksheet.write("A3","Shop Name",header); worksheet.write("B3", shop, cell_center)
     worksheet.write("D3","Booker",header); worksheet.write("E3", st.session_state.get("order_booker", ""), cell_center)
     worksheet.write("G3","Bill No",header)
     last_bill = st.session_state.get("last_bill_no") or (db["next_bill_no"] - 1)
     worksheet.write("H3", last_bill, cell_center)
-    worksheet.write("G4","Date",header); worksheet.write("H4", datetime.now().strftime("%d-%m-%Y"), cell_center)
-    row = 6
-    for col, value in enumerate(["Product", "Code", "Boxes", "TP/Box", "Gross", "Discount %", "Net"]):
-        worksheet.write(row, col, value, header)
-    row += 1
-    gross_total = 0; total_boxes = 0
-    shop_filter = st.session_state.get("shop_name", "").strip()
-    for bill in db["bills"]:
-        if bill["Shop"].strip() != shop_filter: continue
+    worksheet.write("I3","Date",header); worksheet.write("J3", datetime.now().strftime("%d-%m-%Y"), cell_center)
+
+    # package info line
+    if pkg_pct > 0:
+        worksheet.merge_range("A4:J4", f"🎁 Discount Package: {pkg_name} | {tier_label} | Applied: {pkg_pct}% on each product", pkg_info)
+        start_row = 6
+    else:
+        if pkg_name:
+            worksheet.merge_range("A4:J4", f"🎁 Package '{pkg_name}' active hai lekin bill total par koi tier apply nahi hua (Total Net: Rs {bill_total_net:,.0f})", pkg_info)
+        else:
+            worksheet.merge_range("A4:J4", "💡 Koi discount package active nahi", pkg_info)
+        start_row = 6
+
+    headers = ["Product", "Code", "Boxes", "TP/Box", "Gross", "Disc %", "Net", "Pkg Disc %", "After Disc Net", "Saved"]
+    for col, h in enumerate(headers):
+        worksheet.write(start_row, col, h, header)
+    row = start_row + 1
+
+    gross_total = 0; total_boxes = 0; net_total = 0; after_disc_total = 0; saved_total = 0
+
+    for bill in shop_bills:
+        b_net = float(bill.get("Net", 0))
+        b_gross = float(bill.get("Gross", 0))
+        b_boxes = int(bill.get("Boxes", 0))
+        after_net = b_net - (b_net * pkg_pct / 100)
+        saved = b_net - after_net
+
         worksheet.write(row, 0, bill["Product"], cell_left)
         worksheet.write(row, 1, bill["Code"], cell_center)
-        worksheet.write(row, 2, bill["Boxes"], cell_center)
-        worksheet.write(row, 3, bill["TP/Box"], cell_center)
-        worksheet.write(row, 4, bill["Gross"], cell_center)
-        worksheet.write(row, 5, bill["Discount %"], cell_center)
-        excel_row = row + 1
-        worksheet.write_formula(row, 6, f"=E{excel_row}-(E{excel_row}*F{excel_row}/100)", cell_center)
-        gross_total += bill["Gross"]; total_boxes += bill["Boxes"]; row += 1
-    worksheet.write(row, 1, "TOTAL", total); worksheet.write(row, 2, total_boxes, total)
-    worksheet.write(row, 4, gross_total, total); worksheet.write_blank(row, 5, None, total)
-    worksheet.write_formula(row, 6, f"=E{row+1}-(E{row+1}*F{row+1}/100)", total)
+        worksheet.write(row, 2, b_boxes, cell_center)
+        worksheet.write(row, 3, bill.get("TP/Box", 0), cell_center)
+        worksheet.write(row, 4, b_gross, cell_center)
+        worksheet.write(row, 5, bill.get("Discount %", 0), cell_center)
+        worksheet.write(row, 6, b_net, cell_center)
+        if pkg_pct > 0:
+            worksheet.write(row, 7, pkg_pct, disc_hl)
+            worksheet.write(row, 8, after_net, disc_hl)
+            worksheet.write(row, 9, saved, disc_hl)
+        else:
+            worksheet.write(row, 7, 0, cell_center)
+            worksheet.write(row, 8, b_net, cell_center)
+            worksheet.write(row, 9, 0, cell_center)
+
+        gross_total += b_gross; total_boxes += b_boxes
+        net_total += b_net; after_disc_total += after_net; saved_total += saved
+        row += 1
+
+    worksheet.write(row, 1, "TOTAL", total)
+    worksheet.write(row, 2, total_boxes, total)
+    worksheet.write(row, 4, gross_total, total)
+    worksheet.write(row, 6, net_total, total)
+    worksheet.write(row, 7, "", total)
+    worksheet.write(row, 8, after_disc_total, total)
+    worksheet.write(row, 9, saved_total, total)
+
+    # big net below
+    row += 2
+    worksheet.merge_range(row, 0, row, 6, "NET AMOUNT (After Package Discount)", header)
+    worksheet.merge_range(row, 7, row, 9, f"Rs {after_disc_total:,.0f}", total)
+    row += 1
+    if pkg_pct > 0:
+        worksheet.merge_range(row, 0, row, 6, "TOTAL SAVED BY DISCOUNT", header)
+        worksheet.merge_range(row, 7, row, 9, f"Rs {saved_total:,.0f}", total)
+
     workbook.close(); output.seek(0)
     st.session_state["download_file"] = (f"{shop}.xlsx", output.getvalue())
     db["next_bill_no"] += 1; save_database(db)
     st.session_state["last_bill_no"] = None
-    st.session_state["success_msg"] = f"✅ Bill Exported | Next Bill No: {db['next_bill_no']}"
+    if pkg_pct > 0:
+        st.session_state["success_msg"] = f"✅ Bill Exported | {pkg_name} {tier_label} | {pkg_pct}% discount applied | Total Net: Rs {after_disc_total:,.0f} (Saved Rs {saved_total:,.0f})"
+    else:
+        st.session_state["success_msg"] = f"✅ Bill Exported | Next Bill No: {db['next_bill_no']}"
 
 def export_load_form_from_billing_callback():
     db = st.session_state.database
@@ -1975,6 +2036,8 @@ elif st.session_state["page"] == "🧾 Billing":
     render_billing()
 elif st.session_state["page"] == "🛒 All Products":
     render_all_products()
+elif st.session_state["page"] == "🎁 Discount":
+    render_discount()
 elif st.session_state["page"] == "👤 Bookers":
     render_bookers()
 elif st.session_state["page"] == "💰 Bookers Salary":
