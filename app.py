@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# Dashboard + All Products (Editable Prices)
+# Dashboard + All Products (Editable Prices) - No Quick Actions
 # ============================================================
 
 import os
@@ -176,7 +176,6 @@ st.markdown("""
         margin-bottom: 8px;
     }
 
-    /* Dashboard people cards */
     .person-card {
         background: #ffffff;
         border-left: 6px solid #4caf50;
@@ -276,15 +275,6 @@ st.markdown("""
     .sal-metric.short { background: #ffebee; color: #c62828; }
     .sal-metric.remain { background: #e8f5e9; color: #1b5e20; }
 
-    /* Product cards */
-    .prod-row {
-        background: #ffffff;
-        border: 1px solid #a5d6a7;
-        border-radius: 10px;
-        padding: 10px 14px;
-        margin-bottom: 8px;
-    }
-
     .stAlert { border-radius: 10px !important; }
     hr { border-color: #a5d6a7 !important; opacity: 0.6 !important; }
 </style>
@@ -294,7 +284,7 @@ COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
 DATA_FILE = "billing_database.json"
 
 # ============================================================
-# PRODUCT LIST (base prices — original)
+# PRODUCT LIST
 # ============================================================
 PRODUCTS = sorted([
     {"code":"51","name":"BOOMZ LIQUID MANGO","price":135},
@@ -478,10 +468,9 @@ for k in ["bookers_salaries", "salesmen_salaries", "product_prices"]:
     if k not in db: db[k] = {}
 
 # ============================================================
-# HELPER: Get current price (custom or base)
+# HELPER: Get current price
 # ============================================================
 def get_price(code, base_price):
-    """Return custom price if set, else base price."""
     custom = db.get("product_prices", {})
     if str(code) in custom:
         try:
@@ -564,7 +553,7 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
 # ============================================================
-# PAGE: DASHBOARD (NEW)
+# PAGE: DASHBOARD (Quick Actions REMOVED)
 # ============================================================
 def render_dashboard():
     st.markdown(f"<h1 style='color:#2e7d32 !important;'>📊 Dashboard</h1>", unsafe_allow_html=True)
@@ -574,7 +563,6 @@ def render_dashboard():
     bookers = db.get("bookers", [])
     salesmen = db.get("salesmen", [])
 
-    # Quick action buttons
     c1, c2, c3 = st.columns(3)
     with c1:
         st.markdown(f"<div class='metric-card'><h3>TOTAL BOOKERS</h3><h1>{len(bookers)}</h1></div>", unsafe_allow_html=True)
@@ -585,10 +573,8 @@ def render_dashboard():
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Two columns: Bookers list | Salesmen list
     c1, c2 = st.columns(2)
 
-    # ---- BOOKERS LIST ----
     with c1:
         st.markdown("### 👤 Bookers")
         if not bookers:
@@ -611,7 +597,6 @@ def render_dashboard():
                 </div>
                 """, unsafe_allow_html=True)
 
-    # ---- SALESMEN LIST ----
     with c2:
         st.markdown("### 🧑‍💼 Salesmen")
         if not salesmen:
@@ -634,35 +619,14 @@ def render_dashboard():
                 </div>
                 """, unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("---")
-    st.markdown("### ⚡ Quick Actions")
-    q1, q2, q3 = st.columns(3)
-    with q1:
-        if st.button("🧾 Go to Billing", use_container_width=True, key="qa_billing"):
-            st.session_state["page"] = "🧾 Billing"
-            st.session_state["page_selector"] = "🧾 Billing"
-            st.rerun()
-    with q2:
-        if st.button("🛒 All Products (Edit Price)", use_container_width=True, key="qa_products"):
-            st.session_state["page"] = "🛒 All Products"
-            st.session_state["page_selector"] = "🛒 All Products"
-            st.rerun()
-    with q3:
-        if st.button("📋 View Bills", use_container_width=True, key="qa_bills"):
-            st.session_state["page"] = "📋 Bills List"
-            st.session_state["page_selector"] = "📋 Bills List"
-            st.rerun()
-
 # ============================================================
-# PAGE: ALL PRODUCTS (EDITABLE PRICES)
+# PAGE: ALL PRODUCTS
 # ============================================================
 def render_all_products():
     st.markdown(f"<h1 style='color:#2e7d32 !important;'>🛒 All Products</h1>", unsafe_allow_html=True)
     st.markdown("<p style='color:#00695c;font-weight:500;'>Kisi bhi product ka price change karo — billing me wahi naya price use hoga</p>", unsafe_allow_html=True)
     st.markdown("---")
 
-    # Search + filter
     c1, c2 = st.columns([3, 1])
     with c1:
         search = st.text_input("🔍 Search Product:", key="prod_search", placeholder="Type product name...")
@@ -670,10 +634,8 @@ def render_all_products():
         show_only_edited = st.checkbox("Sirf edited prices", key="prod_only_edited")
 
     search_upper = search.strip().upper()
-
     edited_prices = db.get("product_prices", {})
 
-    # Build list
     shown = []
     for p in PRODUCTS:
         if search_upper and search_upper not in p["name"].upper():
@@ -682,7 +644,6 @@ def render_all_products():
             continue
         shown.append(p)
 
-    # Summary
     st.markdown(f"""
     <div class='summary-box'>
         <b style='color:#2e7d32;font-size:16px;'>📊 Summary</b><br>
@@ -709,10 +670,8 @@ def render_all_products():
         st.info("Is filter ke hisaab se koi product nahi mila.")
         return
 
-    # Show table
     st.markdown(f"### 📋 Products ({len(shown)})")
 
-    # Header row
     hc1, hc2, hc3, hc4 = st.columns([1, 4, 2, 2])
     with hc1: st.markdown("**Code**")
     with hc2: st.markdown("**Product**")
@@ -752,7 +711,6 @@ def render_all_products():
             with sub1:
                 if st.button("💾 Save", key=f"save_price_{code}", use_container_width=True):
                     if float(new_price) == base:
-                        # Same as base, remove override
                         db.get("product_prices", {}).pop(code, None)
                         save_database(db)
                         st.session_state["success_msg"] = f"✅ {p['name']}: price original (Rs {base:,.0f})"
@@ -769,7 +727,6 @@ def render_all_products():
                         st.session_state["success_msg"] = f"↩️ {p['name']}: original price (Rs {base:,.0f})"
                         st.rerun()
 
-    # Messages
     if st.session_state.get("success_msg"):
         st.success(st.session_state["success_msg"])
         st.session_state["success_msg"] = None
