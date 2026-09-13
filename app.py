@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# Streamlit Cloud Version (24/7 Free Hosting)
+# Dashboard + Sidebar Navigation + Black Theme
 # ============================================================
 
 import os
@@ -11,16 +11,100 @@ import streamlit as st
 import xlsxwriter
 from io import BytesIO
 
-st.set_page_config(page_title="AL-BARAKAH ENTERPRISES", page_icon="🧾", layout="wide")
+st.set_page_config(
+    page_title="AL-BARAKAH ENTERPRISES",
+    page_icon="🧾",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# ============================================================
+# BLACK THEME CSS
+# ============================================================
+st.markdown("""
+<style>
+    .stApp {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+    }
+    section[data-testid="stSidebar"] {
+        background-color: #0a0a0a !important;
+        border-right: 1px solid #1f1f1f !important;
+    }
+    section[data-testid="stSidebar"] * {
+        color: #ffffff !important;
+    }
+    h1, h2, h3, h4, h5, h6, p, span, label, div {
+        color: #ffffff !important;
+    }
+    .stTextInput > div > div > input,
+    .stNumberInput > div > div > input,
+    .stSelectbox > div > div > div {
+        background-color: #1a1a1a !important;
+        color: #ffffff !important;
+        border: 1px solid #2a2a2a !important;
+    }
+    .stButton > button {
+        background-color: #1a1a1a !important;
+        color: #ffffff !important;
+        border: 1px solid #333333 !important;
+        font-weight: bold !important;
+    }
+    .stButton > button:hover {
+        background-color: #2a2a2a !important;
+        border-color: #00ff88 !important;
+    }
+    .stDataFrame, .stTable {
+        background-color: #0a0a0a !important;
+    }
+    .stRadio > div {
+        background-color: transparent !important;
+    }
+    .stRadio label {
+        color: #ffffff !important;
+        font-size: 15px !important;
+        padding: 8px 10px !important;
+        border-radius: 6px !important;
+        cursor: pointer !important;
+    }
+    .stRadio label:hover {
+        background-color: #1a1a1a !important;
+    }
+    div[role="radiogroup"] > label {
+        background-color: #0f0f0f !important;
+        margin-bottom: 6px !important;
+        border: 1px solid #1f1f1f !important;
+    }
+    .metric-card {
+        background-color: #0f0f0f;
+        border: 1px solid #1f1f1f;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+    }
+    .metric-card h3 {
+        color: #888888 !important;
+        font-size: 14px !important;
+        margin: 0 !important;
+        font-weight: normal !important;
+    }
+    .metric-card h1 {
+        color: #00ff88 !important;
+        font-size: 32px !important;
+        margin: 8px 0 0 0 !important;
+    }
+    hr {
+        border-color: #1f1f1f !important;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
 DATA_FILE = "billing_database.json"
 
 # ============================================================
-# PRODUCT LIST - ALPHABETICAL ORDER
-# ALL M/P PRODUCTS PRICE = 148
+# PRODUCT LIST
 # ============================================================
-
 PRODUCTS = sorted([
     {"code":"51","name":"BOOMZ LIQUID MANGO","price":135},
     {"code":"4","name":"BADAM DELIGHT CANDY BOX","price":135},
@@ -145,7 +229,6 @@ PRODUCT_NAMES = [p["name"] for p in PRODUCTS]
 # ============================================================
 # DATABASE
 # ============================================================
-
 def save_database(db):
     try:
         with open(DATA_FILE, "w", encoding="utf-8") as f:
@@ -170,82 +253,312 @@ if "last_bill_no" not in st.session_state:
     st.session_state["last_bill_no"] = None
 if "download_file" not in st.session_state:
     st.session_state["download_file"] = None
+if "page" not in st.session_state:
+    st.session_state["page"] = "📊 Dashboard"
 
 db = st.session_state.database
 
 # ============================================================
-# HEADER
+# SIDEBAR NAVIGATION
 # ============================================================
-st.markdown(f"<h1 style='color:#0b6623;'>🧾 {COMPANY_NAME}</h1>", unsafe_allow_html=True)
+with st.sidebar:
+    st.markdown("""
+    <div style='text-align:center; padding: 15px 0;'>
+        <h2 style='color:#00ff88 !important; margin:0;'>🧾 AL-BARAKAH</h2>
+        <p style='color:#888 !important; font-size:12px; margin:0;'>ENTERPRISES</p>
+    </div>
+    """, unsafe_allow_html=True)
+    st.markdown("---")
 
-# ============================================================
-# BILL INFORMATION
-# ============================================================
-c1, c2 = st.columns(2)
-with c1:
-    st.text_input("Bill No:", value=str(db["next_bill_no"]), disabled=True)
-with c2:
-    st.text_input("Date:", value=datetime.now().strftime("%d-%m-%Y"), disabled=True)
+    page = st.radio(
+        "MENU",
+        ["📊 Dashboard", "🧾 Billing", "📋 Bills List", "📦 Load Form"],
+        key="page_selector",
+        label_visibility="collapsed"
+    )
+    st.session_state["page"] = page
 
-# ============================================================
-# CUSTOMER INFORMATION
-# ============================================================
-shop_name = st.text_input("Shop:", key="shop_name", placeholder="Enter Shop Name")
-order_booker = st.text_input("Order Booker:", key="order_booker", placeholder="Enter Order Booker")
-salesman = st.text_input("Salesman:", key="salesman", placeholder="Enter Salesman")
-delivery_man = st.text_input("Delivery Man:", key="delivery_man", placeholder="Enter Delivery Man")
-
-st.markdown("---")
-st.markdown("**🔍 Search Product by Name:**")
-
-search_text = st.text_input("Search:", key="search_text", placeholder="Type product name...")
-search_upper = search_text.strip().upper()
-filtered_names = [p["name"] for p in PRODUCTS if search_upper in p["name"].upper()] if search_upper else PRODUCT_NAMES
-
-if st.session_state.get("product_sel") and st.session_state["product_sel"] not in filtered_names:
-    st.session_state["product_sel"] = ""
-
-product_sel = st.selectbox("Select Product:", options=[""] + filtered_names, key="product_sel")
-
-selected_product = None
-if product_sel:
-    for p in PRODUCTS:
-        if p["name"] == product_sel:
-            selected_product = p
-            break
-
-if selected_product:
-    st.success(f"✅ {selected_product['name']}  (Code: {selected_product['code']})")
-    tp_default = float(selected_product["price"])
-else:
-    st.error("No Product Selected")
-    tp_default = 0.0
-
-if st.session_state["_prev_prod"] != product_sel:
-    st.session_state["tp_box"] = tp_default
-    st.session_state["_prev_prod"] = product_sel
-
-st.markdown("---")
+    st.markdown("---")
+    st.markdown(f"""
+    <div style='padding:10px; color:#666 !important; font-size:12px;'>
+        <p>📅 {datetime.now().strftime('%d-%m-%Y')}</p>
+        <p>📦 Products: {len(PRODUCTS)}</p>
+        <p>🧾 Total Bills: {len(db['bills'])}</p>
+    </div>
+    """, unsafe_allow_html=True)
 
 # ============================================================
-# QUANTITY / PRICE
+# PAGE: DASHBOARD
 # ============================================================
-c1, c2, c3 = st.columns(3)
-with c1:
-    boxes = st.number_input("Boxes:", min_value=0, step=1, key="boxes")
-with c2:
-    tp_box = st.number_input("TP/Box:", min_value=0.0, step=1.0, key="tp_box")
-with c3:
-    discount = st.number_input("Discount %:", min_value=0.0, step=0.5, key="discount")
+def render_dashboard():
+    st.markdown(f"<h1 style='color:#00ff88 !important;'>📊 Dashboard</h1>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color:#888;'>Welcome to {COMPANY_NAME} — Overview & Statistics</p>", unsafe_allow_html=True)
+    st.markdown("---")
 
-gross = boxes * tp_box
-net = gross - (gross * discount / 100)
+    bills = db["bills"]
 
-c1, c2 = st.columns(2)
-with c1:
-    st.text_input("Gross:", value=f"{gross:.2f}", disabled=True)
-with c2:
-    st.text_input("Net:", value=f"{net:.2f}", disabled=True)
+    # Metrics
+    total_bills = len(bills)
+    total_boxes = sum(b["Boxes"] for b in bills) if bills else 0
+    total_gross = sum(b["Gross"] for b in bills) if bills else 0
+    total_net = sum(b["Net"] for b in bills) if bills else 0
+    unique_shops = len(set(b["Shop"] for b in bills if b["Shop"])) if bills else 0
+    unique_bookers = len(set(b["Order Booker"] for b in bills if b["Order Booker"])) if bills else 0
+
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        st.markdown(f"""
+        <div class='metric-card'>
+            <h3>TOTAL BILLS</h3>
+            <h1>{total_bills}</h1>
+        </div>
+        """, unsafe_allow_html=True)
+    with c2:
+        st.markdown(f"""
+        <div class='metric-card'>
+            <h3>TOTAL BOXES</h3>
+            <h1>{total_boxes}</h1>
+        </div>
+        """, unsafe_allow_html=True)
+    with c3:
+        st.markdown(f"""
+        <div class='metric-card'>
+            <h3>UNIQUE SHOPS</h3>
+            <h1>{unique_shops}</h1>
+        </div>
+        """, unsafe_allow_html=True)
+    with c4:
+        st.markdown(f"""
+        <div class='metric-card'>
+            <h3>ORDER BOOKERS</h3>
+            <h1>{unique_bookers}</h1>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown(f"""
+        <div class='metric-card'>
+            <h3>TOTAL GROSS AMOUNT</h3>
+            <h1>Rs {total_gross:,.0f}</h1>
+        </div>
+        """, unsafe_allow_html=True)
+    with c2:
+        st.markdown(f"""
+        <div class='metric-card'>
+            <h3>TOTAL NET AMOUNT</h3>
+            <h1>Rs {total_net:,.0f}</h1>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<br><br>", unsafe_allow_html=True)
+
+    # Recent Bills
+    st.markdown("### 🕐 Recent Bills (Last 5)")
+    if bills:
+        recent = bills[-5:][::-1]
+        df = pd.DataFrame(recent)
+        st.dataframe(df, use_container_width=True, hide_index=True)
+    else:
+        st.info("Abhi tak koi bill add nahi hua. 'Billing' page pe jao aur pehla bill banao.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Top Products
+    if bills:
+        st.markdown("### 🏆 Top Products (By Boxes)")
+        prod_summary = {}
+        for b in bills:
+            name = b["Product"]
+            if name not in prod_summary:
+                prod_summary[name] = {"Product": name, "Boxes": 0, "Amount": 0}
+            prod_summary[name]["Boxes"] += b["Boxes"]
+            prod_summary[name]["Amount"] += b["Net"]
+
+        top_products = sorted(prod_summary.values(), key=lambda x: x["Boxes"], reverse=True)[:5]
+        df_top = pd.DataFrame(top_products)
+        st.dataframe(df_top, use_container_width=True, hide_index=True)
+
+# ============================================================
+# PAGE: BILLING
+# ============================================================
+def render_billing():
+    st.markdown(f"<h1 style='color:#00ff88 !important;'>🧾 Billing</h1>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    c1, c2 = st.columns(2)
+    with c1:
+        st.text_input("Bill No:", value=str(db["next_bill_no"]), disabled=True, key="dash_bill_no")
+    with c2:
+        st.text_input("Date:", value=datetime.now().strftime("%d-%m-%Y"), disabled=True, key="dash_bill_date")
+
+    shop_name = st.text_input("Shop:", key="shop_name", placeholder="Enter Shop Name")
+    order_booker = st.text_input("Order Booker:", key="order_booker", placeholder="Enter Order Booker")
+    salesman = st.text_input("Salesman:", key="salesman", placeholder="Enter Salesman")
+    delivery_man = st.text_input("Delivery Man:", key="delivery_man", placeholder="Enter Delivery Man")
+
+    st.markdown("---")
+    st.markdown("**🔍 Search Product by Name:**")
+
+    search_text = st.text_input("Search:", key="search_text", placeholder="Type product name...")
+    search_upper = search_text.strip().upper()
+    filtered_names = [p["name"] for p in PRODUCTS if search_upper in p["name"].upper()] if search_upper else PRODUCT_NAMES
+
+    if st.session_state.get("product_sel") and st.session_state["product_sel"] not in filtered_names:
+        st.session_state["product_sel"] = ""
+
+    product_sel = st.selectbox("Select Product:", options=[""] + filtered_names, key="product_sel")
+
+    selected_product = None
+    if product_sel:
+        for p in PRODUCTS:
+            if p["name"] == product_sel:
+                selected_product = p
+                break
+
+    if selected_product:
+        st.success(f"✅ {selected_product['name']}  (Code: {selected_product['code']})")
+        tp_default = float(selected_product["price"])
+    else:
+        st.error("No Product Selected")
+        tp_default = 0.0
+
+    if st.session_state["_prev_prod"] != product_sel:
+        st.session_state["tp_box"] = tp_default
+        st.session_state["_prev_prod"] = product_sel
+
+    st.markdown("---")
+
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        boxes = st.number_input("Boxes:", min_value=0, step=1, key="boxes")
+    with c2:
+        tp_box = st.number_input("TP/Box:", min_value=0.0, step=1.0, key="tp_box")
+    with c3:
+        discount = st.number_input("Discount %:", min_value=0.0, step=0.5, key="discount")
+
+    gross = boxes * tp_box
+    net = gross - (gross * discount / 100)
+
+    c1, c2 = st.columns(2)
+    with c1:
+        st.text_input("Gross:", value=f"{gross:.2f}", disabled=True, key="gross_disp")
+    with c2:
+        st.text_input("Net:", value=f"{net:.2f}", disabled=True, key="net_disp")
+
+    # Messages
+    if st.session_state.get("success_msg"):
+        st.success(st.session_state["success_msg"])
+        st.session_state["success_msg"] = None
+    if st.session_state.get("error_msg"):
+        st.error(st.session_state["error_msg"])
+        st.session_state["error_msg"] = None
+
+    st.markdown("---")
+
+    c1, c2 = st.columns(2)
+    with c1:
+        st.button("➕ Add Bill", key="btn_add", on_click=add_bill_callback, use_container_width=True, type="primary")
+    with c2:
+        st.button("🔄 Refresh", key="btn_refresh", on_click=refresh_callback, use_container_width=True)
+
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.button("📄 Export Bill", key="btn_export", on_click=export_bill_callback, use_container_width=True)
+    with c2:
+        st.button("📦 Export Load Form", key="btn_load", on_click=export_load_form_callback, use_container_width=True)
+    with c3:
+        st.button("🗑 Refresh Load Form", key="btn_load_refresh", on_click=refresh_load_form_callback, use_container_width=True)
+
+    if st.session_state.get("download_file"):
+        fname, fdata = st.session_state["download_file"]
+        st.download_button(
+            label=f"⬇️ Download {fname}",
+            data=fdata,
+            file_name=fname,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key="download_btn",
+            use_container_width=True,
+        )
+
+# ============================================================
+# PAGE: BILLS LIST
+# ============================================================
+def render_bills_list():
+    st.markdown(f"<h1 style='color:#00ff88 !important;'>📋 Bills List</h1>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color:#888;'>Total {len(db['bills'])} bills in database</p>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    if len(db["bills"]) == 0:
+        st.info("❌ Koi bill nahi mila. Pehle 'Billing' page pe jaake bill banao.")
+        return
+
+    df = pd.DataFrame(db["bills"])
+
+    c1, c2 = st.columns([2, 1])
+    with c1:
+        search = st.text_input("🔍 Search (Shop / Product / Booker):", key="bills_search")
+    with c2:
+        shop_filter = st.selectbox("Filter by Shop:", options=["All"] + sorted(set(b["Shop"] for b in db["bills"] if b["Shop"])), key="shop_filter")
+
+    filtered_df = df.copy()
+    if search:
+        s = search.upper()
+        mask = (
+            filtered_df["Shop"].astype(str).str.upper().str.contains(s, na=False) |
+            filtered_df["Product"].astype(str).str.upper().str.contains(s, na=False) |
+            filtered_df["Order Booker"].astype(str).str.upper().str.contains(s, na=False)
+        )
+        filtered_df = filtered_df[mask]
+
+    if shop_filter != "All":
+        filtered_df = filtered_df[filtered_df["Shop"] == shop_filter]
+
+    st.dataframe(filtered_df, use_container_width=True, hide_index=True)
+    st.caption(f"Showing {len(filtered_df)} of {len(df)} bills")
+
+# ============================================================
+# PAGE: LOAD FORM
+# ============================================================
+def render_load_form():
+    st.markdown(f"<h1 style='color:#00ff88 !important;'>📦 Load Form</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#888;'>Order Booker ke hisaab se load form dekho</p>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    bookers = sorted(set(b["Order Booker"] for b in db["bills"] if b["Order Booker"]))
+    if not bookers:
+        st.info("❌ Koi order booker nahi mila. Pehle 'Billing' page pe bill banao.")
+        return
+
+    selected_booker = st.selectbox("Select Order Booker:", options=bookers, key="lf_booker")
+
+    booker_bills = [b for b in db["bills"] if b["Order Booker"].strip() == selected_booker]
+
+    if not booker_bills:
+        st.warning("Is booker ke liye koi bill nahi hai.")
+        return
+
+    summary = {}
+    for b in booker_bills:
+        code = b["Code"]
+        if code not in summary:
+            summary[code] = {"Code": code, "Product": b["Product"], "Boxes": 0}
+        summary[code]["Boxes"] += b["Boxes"]
+
+    df = pd.DataFrame(list(summary.values()))
+    total_boxes = df["Boxes"].sum()
+
+    st.markdown(f"**Order Booker:** {selected_booker}")
+    st.markdown(f"**Total Products:** {len(summary)} | **Total Boxes:** {total_boxes}")
+    st.markdown("---")
+    st.dataframe(df, use_container_width=True, hide_index=True)
+
+    st.markdown("---")
+    if st.button("📦 Export Load Form (Excel)", key="lf_export", use_container_width=True, type="primary"):
+        st.session_state["lf_export_booker"] = selected_booker
+        export_load_form_for_booker(selected_booker)
 
 # ============================================================
 # CALLBACKS
@@ -300,6 +613,7 @@ def add_bill_callback():
     st.session_state["tp_box"] = 0.0
     st.session_state["discount"] = 0.0
 
+
 def refresh_callback():
     st.session_state["search_text"] = ""
     st.session_state["product_sel"] = ""
@@ -308,6 +622,7 @@ def refresh_callback():
     st.session_state["tp_box"] = 0.0
     st.session_state["discount"] = 0.0
     st.session_state["success_msg"] = "✅ Ready For Next Product"
+
 
 def export_bill_callback():
     db = st.session_state.database
@@ -392,13 +707,17 @@ def export_bill_callback():
     st.session_state["last_bill_no"] = None
     st.session_state["success_msg"] = f"✅ Bill Exported | Next Bill No: {db['next_bill_no']}"
 
+
 def export_load_form_callback():
-    db = st.session_state.database
     booker = st.session_state.get("order_booker", "").strip()
     if not booker:
         st.session_state["error_msg"] = "❌ Please Enter Order Booker"
         return
+    export_load_form_for_booker(booker)
 
+
+def export_load_form_for_booker(booker):
+    db = st.session_state.database
     booker_bills = [b for b in db["bills"] if b["Order Booker"].strip() == booker]
     if not booker_bills:
         st.session_state["error_msg"] = "❌ No Bills Found for this Booker"
@@ -446,6 +765,7 @@ def export_load_form_callback():
     st.session_state["download_file"] = (f"{booker}_Load_Form.xlsx", output.getvalue())
     st.session_state["success_msg"] = f"✅ Load Form Exported | Products: {len(summary)} | Boxes: {total_boxes}"
 
+
 def refresh_load_form_callback():
     db = st.session_state.database
     booker = st.session_state.get("order_booker", "").strip()
@@ -463,53 +783,13 @@ def refresh_load_form_callback():
     st.session_state["success_msg"] = f"✅ Load Form Cleared | Booker: {booker}"
 
 # ============================================================
-# MESSAGES
+# RENDER SELECTED PAGE
 # ============================================================
-if st.session_state.get("success_msg"):
-    st.success(st.session_state["success_msg"])
-    st.session_state["success_msg"] = None
-if st.session_state.get("error_msg"):
-    st.error(st.session_state["error_msg"])
-    st.session_state["error_msg"] = None
-
-# ============================================================
-# BUTTONS
-# ============================================================
-st.markdown("---")
-c1, c2 = st.columns(2)
-with c1:
-    st.button("➕ Add Bill", key="btn_add", on_click=add_bill_callback, use_container_width=True, type="primary")
-with c2:
-    st.button("🔄 Refresh", key="btn_refresh", on_click=refresh_callback, use_container_width=True)
-
-c1, c2, c3 = st.columns(3)
-with c1:
-    st.button("📄 Export Bill", key="btn_export", on_click=export_bill_callback, use_container_width=True)
-with c2:
-    st.button("📦 Export Load Form", key="btn_load", on_click=export_load_form_callback, use_container_width=True)
-with c3:
-    st.button("🗑 Refresh Load Form", key="btn_load_refresh", on_click=refresh_load_form_callback, use_container_width=True)
-
-# ============================================================
-# DOWNLOAD BUTTON
-# ============================================================
-if st.session_state.get("download_file"):
-    fname, fdata = st.session_state["download_file"]
-    st.download_button(
-        label=f"⬇️ Download {fname}",
-        data=fdata,
-        file_name=fname,
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        key="download_btn",
-        use_container_width=True,
-    )
-
-# ============================================================
-# SHOW BILLS
-# ============================================================
-with st.expander("📋 Show Bills", expanded=False):
-    if len(db["bills"]) == 0:
-        st.info("❌ No Bills Found")
-    else:
-        df = pd.DataFrame(db["bills"])
-        st.dataframe(df, use_container_width=True)
+if st.session_state["page"] == "📊 Dashboard":
+    render_dashboard()
+elif st.session_state["page"] == "🧾 Billing":
+    render_billing()
+elif st.session_state["page"] == "📋 Bills List":
+    render_bills_list()
+elif st.session_state["page"] == "📦 Load Form":
+    render_load_form()
