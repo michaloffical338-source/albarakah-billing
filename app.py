@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# Dashboard + Sidebar + Light Blue/Green Theme + Fixed Collapse
+# Dashboard + Sidebar + Light Blue/Green Theme - FINAL FIX
 # ============================================================
 
 import os
@@ -8,6 +8,7 @@ import json
 import pandas as pd
 from datetime import datetime
 import streamlit as st
+import streamlit.components.v1 as components
 import xlsxwriter
 from io import BytesIO
 
@@ -19,88 +20,24 @@ st.set_page_config(
 )
 
 # ============================================================
-# LIGHT BLUE / GREEN THEME CSS
+# LIGHT BLUE / GREEN THEME CSS - MINIMAL, NO HEADER HIDING
 # ============================================================
 st.markdown("""
 <style>
-    /* Header visible but transparent - KEEP the toggle button alive */
-    header[data-testid="stHeader"] {
-        background: transparent !important;
-    }
+    /* Only hide the right-side toolbar, NOT the header itself */
     [data-testid="stToolbar"] { display: none !important; }
-    [data-testid="stDecoration"] { display: none !important; }
-    [data-testid="stStatusWidget"] { display: none !important; }
-    [data-testid="manage-app-button"] { display: none !important; }
-    [data-testid="stAppDeployButton"] { display: none !important; }
     #MainMenu { visibility: hidden !important; }
     footer { visibility: hidden !important; }
-    .stAppDeployButton { display: none !important; }
 
-    /* Hide "Manage app" from Streamlit Cloud */
-    iframe[title="streamlit_cloud_status"] {
-        display: none !important;
-    }
-    div[class*="manageApp"] {
-        display: none !important;
-    }
-    button[kind="header"] {
-        display: none !important;
-    }
-
-    /* Cover "Manage app" corner overlay */
-    .stApp::after {
-        content: "";
-        position: fixed;
-        bottom: 0;
-        right: 0;
-        width: 240px;
-        height: 60px;
-        background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%);
-        z-index: 2147483646;
-        pointer-events: none;
-    }
-
-    /* Force sidebar collapse/expand button to be visible */
-    [data-testid="stSidebarCollapsedControl"],
-    [data-testid="collapsedControl"] {
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        position: fixed !important;
-        top: 10px !important;
-        left: 10px !important;
-        z-index: 999999 !important;
-        background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%) !important;
-        color: #ffffff !important;
-        border: none !important;
-        border-radius: 10px !important;
-        box-shadow: 0 3px 10px rgba(76,175,80,0.5) !important;
-        padding: 6px 12px !important;
-        cursor: pointer !important;
-    }
-    [data-testid="stSidebarCollapsedControl"] button,
-    [data-testid="collapsedControl"] button {
+    /* Header - make transparent but keep clickable */
+    header[data-testid="stHeader"] {
         background: transparent !important;
-        color: #ffffff !important;
-        border: none !important;
-        font-size: 20px !important;
-        padding: 4px 8px !important;
-    }
-    [data-testid="stSidebarCollapsedControl"]:hover,
-    [data-testid="collapsedControl"]:hover {
-        background: linear-gradient(135deg, #388e3c 0%, #00897b 100%) !important;
-        box-shadow: 0 5px 14px rgba(76,175,80,0.7) !important;
-        transform: scale(1.05) !important;
-    }
-    [data-testid="stSidebarCollapsedControl"] svg,
-    [data-testid="collapsedControl"] svg {
-        fill: #ffffff !important;
-        color: #ffffff !important;
+        box-shadow: none !important;
     }
 
-    /* Full width layout */
+    /* Full width */
     .block-container {
-        padding-top: 1.5rem !important;
+        padding-top: 1rem !important;
         padding-left: 2rem !important;
         padding-right: 2rem !important;
         padding-bottom: 1rem !important;
@@ -121,17 +58,36 @@ st.markdown("""
     section[data-testid="stSidebar"] * {
         color: #1a1a1a !important;
     }
-    [data-testid="stSidebarCollapseButton"] button {
+
+    /* Style the built-in sidebar collapse button (both sides) */
+    [data-testid="stSidebarCollapseButton"] button,
+    [data-testid="stSidebarCollapsedControl"] button,
+    [data-testid="collapsedControl"] button,
+    [data-testid="stExpandSidebarButton"] button,
+    button[kind="headerNoPadding"] {
         background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%) !important;
         color: #ffffff !important;
         border: none !important;
-        border-radius: 8px !important;
+        border-radius: 10px !important;
+        box-shadow: 0 3px 10px rgba(76,175,80,0.4) !important;
     }
-    [data-testid="stSidebarCollapseButton"] button:hover {
+    [data-testid="stSidebarCollapseButton"] button:hover,
+    [data-testid="stSidebarCollapsedControl"] button:hover,
+    [data-testid="collapsedControl"] button:hover,
+    [data-testid="stExpandSidebarButton"] button:hover,
+    button[kind="headerNoPadding"]:hover {
         background: linear-gradient(135deg, #388e3c 0%, #00897b 100%) !important;
     }
+    [data-testid="stSidebarCollapseButton"] svg,
+    [data-testid="stSidebarCollapsedControl"] svg,
+    [data-testid="collapsedControl"] svg,
+    [data-testid="stExpandSidebarButton"] svg,
+    button[kind="headerNoPadding"] svg {
+        fill: #ffffff !important;
+        color: #ffffff !important;
+    }
 
-    /* Text colors */
+    /* Text */
     h1, h2, h3, h4, h5, h6, p, span, label, div {
         color: #1a1a1a !important;
     }
@@ -164,9 +120,7 @@ st.markdown("""
         background: linear-gradient(135deg, #388e3c 0%, #00897b 100%) !important;
         box-shadow: 0 4px 12px rgba(76,175,80,0.45) !important;
     }
-    .stButton > button p {
-        color: #ffffff !important;
-    }
+    .stButton > button p { color: #ffffff !important; }
     .stDownloadButton > button {
         background: linear-gradient(135deg, #0288d1 0%, #26a69a 100%) !important;
         color: #ffffff !important;
@@ -174,9 +128,7 @@ st.markdown("""
         font-weight: bold !important;
         border-radius: 8px !important;
     }
-    .stDownloadButton > button p {
-        color: #ffffff !important;
-    }
+    .stDownloadButton > button p { color: #ffffff !important; }
 
     /* Radio nav */
     .stRadio > div { background-color: transparent !important; }
@@ -185,7 +137,6 @@ st.markdown("""
         font-size: 15px !important;
         padding: 8px 10px !important;
         border-radius: 8px !important;
-        cursor: pointer !important;
         font-weight: 500 !important;
     }
     div[role="radiogroup"] > label {
@@ -198,7 +149,6 @@ st.markdown("""
     div[role="radiogroup"] > label:hover {
         background-color: #e0f2f1 !important;
         border-color: #4caf50 !important;
-        transform: translateX(3px) !important;
     }
 
     /* Metric cards */
@@ -230,29 +180,81 @@ st.markdown("""
         font-weight: 800 !important;
     }
 
-    /* Dataframe */
     .stDataFrame {
         background-color: #ffffff !important;
         border-radius: 10px !important;
         border: 1px solid #b2dfdb !important;
     }
-
-    .stAlert {
-        border-radius: 10px !important;
-    }
-
-    hr {
-        border-color: #a5d6a7 !important;
-        opacity: 0.6 !important;
-    }
-
-    .streamlit-expanderHeader {
-        background-color: #ffffff !important;
-        border-radius: 8px !important;
-        color: #1a1a1a !important;
-    }
+    .stAlert { border-radius: 10px !important; }
+    hr { border-color: #a5d6a7 !important; opacity: 0.6 !important; }
 </style>
 """, unsafe_allow_html=True)
+
+# ============================================================
+# JAVASCRIPT FIXES: Remove "Manage app" + Ensure Toggle Works
+# ============================================================
+components.html("""
+<script>
+(function() {
+    function fixStuff() {
+        try {
+            var parentDoc = window.parent.document;
+
+            // 1. Remove "Manage app" button (Streamlit Cloud)
+            var killSelectors = [
+                '[data-testid="manage-app-button"]',
+                '[data-testid="stAppDeployButton"]',
+                '.stAppDeployButton',
+                'iframe[title="streamlit_cloud_status"]'
+            ];
+            killSelectors.forEach(function(sel) {
+                parentDoc.querySelectorAll(sel).forEach(function(el) {
+                    el.style.display = 'none';
+                    el.style.visibility = 'hidden';
+                    el.style.opacity = '0';
+                    el.style.pointerEvents = 'none';
+                });
+            });
+
+            // Also target any element containing "Manage app" text in bottom-right
+            parentDoc.querySelectorAll('button, a, div').forEach(function(el) {
+                var txt = (el.textContent || '').trim();
+                if (txt === 'Manage app' || txt === 'Manage App') {
+                    el.style.display = 'none';
+                }
+            });
+
+            // 2. Ensure sidebar toggle button is visible and clickable
+            var toggleSelectors = [
+                '[data-testid="stSidebarCollapsedControl"]',
+                '[data-testid="collapsedControl"]',
+                '[data-testid="stExpandSidebarButton"]'
+            ];
+            toggleSelectors.forEach(function(sel) {
+                parentDoc.querySelectorAll(sel).forEach(function(el) {
+                    el.style.setProperty('display', 'flex', 'important');
+                    el.style.setProperty('visibility', 'visible', 'important');
+                    el.style.setProperty('opacity', '1', 'important');
+                    el.style.setProperty('z-index', '9999999', 'important');
+                    el.style.setProperty('position', 'fixed', 'important');
+                    el.style.setProperty('top', '12px', 'important');
+                    el.style.setProperty('left', '12px', 'important');
+                    el.style.setProperty('background', 'linear-gradient(135deg,#4caf50,#26a69a)', 'important');
+                    el.style.setProperty('border-radius', '10px', 'important');
+                    el.style.setProperty('box-shadow', '0 3px 10px rgba(76,175,80,0.5)', 'important');
+                });
+            });
+        } catch(e) { /* ignore */ }
+    }
+
+    // Run multiple times because Streamlit rerenders
+    setTimeout(fixStuff, 500);
+    setTimeout(fixStuff, 1500);
+    setTimeout(fixStuff, 3000);
+    setInterval(fixStuff, 2000);
+})();
+</script>
+""", height=0)
 
 COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
 DATA_FILE = "billing_database.json"
@@ -451,7 +453,6 @@ def render_dashboard():
     st.markdown("---")
 
     bills = db["bills"]
-
     total_bills = len(bills)
     total_boxes = sum(b["Boxes"] for b in bills) if bills else 0
     total_gross = sum(b["Gross"] for b in bills) if bills else 0
@@ -461,59 +462,27 @@ def render_dashboard():
 
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        st.markdown(f"""
-        <div class='metric-card'>
-            <h3>TOTAL BILLS</h3>
-            <h1>{total_bills}</h1>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-card'><h3>TOTAL BILLS</h3><h1>{total_bills}</h1></div>", unsafe_allow_html=True)
     with c2:
-        st.markdown(f"""
-        <div class='metric-card'>
-            <h3>TOTAL BOXES</h3>
-            <h1>{total_boxes}</h1>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-card'><h3>TOTAL BOXES</h3><h1>{total_boxes}</h1></div>", unsafe_allow_html=True)
     with c3:
-        st.markdown(f"""
-        <div class='metric-card'>
-            <h3>UNIQUE SHOPS</h3>
-            <h1>{unique_shops}</h1>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-card'><h3>UNIQUE SHOPS</h3><h1>{unique_shops}</h1></div>", unsafe_allow_html=True)
     with c4:
-        st.markdown(f"""
-        <div class='metric-card'>
-            <h3>ORDER BOOKERS</h3>
-            <h1>{unique_bookers}</h1>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-card'><h3>ORDER BOOKERS</h3><h1>{unique_bookers}</h1></div>", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
     c1, c2 = st.columns(2)
     with c1:
-        st.markdown(f"""
-        <div class='metric-card'>
-            <h3>TOTAL GROSS AMOUNT</h3>
-            <h1>Rs {total_gross:,.0f}</h1>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-card'><h3>TOTAL GROSS AMOUNT</h3><h1>Rs {total_gross:,.0f}</h1></div>", unsafe_allow_html=True)
     with c2:
-        st.markdown(f"""
-        <div class='metric-card'>
-            <h3>TOTAL NET AMOUNT</h3>
-            <h1>Rs {total_net:,.0f}</h1>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-card'><h3>TOTAL NET AMOUNT</h3><h1>Rs {total_net:,.0f}</h1></div>", unsafe_allow_html=True)
 
     st.markdown("<br><br>", unsafe_allow_html=True)
-
     st.markdown("### 🕐 Recent Bills (Last 5)")
     if bills:
         recent = bills[-5:][::-1]
-        df = pd.DataFrame(recent)
-        st.dataframe(df, use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(recent), use_container_width=True, hide_index=True)
     else:
         st.info("Abhi tak koi bill add nahi hua. 'Billing' page pe jao aur pehla bill banao.")
 
@@ -528,10 +497,8 @@ def render_dashboard():
                 prod_summary[name] = {"Product": name, "Boxes": 0, "Amount": 0}
             prod_summary[name]["Boxes"] += b["Boxes"]
             prod_summary[name]["Amount"] += b["Net"]
-
         top_products = sorted(prod_summary.values(), key=lambda x: x["Boxes"], reverse=True)[:5]
-        df_top = pd.DataFrame(top_products)
-        st.dataframe(df_top, use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(top_products), use_container_width=True, hide_index=True)
 
 # ============================================================
 # PAGE: BILLING
@@ -647,7 +614,6 @@ def render_bills_list():
         return
 
     df = pd.DataFrame(db["bills"])
-
     c1, c2 = st.columns([2, 1])
     with c1:
         search = st.text_input("🔍 Search (Shop / Product / Booker):", key="bills_search")
@@ -684,7 +650,6 @@ def render_load_form():
         return
 
     selected_booker = st.selectbox("Select Order Booker:", options=bookers, key="lf_booker")
-
     booker_bills = [b for b in db["bills"] if b["Order Booker"].strip() == selected_booker]
 
     if not booker_bills:
@@ -705,7 +670,6 @@ def render_load_form():
     st.markdown(f"**Total Products:** {len(summary)} | **Total Boxes:** {total_boxes}")
     st.markdown("---")
     st.dataframe(df, use_container_width=True, hide_index=True)
-
     st.markdown("---")
     if st.button("📦 Export Load Form (Excel)", key="lf_export", use_container_width=True, type="primary"):
         export_load_form_for_booker(selected_booker)
