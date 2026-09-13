@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# Dashboard + Sidebar + Light Blue/Green Theme - FINAL FIX
+# Simple Clean Version - No Header Tricks
 # ============================================================
 
 import os
@@ -8,7 +8,6 @@ import json
 import pandas as pd
 from datetime import datetime
 import streamlit as st
-import streamlit.components.v1 as components
 import xlsxwriter
 from io import BytesIO
 
@@ -20,22 +19,16 @@ st.set_page_config(
 )
 
 # ============================================================
-# LIGHT BLUE / GREEN THEME CSS - MINIMAL, NO HEADER HIDING
+# THEME CSS - SIRF COLORS, NO HEADER/BUTTON TRICKS
 # ============================================================
 st.markdown("""
 <style>
-    /* Only hide the right-side toolbar, NOT the header itself */
-    [data-testid="stToolbar"] { display: none !important; }
-    #MainMenu { visibility: hidden !important; }
-    footer { visibility: hidden !important; }
-
-    /* Header - make transparent but keep clickable */
-    header[data-testid="stHeader"] {
-        background: transparent !important;
-        box-shadow: none !important;
+    /* Main background */
+    .stApp {
+        background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%) !important;
     }
 
-    /* Full width */
+    /* Full width layout */
     .block-container {
         padding-top: 1rem !important;
         padding-left: 2rem !important;
@@ -44,52 +37,9 @@ st.markdown("""
         max-width: 100% !important;
     }
 
-    /* Main background */
-    .stApp {
-        background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%) !important;
-        color: #1a1a1a !important;
-    }
-
-    /* Sidebar */
+    /* Sidebar background */
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #c8e6c9 0%, #b2ebf2 100%) !important;
-        border-right: 2px solid #a5d6a7 !important;
-    }
-    section[data-testid="stSidebar"] * {
-        color: #1a1a1a !important;
-    }
-
-    /* Style the built-in sidebar collapse button (both sides) */
-    [data-testid="stSidebarCollapseButton"] button,
-    [data-testid="stSidebarCollapsedControl"] button,
-    [data-testid="collapsedControl"] button,
-    [data-testid="stExpandSidebarButton"] button,
-    button[kind="headerNoPadding"] {
-        background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%) !important;
-        color: #ffffff !important;
-        border: none !important;
-        border-radius: 10px !important;
-        box-shadow: 0 3px 10px rgba(76,175,80,0.4) !important;
-    }
-    [data-testid="stSidebarCollapseButton"] button:hover,
-    [data-testid="stSidebarCollapsedControl"] button:hover,
-    [data-testid="collapsedControl"] button:hover,
-    [data-testid="stExpandSidebarButton"] button:hover,
-    button[kind="headerNoPadding"]:hover {
-        background: linear-gradient(135deg, #388e3c 0%, #00897b 100%) !important;
-    }
-    [data-testid="stSidebarCollapseButton"] svg,
-    [data-testid="stSidebarCollapsedControl"] svg,
-    [data-testid="collapsedControl"] svg,
-    [data-testid="stExpandSidebarButton"] svg,
-    button[kind="headerNoPadding"] svg {
-        fill: #ffffff !important;
-        color: #ffffff !important;
-    }
-
-    /* Text */
-    h1, h2, h3, h4, h5, h6, p, span, label, div {
-        color: #1a1a1a !important;
     }
 
     /* Inputs */
@@ -113,43 +63,19 @@ st.markdown("""
         border: none !important;
         font-weight: bold !important;
         border-radius: 8px !important;
-        padding: 8px 16px !important;
         box-shadow: 0 2px 6px rgba(76,175,80,0.25) !important;
     }
     .stButton > button:hover {
         background: linear-gradient(135deg, #388e3c 0%, #00897b 100%) !important;
-        box-shadow: 0 4px 12px rgba(76,175,80,0.45) !important;
     }
     .stButton > button p { color: #ffffff !important; }
     .stDownloadButton > button {
         background: linear-gradient(135deg, #0288d1 0%, #26a69a 100%) !important;
         color: #ffffff !important;
-        border: none !important;
         font-weight: bold !important;
         border-radius: 8px !important;
     }
     .stDownloadButton > button p { color: #ffffff !important; }
-
-    /* Radio nav */
-    .stRadio > div { background-color: transparent !important; }
-    .stRadio label {
-        color: #1a1a1a !important;
-        font-size: 15px !important;
-        padding: 8px 10px !important;
-        border-radius: 8px !important;
-        font-weight: 500 !important;
-    }
-    div[role="radiogroup"] > label {
-        background-color: #ffffff !important;
-        border: 1px solid #b2dfdb !important;
-        border-radius: 10px !important;
-        margin-bottom: 8px !important;
-        transition: all 0.2s ease !important;
-    }
-    div[role="radiogroup"] > label:hover {
-        background-color: #e0f2f1 !important;
-        border-color: #4caf50 !important;
-    }
 
     /* Metric cards */
     .metric-card {
@@ -159,11 +85,6 @@ st.markdown("""
         padding: 22px;
         text-align: center;
         box-shadow: 0 3px 10px rgba(76,175,80,0.15);
-        transition: all 0.3s ease;
-    }
-    .metric-card:hover {
-        box-shadow: 0 6px 18px rgba(76,175,80,0.3);
-        transform: translateY(-3px);
     }
     .metric-card h3 {
         color: #00796b !important;
@@ -180,81 +101,11 @@ st.markdown("""
         font-weight: 800 !important;
     }
 
-    .stDataFrame {
-        background-color: #ffffff !important;
-        border-radius: 10px !important;
-        border: 1px solid #b2dfdb !important;
-    }
+    /* Alerts */
     .stAlert { border-radius: 10px !important; }
     hr { border-color: #a5d6a7 !important; opacity: 0.6 !important; }
 </style>
 """, unsafe_allow_html=True)
-
-# ============================================================
-# JAVASCRIPT FIXES: Remove "Manage app" + Ensure Toggle Works
-# ============================================================
-components.html("""
-<script>
-(function() {
-    function fixStuff() {
-        try {
-            var parentDoc = window.parent.document;
-
-            // 1. Remove "Manage app" button (Streamlit Cloud)
-            var killSelectors = [
-                '[data-testid="manage-app-button"]',
-                '[data-testid="stAppDeployButton"]',
-                '.stAppDeployButton',
-                'iframe[title="streamlit_cloud_status"]'
-            ];
-            killSelectors.forEach(function(sel) {
-                parentDoc.querySelectorAll(sel).forEach(function(el) {
-                    el.style.display = 'none';
-                    el.style.visibility = 'hidden';
-                    el.style.opacity = '0';
-                    el.style.pointerEvents = 'none';
-                });
-            });
-
-            // Also target any element containing "Manage app" text in bottom-right
-            parentDoc.querySelectorAll('button, a, div').forEach(function(el) {
-                var txt = (el.textContent || '').trim();
-                if (txt === 'Manage app' || txt === 'Manage App') {
-                    el.style.display = 'none';
-                }
-            });
-
-            // 2. Ensure sidebar toggle button is visible and clickable
-            var toggleSelectors = [
-                '[data-testid="stSidebarCollapsedControl"]',
-                '[data-testid="collapsedControl"]',
-                '[data-testid="stExpandSidebarButton"]'
-            ];
-            toggleSelectors.forEach(function(sel) {
-                parentDoc.querySelectorAll(sel).forEach(function(el) {
-                    el.style.setProperty('display', 'flex', 'important');
-                    el.style.setProperty('visibility', 'visible', 'important');
-                    el.style.setProperty('opacity', '1', 'important');
-                    el.style.setProperty('z-index', '9999999', 'important');
-                    el.style.setProperty('position', 'fixed', 'important');
-                    el.style.setProperty('top', '12px', 'important');
-                    el.style.setProperty('left', '12px', 'important');
-                    el.style.setProperty('background', 'linear-gradient(135deg,#4caf50,#26a69a)', 'important');
-                    el.style.setProperty('border-radius', '10px', 'important');
-                    el.style.setProperty('box-shadow', '0 3px 10px rgba(76,175,80,0.5)', 'important');
-                });
-            });
-        } catch(e) { /* ignore */ }
-    }
-
-    // Run multiple times because Streamlit rerenders
-    setTimeout(fixStuff, 500);
-    setTimeout(fixStuff, 1500);
-    setTimeout(fixStuff, 3000);
-    setInterval(fixStuff, 2000);
-})();
-</script>
-""", height=0)
 
 COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
 DATA_FILE = "billing_database.json"
@@ -471,7 +322,6 @@ def render_dashboard():
         st.markdown(f"<div class='metric-card'><h3>ORDER BOOKERS</h3><h1>{unique_bookers}</h1></div>", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-
     c1, c2 = st.columns(2)
     with c1:
         st.markdown(f"<div class='metric-card'><h3>TOTAL GROSS AMOUNT</h3><h1>Rs {total_gross:,.0f}</h1></div>", unsafe_allow_html=True)
@@ -487,7 +337,6 @@ def render_dashboard():
         st.info("Abhi tak koi bill add nahi hua. 'Billing' page pe jao aur pehla bill banao.")
 
     st.markdown("<br>", unsafe_allow_html=True)
-
     if bills:
         st.markdown("### 🏆 Top Products (By Boxes)")
         prod_summary = {}
