@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# Bills List: Select + Delete + Download Selected
+# FINAL - Force Black Text + All Features
 # ============================================================
 
 import os
@@ -101,10 +101,61 @@ components.html("""
 """, height=0)
 
 # ============================================================
-# THEME CSS
+# THEME CSS — FORCE BLACK TEXT
 # ============================================================
 st.markdown("""
 <style>
+    /* ========== FORCE ALL TEXT TO BLACK ========== */
+    html, body, .stApp, .stApp *, .stApp p, .stApp span, .stApp div,
+    .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
+    .stApp label, .stApp li, .stApp a, [class*="css"] *,
+    [data-testid="stMarkdownContainer"] *,
+    [data-testid="stText"], [data-testid="stCaptionContainer"] *,
+    [data-testid="stWidgetLabel"] *, [data-testid="stSelectbox"] *,
+    [data-testid="stTextInput"] *, [data-testid="stNumberInput"] *,
+    [data-testid="stDateInput"] * {
+        color: #000000 !important;
+    }
+
+    /* ========== KEEP BUTTON TEXT WHITE ========== */
+    .stButton > button,
+    .stButton > button p,
+    .stButton > button span,
+    .stButton > button div,
+    .stDownloadButton > button,
+    .stDownloadButton > button p,
+    .stDownloadButton > button span,
+    .stDownloadButton > button div {
+        color: #ffffff !important;
+    }
+
+    /* Custom colored headings */
+    h1[style*="color:#2e7d32"], h1[style*="color: #2e7d32"] {
+        color: #2e7d32 !important;
+    }
+
+    .metric-card h3 { color: #00796b !important; }
+    .metric-card h1 { color: #2e7d32 !important; }
+
+    .person-card .name { color: #2e7d32 !important; }
+    .person-card .sub { color: #00695c !important; }
+    .person-card .badge { color: #ffffff !important; }
+
+    .lf-simple-card .lf-line1 { color: #2e7d32 !important; }
+    .lf-simple-card .lf-line2 { color: #00695c !important; }
+    .lf-simple-card .lf-boxes { color: #ffffff !important; }
+
+    .sal-metric { color: #000000 !important; }
+    .sal-metric.base { color: #0d47a1 !important; }
+    .sal-metric.adv { color: #e65100 !important; }
+    .sal-metric.short { color: #c62828 !important; }
+    .sal-metric.remain { color: #1b5e20 !important; }
+
+    .hint-box { color: #2e7d32 !important; }
+    .summary-box { color: #000000 !important; }
+    .booker-row { color: #2e7d32 !important; }
+
+    /* ========== Layout ========== */
     [data-testid="stToolbar"] { display: none !important; }
     [data-testid="stDecoration"] { display: none !important; }
     [data-testid="stStatusWidget"] { display: none !important; }
@@ -121,13 +172,16 @@ st.markdown("""
         max-width: 100% !important;
     }
 
+    /* Sidebar */
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #c8e6c9 0%, #b2ebf2 100%) !important;
+    }
+    section[data-testid="stSidebar"] * {
+        color: #000000 !important;
     }
     section[data-testid="stSidebar"] .stRadio label {
         font-size: 15px !important;
         font-weight: 600 !important;
-        color: #0d3b1e !important;
     }
     section[data-testid="stSidebar"] div[role="radiogroup"] > label {
         background-color: #ffffff !important;
@@ -140,20 +194,46 @@ st.markdown("""
         background-color: #e8f5e9 !important;
         border-color: #4caf50 !important;
     }
+    section[data-testid="stSidebar"] div[role="radiogroup"] input[type="radio"] {
+        accent-color: #4caf50 !important;
+    }
 
+    /* Inputs */
     .stTextInput > div > div > input,
     .stNumberInput > div > div > input,
     .stSelectbox > div > div > div,
-    .stDateInput > div > div > input {
+    .stSelectbox > div > div,
+    .stDateInput > div > div > input,
+    div[data-baseweb="select"] > div,
+    div[data-baseweb="input"] input {
         background-color: #ffffff !important;
-        color: #1a1a1a !important;
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
         border: 2px solid #b2dfdb !important;
         border-radius: 8px !important;
     }
+    div[data-baseweb="select"] * {
+        color: #000000 !important;
+    }
+    ul[role="listbox"] li,
+    div[role="option"] {
+        color: #000000 !important;
+        background-color: #ffffff !important;
+    }
+    .stTextInput > div > div > input:focus,
+    .stNumberInput > div > div > input:focus {
+        border-color: #4caf50 !important;
+    }
+    .stTextInput input::placeholder,
+    .stNumberInput input::placeholder {
+        color: #888888 !important;
+        -webkit-text-fill-color: #888888 !important;
+        opacity: 1 !important;
+    }
 
+    /* Buttons */
     .stButton > button {
         background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%) !important;
-        color: #ffffff !important;
         border: none !important;
         font-weight: bold !important;
         border-radius: 8px !important;
@@ -161,14 +241,49 @@ st.markdown("""
     .stButton > button:hover {
         background: linear-gradient(135deg, #388e3c 0%, #00897b 100%) !important;
     }
-    .stButton > button p { color: #ffffff !important; }
     .stDownloadButton > button {
         background: linear-gradient(135deg, #0288d1 0%, #26a69a 100%) !important;
         color: #ffffff !important;
         font-weight: bold !important;
         border-radius: 8px !important;
     }
-    .stDownloadButton > button p { color: #ffffff !important; }
+
+    /* Dataframe */
+    .stDataFrame, .stDataFrame * {
+        color: #000000 !important;
+    }
+    .stDataFrame {
+        background-color: #ffffff !important;
+        border-radius: 10px !important;
+    }
+
+    /* Checkboxes */
+    label[data-baseweb="checkbox"] * {
+        color: #000000 !important;
+    }
+
+    /* Expander */
+    details summary,
+    details summary *,
+    .streamlit-expanderHeader,
+    .streamlit-expanderHeader * {
+        color: #000000 !important;
+    }
+
+    /* Alerts */
+    .stAlert, .stAlert * {
+        color: #000000 !important;
+    }
+    .stSuccess, .stSuccess * { color: #1b5e20 !important; }
+    .stError, .stError * { color: #b71c1c !important; }
+    .stWarning, .stWarning * { color: #e65100 !important; }
+    .stInfo, .stInfo * { color: #0d47a1 !important; }
+
+    [data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] * {
+        color: #555555 !important;
+    }
+
+    .empty-box { color: #00695c !important; }
 
     .auto-dl-hidden div[data-testid="stDownloadButton"] {
         position: absolute !important;
@@ -178,6 +293,7 @@ st.markdown("""
         height: 0 !important;
     }
 
+    /* Cards */
     .metric-card {
         background: #ffffff;
         border: 2px solid #a5d6a7;
@@ -187,14 +303,12 @@ st.markdown("""
         box-shadow: 0 3px 10px rgba(76,175,80,0.15);
     }
     .metric-card h3 {
-        color: #00796b !important;
         font-size: 13px !important;
         margin: 0 !important;
         font-weight: 700 !important;
         text-transform: uppercase;
     }
     .metric-card h1 {
-        color: #2e7d32 !important;
         font-size: 34px !important;
         margin: 10px 0 0 0 !important;
         font-weight: 800 !important;
@@ -220,13 +334,16 @@ st.markdown("""
         justify-content: space-between;
     }
     .person-card .info { display: flex; flex-direction: column; gap: 3px; }
-    .person-card .name { font-size: 16px; font-weight: 700; color: #2e7d32; }
-    .person-card .sub { font-size: 12px; color: #00695c; }
+    .person-card .name { font-size: 16px; font-weight: 700; }
+    .person-card .sub { font-size: 12px; }
     .person-card .badge {
         background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%);
-        color: #fff; font-weight: 800; font-size: 14px;
-        padding: 6px 12px; border-radius: 8px;
-        min-width: 60px; text-align: center;
+        font-weight: 800;
+        font-size: 14px;
+        padding: 6px 12px;
+        border-radius: 8px;
+        min-width: 60px;
+        text-align: center;
     }
     .sal-badge { background: linear-gradient(135deg, #0288d1 0%, #26a69a 100%); }
 
@@ -236,7 +353,6 @@ st.markdown("""
         border-radius: 12px;
         padding: 20px;
         text-align: center;
-        color: #00695c;
         font-size: 14px;
     }
 
@@ -245,7 +361,6 @@ st.markdown("""
         border-left: 4px solid #4caf50;
         padding: 8px 12px;
         border-radius: 6px;
-        color: #2e7d32 !important;
         font-size: 13px;
         margin-top: 4px;
     }
@@ -263,34 +378,42 @@ st.markdown("""
         padding: 16px 22px;
         margin-bottom: 12px;
         box-shadow: 0 3px 10px rgba(76,175,80,0.15);
-        display: flex; align-items: center; justify-content: space-between;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }
     .lf-simple-card .lf-info { display: flex; flex-direction: column; gap: 4px; }
-    .lf-simple-card .lf-line1 { font-size: 17px; font-weight: 700; color: #2e7d32; }
-    .lf-simple-card .lf-line2 { font-size: 13px; color: #00695c; }
+    .lf-simple-card .lf-line1 { font-size: 17px; font-weight: 700; }
+    .lf-simple-card .lf-line2 { font-size: 13px; }
     .lf-simple-card .lf-boxes {
         background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%);
-        color: #ffffff; font-weight: 800; font-size: 20px;
-        padding: 10px 18px; border-radius: 10px;
-        text-align: center; min-width: 90px;
+        font-weight: 800;
+        font-size: 20px;
+        padding: 10px 18px;
+        border-radius: 10px;
+        text-align: center;
+        min-width: 90px;
     }
     .lf-simple-card .lf-boxes small {
-        display: block; font-size: 10px; font-weight: 500; opacity: 0.9;
+        display: block;
+        font-size: 10px;
+        font-weight: 500;
+        opacity: 0.9;
     }
 
     .sal-metric {
-        display: inline-block; padding: 8px 14px; margin-right: 8px; margin-bottom: 6px;
-        border-radius: 8px; font-size: 13px; font-weight: 600;
+        display: inline-block;
+        padding: 8px 14px;
+        margin-right: 8px;
+        margin-bottom: 6px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
     }
-    .sal-metric.base { background: #e3f2fd; color: #0d47a1; }
-    .sal-metric.adv { background: #fff3e0; color: #e65100; }
-    .sal-metric.short { background: #ffebee; color: #c62828; }
-    .sal-metric.remain { background: #e8f5e9; color: #1b5e20; }
-
-    /* Danger button style for Delete */
-    div[data-testid="stButton"] button[kind="secondary"].danger-btn {
-        background: linear-gradient(135deg, #e53935 0%, #c62828 100%) !important;
-    }
+    .sal-metric.base { background: #e3f2fd; }
+    .sal-metric.adv { background: #fff3e0; }
+    .sal-metric.short { background: #ffebee; }
+    .sal-metric.remain { background: #e8f5e9; }
 
     .stAlert { border-radius: 10px !important; }
     hr { border-color: #a5d6a7 !important; opacity: 0.6 !important; }
@@ -1044,7 +1167,7 @@ def render_billing():
     show_auto_download()
 
 # ============================================================
-# PAGE: BILLS LIST — WITH SELECT + DELETE + DOWNLOAD SELECTED
+# PAGE: BILLS LIST
 # ============================================================
 def render_bills_list():
     st.markdown(f"<h1 style='color:#2e7d32 !important;'>📋 Bills List</h1>", unsafe_allow_html=True)
@@ -1071,7 +1194,6 @@ def render_bills_list():
         shops_list = sorted(set(b["Shop"] for b in db["bills"] if b["Shop"]))
         shop_filter = st.selectbox("Filter by Shop:", options=["All"] + shops_list, key="shop_filter")
 
-    # ---- Build filtered records (with original index so we can delete) ----
     bills_with_idx = list(enumerate(db["bills"]))
     filtered_records = []
     for orig_idx, b in bills_with_idx:
@@ -1082,7 +1204,6 @@ def render_bills_list():
             if bdate != from_date: continue
         elif filter_mode == "📆 Custom Date Range":
             if bdate is None or not (from_date <= bdate <= to_date): continue
-        # All Bills → no date filter
 
         if search:
             s = search.upper()
@@ -1098,7 +1219,6 @@ def render_bills_list():
         row["_orig_idx"] = orig_idx
         filtered_records.append(row)
 
-    # ---- Summary ----
     if filtered_records:
         total_boxes = sum(int(r.get("Boxes",0)) for r in filtered_records)
         total_gross = sum(float(r.get("Gross",0)) for r in filtered_records)
@@ -1119,11 +1239,9 @@ def render_bills_list():
         st.warning("❌ Is filter ke hisaab se koi bill nahi mila.")
         return
 
-    # ---- Show table with Select checkbox using data_editor ----
     st.markdown(f"### 📋 Bills ({len(filtered_records)})")
     st.caption("👇 Jis bill ko select karna hai uske **Select** checkbox pe ✅ lagao. Phir neeche **Download** ya **Delete** button dabao.")
 
-    # Prepare display df (without _orig_idx in view)
     display_data = []
     for r in filtered_records:
         display_data.append({
@@ -1157,11 +1275,9 @@ def render_bills_list():
         num_rows="fixed",
     )
 
-    # ---- Selected rows ----
     selected_mask = edited_df["Select"] == True
     selected_rows = edited_df[selected_mask]
 
-    # Map back to original indices by matching (Bill No + Product + Date + Boxes + Shop)
     def find_orig_idx(row_dict):
         for r in filtered_records:
             if (r.get("Bill No") == row_dict.get("Bill No") and
@@ -1178,7 +1294,6 @@ def render_bills_list():
         if oi is not None:
             orig_indices_to_delete.append(oi)
 
-    # ---- Action buttons ----
     st.markdown("---")
     n_sel = len(selected_rows)
     c1, c2, c3 = st.columns([1, 1, 2])
@@ -1198,7 +1313,6 @@ def render_bills_list():
         if n_sel > 0:
             st.markdown(f"<div style='padding-top:6px;color:#00695c;'>✅ <b>{n_sel}</b> bill(s) selected</div>", unsafe_allow_html=True)
 
-    # ---- Download selected ----
     if download_clicked and n_sel > 0:
         df_export = selected_rows.drop(columns=["Select"]).reset_index(drop=True)
         output = BytesIO()
@@ -1220,7 +1334,6 @@ def render_bills_list():
         st.session_state["success_msg"] = f"✅ {n_sel} bill(s) downloaded"
         st.rerun()
 
-    # ---- Delete selected with confirmation ----
     if delete_clicked and n_sel > 0:
         st.session_state["confirm_delete"] = True
         st.session_state["_to_delete_idx"] = orig_indices_to_delete
@@ -1232,7 +1345,6 @@ def render_bills_list():
             if st.button("✅ Haan, Delete Kar Do", key="confirm_del_yes", use_container_width=True, type="primary"):
                 idxs = set(st.session_state.get("_to_delete_idx", []))
                 if idxs:
-                    # Keep bills NOT in delete set
                     db["bills"] = [b for i, b in enumerate(db["bills"]) if i not in idxs]
                     save_database(db)
                     st.session_state["success_msg"] = f"🗑 {len(idxs)} bill(s) deleted"
