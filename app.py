@@ -1,12 +1,12 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# With Bookers + Salesmen Management
+# With Date-Wise Filter for Bills List + Load Form
 # ============================================================
 
 import os
 import json
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, date, timedelta
 import streamlit as st
 import xlsxwriter
 from io import BytesIO
@@ -38,7 +38,8 @@ st.markdown("""
     }
     .stTextInput > div > div > input,
     .stNumberInput > div > div > input,
-    .stSelectbox > div > div > div {
+    .stSelectbox > div > div > div,
+    .stDateInput > div > div > input {
         background-color: #ffffff !important;
         color: #1a1a1a !important;
         border: 2px solid #b2dfdb !important;
@@ -96,6 +97,23 @@ st.markdown("""
         padding: 12px 18px;
         margin-bottom: 8px;
         box-shadow: 0 2px 6px rgba(76,175,80,0.1);
+    }
+    .hint-box {
+        background: #e8f5e9;
+        border-left: 4px solid #4caf50;
+        padding: 8px 12px;
+        border-radius: 6px;
+        color: #2e7d32 !important;
+        font-size: 13px;
+        margin-top: 4px;
+    }
+    .summary-box {
+        background: #ffffff;
+        border: 2px solid #4caf50;
+        border-radius: 12px;
+        padding: 15px 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 3px 10px rgba(76,175,80,0.15);
     }
     .stAlert { border-radius: 10px !important; }
     hr { border-color: #a5d6a7 !important; opacity: 0.6 !important; }
@@ -197,7 +215,7 @@ PRODUCTS = sorted([
     {"code":"87","name":"KIMS – CHOKOZO STRAWBERRY","price":129},
     {"code":"88","name":"KIMS – CHOKOZO CHOCOLATE CREAM","price":129},
     {"code":"89","name":"KIMS – CHOKOZO MILK MAZA","price":129},
-    {"code":"90","name":"KIMS – SIP STRAWBERRY","price":328},
+    {"code":"90","name":"KIMS – SIR STRAWBERRY","price":328},
     {"code":"91","name":"KIMS – CHAMPION DELICIOUS MILK CHOCOLATE JAR","price":269},
     {"code":"92","name":"KIMS – CHOCO DELIGHT CREAMY CHOCOLATE","price":219},
     {"code":"93","name":"KIMS – NUT KHUT CHOCOLATE","price":135},
@@ -252,6 +270,13 @@ def load_database():
         except Exception:
             pass
     return {"next_bill_no": 1, "bills": [], "bookers": [], "salesmen": []}
+
+def parse_date(dstr):
+    """Parse 'dd-mm-yyyy' string to date object. Returns None on failure."""
+    try:
+        return datetime.strptime(dstr, "%d-%m-%Y").date()
+    except Exception:
+        return None
 
 if "database" not in st.session_state:
     st.session_state.database = load_database()
@@ -490,27 +515,39 @@ def render_billing():
 
     shop_name = st.text_input("Shop:", key="shop_name", placeholder="Enter Shop Name")
 
-    # Order Booker - dropdown if bookers saved
     saved_bookers = db.get("bookers", [])
     if saved_bookers:
         booker_options = ["-- Select Booker --"] + saved_bookers
         selected_bk = st.selectbox("Order Booker:", options=booker_options, key="order_booker_select")
         order_booker_value = "" if selected_bk == "-- Select Booker --" else selected_bk
         st.session_state["order_booker"] = order_booker_value
+        st.markdown(
+            f"<div class='hint-box'>💡 {len(saved_bookers)} bookers available — select karo aur aage barho</div>",
+            unsafe_allow_html=True
+        )
     else:
         order_booker = st.text_input("Order Booker:", key="order_booker", placeholder="Enter Order Booker")
-        st.caption("💡 Tip: 'Bookers' page pe jao aur pehle bookers add karo — phir yahan dropdown milega")
+        st.markdown(
+            "<div class='hint-box'>💡 Tip: 'Bookers' page pe jao aur bookers add karo — phir yahan dropdown milega</div>",
+            unsafe_allow_html=True
+        )
 
-    # Salesman - dropdown if salesmen saved
     saved_salesmen = db.get("salesmen", [])
     if saved_salesmen:
         salesman_options = ["-- Select Salesman --"] + saved_salesmen
         selected_sm = st.selectbox("Salesman:", options=salesman_options, key="salesman_select")
         salesman_value = "" if selected_sm == "-- Select Salesman --" else selected_sm
         st.session_state["salesman"] = salesman_value
+        st.markdown(
+            f"<div class='hint-box'>💡 {len(saved_salesmen)} salesmen available — select karo aur aage barho</div>",
+            unsafe_allow_html=True
+        )
     else:
         salesman = st.text_input("Salesman:", key="salesman", placeholder="Enter Salesman")
-        st.caption("💡 Tip: 'Salesmen' page pe jao aur pehle salesmen add karo — phir yahan dropdown milega")
+        st.markdown(
+            "<div class='hint-box'>💡 Tip: 'Salesmen' page pe jao aur salesmen add karo — phir yahan dropdown milega</div>",
+            unsafe_allow_html=True
+        )
 
     delivery_man = st.text_input("Delivery Man:", key="delivery_man", placeholder="Enter Delivery Man")
 
@@ -598,7 +635,7 @@ def render_billing():
         )
 
 # ============================================================
-# PAGE: BILLS LIST
+# PAGE: BILLS LIST (WITH DATE FILTER)
 # ============================================================
 def render_bills_list():
     st.markdown(f"<h1 style='color:#2e7d32 !important;'>📋 Bills List</h1>", unsafe_allow_html=True)
@@ -609,14 +646,47 @@ def render_bills_list():
         st.info("❌ Koi bill nahi mila. Pehle 'Billing' page pe jaake bill banao.")
         return
 
-    df = pd.DataFrame(db["bills"])
-    c1, c2 = st.columns([2, 1])
+    # ---------- FILTERS ----------
+    st.markdown("### 🔎 Filter Bills")
+
+    today = date.today()
+
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        filter_mode = st.selectbox(
+            "Filter Mode:",
+            ["📅 Aaj Ki Bills (Today)", "📆 Custom Date Range", "🗓️ Specific Date", "📋 All Bills"],
+            key="bills_filter_mode"
+        )
+    with c2:
+        from_date = st.date_input("From Date:", value=today - timedelta(days=7), key="bills_from_date")
+    with c3:
+        to_date = st.date_input("To Date:", value=today, key="bills_to_date")
+
+    c1, c2 = st.columns(2)
     with c1:
         search = st.text_input("🔍 Search (Shop / Product / Booker):", key="bills_search")
     with c2:
-        shop_filter = st.selectbox("Filter by Shop:", options=["All"] + sorted(set(b["Shop"] for b in db["bills"] if b["Shop"])), key="shop_filter")
+        shops_list = sorted(set(b["Shop"] for b in db["bills"] if b["Shop"]))
+        shop_filter = st.selectbox("Filter by Shop:", options=["All"] + shops_list, key="shop_filter")
+
+    # ---------- APPLY FILTERS ----------
+    df = pd.DataFrame(db["bills"])
+    df["_parsed_date"] = df["Date"].apply(parse_date)
 
     filtered_df = df.copy()
+
+    if filter_mode == "📅 Aaj Ki Bills (Today)":
+        filtered_df = filtered_df[filtered_df["_parsed_date"] == today]
+    elif filter_mode == "🗓️ Specific Date":
+        filtered_df = filtered_df[filtered_df["_parsed_date"] == from_date]
+    elif filter_mode == "📆 Custom Date Range":
+        filtered_df = filtered_df[
+            (filtered_df["_parsed_date"] >= from_date) &
+            (filtered_df["_parsed_date"] <= to_date)
+        ]
+    # else All Bills → no date filter
+
     if search:
         s = search.upper()
         mask = (
@@ -629,29 +699,127 @@ def render_bills_list():
     if shop_filter != "All":
         filtered_df = filtered_df[filtered_df["Shop"] == shop_filter]
 
-    st.dataframe(filtered_df, use_container_width=True, hide_index=True)
-    st.caption(f"Showing {len(filtered_df)} of {len(df)} bills")
+    filtered_df = filtered_df.drop(columns=["_parsed_date"])
+
+    # ---------- SUMMARY ----------
+    if len(filtered_df) > 0:
+        total_boxes = int(filtered_df["Boxes"].sum())
+        total_gross = float(filtered_df["Gross"].sum())
+        total_net = float(filtered_df["Net"].sum())
+        unique_shops = filtered_df["Shop"].nunique()
+
+        st.markdown(f"""
+        <div class='summary-box'>
+            <b style='color:#2e7d32;font-size:16px;'>📊 Summary</b><br>
+            <span style='color:#00695c;'>
+                Bills: <b>{len(filtered_df)}</b> &nbsp;|&nbsp;
+                Boxes: <b>{total_boxes}</b> &nbsp;|&nbsp;
+                Shops: <b>{unique_shops}</b> &nbsp;|&nbsp;
+                Gross: <b>Rs {total_gross:,.0f}</b> &nbsp;|&nbsp;
+                Net: <b>Rs {total_net:,.0f}</b>
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # ---------- TABLE ----------
+    if len(filtered_df) == 0:
+        st.warning("❌ Is filter ke hisaab se koi bill nahi mila.")
+    else:
+        st.dataframe(filtered_df, use_container_width=True, hide_index=True)
+        st.caption(f"Showing {len(filtered_df)} of {len(df)} bills")
+
+    # ---------- EXPORT ----------
+    st.markdown("---")
+    if len(filtered_df) > 0:
+        output = BytesIO()
+        wb = xlsxwriter.Workbook(output, {'in_memory': True})
+        ws = wb.add_worksheet("Bills")
+        header_fmt = wb.add_format({"bold": True, "bg_color": "#D9EAD3", "border": 1, "align": "center"})
+        cell_fmt = wb.add_format({"border": 1})
+
+        for i, col in enumerate(filtered_df.columns):
+            ws.write(0, i, col, header_fmt)
+        for r, (_, row) in enumerate(filtered_df.iterrows(), start=1):
+            for c, col in enumerate(filtered_df.columns):
+                ws.write(r, c, row[col], cell_fmt)
+        wb.close()
+        output.seek(0)
+
+        st.download_button(
+            label=f"⬇️ Download Filtered Bills ({len(filtered_df)} rows)",
+            data=output.getvalue(),
+            file_name=f"bills_filtered_{datetime.now().strftime('%d-%m-%Y')}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key="dl_filtered_bills",
+            use_container_width=True,
+        )
 
 # ============================================================
-# PAGE: LOAD FORM
+# PAGE: LOAD FORM (WITH DATE FILTER)
 # ============================================================
 def render_load_form():
     st.markdown(f"<h1 style='color:#2e7d32 !important;'>📦 Load Form</h1>", unsafe_allow_html=True)
     st.markdown("<p style='color:#00695c;font-weight:500;'>Order Booker ke hisaab se load form dekho</p>", unsafe_allow_html=True)
     st.markdown("---")
 
-    bookers = sorted(set(b["Order Booker"] for b in db["bills"] if b["Order Booker"]))
+    if len(db["bills"]) == 0:
+        st.info("❌ Koi bill nahi mila. Pehle 'Billing' page pe bill banao.")
+        return
+
+    # ---------- DATE FILTER ----------
+    st.markdown("### 🔎 Date Filter")
+
+    today = date.today()
+
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        filter_mode = st.selectbox(
+            "Filter Mode:",
+            ["📅 Aaj Ki Bills (Today)", "📆 Custom Date Range", "🗓️ Specific Date", "📋 All Bills"],
+            key="lf_filter_mode"
+        )
+    with c2:
+        from_date = st.date_input("From Date:", value=today - timedelta(days=7), key="lf_from_date")
+    with c3:
+        to_date = st.date_input("To Date:", value=today, key="lf_to_date")
+
+    # ---------- FILTER BILLS BY DATE ----------
+    all_bills = db["bills"]
+    filtered_bills = []
+    for b in all_bills:
+        bdate = parse_date(b["Date"])
+        if bdate is None:
+            continue
+        if filter_mode == "📅 Aaj Ki Bills (Today)":
+            if bdate == today:
+                filtered_bills.append(b)
+        elif filter_mode == "🗓️ Specific Date":
+            if bdate == from_date:
+                filtered_bills.append(b)
+        elif filter_mode == "📆 Custom Date Range":
+            if from_date <= bdate <= to_date:
+                filtered_bills.append(b)
+        else:  # All Bills
+            filtered_bills.append(b)
+
+    if not filtered_bills:
+        st.warning("❌ Is date filter ke hisaab se koi bill nahi mila.")
+        return
+
+    # ---------- BOOKER SELECT ----------
+    bookers = sorted(set(b["Order Booker"] for b in filtered_bills if b["Order Booker"]))
     if not bookers:
-        st.info("❌ Koi order booker nahi mila. Pehle 'Billing' page pe bill banao.")
+        st.warning("Is filter me koi Order Booker nahi mila.")
         return
 
     selected_booker = st.selectbox("Select Order Booker:", options=bookers, key="lf_booker")
-    booker_bills = [b for b in db["bills"] if b["Order Booker"].strip() == selected_booker]
+    booker_bills = [b for b in filtered_bills if b["Order Booker"].strip() == selected_booker]
 
     if not booker_bills:
         st.warning("Is booker ke liye koi bill nahi hai.")
         return
 
+    # ---------- SUMMARY ----------
     summary = {}
     for b in booker_bills:
         code = b["Code"]
@@ -660,15 +828,41 @@ def render_load_form():
         summary[code]["Boxes"] += b["Boxes"]
 
     df = pd.DataFrame(list(summary.values()))
-    total_boxes = df["Boxes"].sum()
+    total_boxes = int(df["Boxes"].sum())
 
-    st.markdown(f"**Order Booker:** {selected_booker}")
-    st.markdown(f"**Total Products:** {len(summary)} | **Total Boxes:** {total_boxes}")
-    st.markdown("---")
+    st.markdown(f"""
+    <div class='summary-box'>
+        <b style='color:#2e7d32;font-size:16px;'>📊 Load Form Summary</b><br>
+        <span style='color:#00695c;'>
+            Booker: <b>{selected_booker}</b> &nbsp;|&nbsp;
+            Products: <b>{len(summary)}</b> &nbsp;|&nbsp;
+            Total Boxes: <b>{total_boxes}</b>
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
+
     st.dataframe(df, use_container_width=True, hide_index=True)
+
     st.markdown("---")
-    if st.button("📦 Export Load Form (Excel)", key="lf_export", use_container_width=True, type="primary"):
-        export_load_form_for_booker(selected_booker)
+    c1, c2 = st.columns(2)
+    with c1:
+        if st.button("📦 Export Load Form (Excel)", key="lf_export", use_container_width=True, type="primary"):
+            export_load_form_for_booker(selected_booker, booker_bills)
+    with c2:
+        # Export date-wise summary of all bookers
+        if st.button("📊 Export All Bookers (Date Range)", key="lf_export_all", use_container_width=True):
+            export_all_bookers(filtered_bills, filter_mode)
+
+    if st.session_state.get("download_file"):
+        fname, fdata = st.session_state["download_file"]
+        st.download_button(
+            label=f"⬇️ Download {fname}",
+            data=fdata,
+            file_name=fname,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key="lf_download_btn",
+            use_container_width=True,
+        )
 
 # ============================================================
 # CALLBACKS
@@ -823,12 +1017,15 @@ def export_load_form_callback():
     if not booker:
         st.session_state["error_msg"] = "❌ Please Enter Order Booker"
         return
-    export_load_form_for_booker(booker)
-
-
-def export_load_form_for_booker(booker):
-    db = st.session_state.database
+    # Export using ALL bills (Billing page ka button)
     booker_bills = [b for b in db["bills"] if b["Order Booker"].strip() == booker]
+    export_load_form_for_booker(booker, booker_bills)
+
+
+def export_load_form_for_booker(booker, booker_bills=None):
+    db = st.session_state.database
+    if booker_bills is None:
+        booker_bills = [b for b in db["bills"] if b["Order Booker"].strip() == booker]
     if not booker_bills:
         st.session_state["error_msg"] = "❌ No Bills Found for this Booker"
         return
@@ -874,6 +1071,48 @@ def export_load_form_for_booker(booker):
 
     st.session_state["download_file"] = (f"{booker}_Load_Form.xlsx", output.getvalue())
     st.session_state["success_msg"] = f"✅ Load Form Exported | Products: {len(summary)} | Boxes: {total_boxes}"
+
+
+def export_all_bookers(filtered_bills, filter_mode):
+    """Export a summary of all bookers in the date range."""
+    if not filtered_bills:
+        st.session_state["error_msg"] = "❌ No Bills in selected range"
+        return
+
+    # Group by booker → product
+    grouped = {}
+    for b in filtered_bills:
+        bk = b["Order Booker"].strip() or "Unknown"
+        code = b["Code"]
+        key = (bk, code)
+        if key not in grouped:
+            grouped[key] = {"Booker": bk, "Code": code, "Product": b["Product"], "Boxes": 0}
+        grouped[key]["Boxes"] += b["Boxes"]
+
+    rows = sorted(grouped.values(), key=lambda x: (x["Booker"], x["Product"]))
+
+    output = BytesIO()
+    wb = xlsxwriter.Workbook(output, {'in_memory': True})
+    ws = wb.add_worksheet("All Bookers")
+    header_fmt = wb.add_format({"bold": True, "bg_color": "#D9EAD3", "border": 1, "align": "center"})
+    cell_fmt = wb.add_format({"border": 1})
+    cell_center = wb.add_format({"border": 1, "align": "center"})
+
+    headers = ["Booker", "Code", "Product", "Boxes"]
+    for i, h in enumerate(headers):
+        ws.write(0, i, h, header_fmt)
+    for r, row in enumerate(rows, start=1):
+        ws.write(r, 0, row["Booker"], cell_fmt)
+        ws.write(r, 1, row["Code"], cell_center)
+        ws.write(r, 2, row["Product"], cell_fmt)
+        ws.write(r, 3, row["Boxes"], cell_center)
+
+    wb.close()
+    output.seek(0)
+
+    fname = f"All_Bookers_{datetime.now().strftime('%d-%m-%Y')}.xlsx"
+    st.session_state["download_file"] = (fname, output.getvalue())
+    st.session_state["success_msg"] = f"✅ Exported {len(rows)} rows for {len(set(r['Booker'] for r in rows))} bookers"
 
 
 def refresh_load_form_callback():
