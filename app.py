@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# BLUE THEME + COMPACT BILLING
+# BLUE THEME + Daily Expense (Petrol + Lunch)
 # ============================================================
 
 import os
@@ -101,11 +101,11 @@ components.html("""
 """, height=0)
 
 # ============================================================
-# THEME CSS — BLUE + COMPACT BILLING
+# THEME CSS
 # ============================================================
 st.markdown("""
 <style>
-    /* ========== FORCE ALL TEXT TO BLACK ========== */
+    /* FORCE ALL TEXT TO BLACK */
     html, body, .stApp, .stApp *, .stApp p, .stApp span, .stApp div,
     .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
     .stApp label, .stApp li, .stApp a, [class*="css"] *,
@@ -116,7 +116,7 @@ st.markdown("""
         color: #000000 !important;
     }
 
-    /* ========== WHITE DATE FIELDS ========== */
+    /* WHITE DATE FIELDS */
     .stDateInput,
     .stDateInput > div,
     .stDateInput > div > div,
@@ -153,7 +153,7 @@ st.markdown("""
         color: #1976d2 !important;
     }
 
-    /* ========== KEEP BUTTON TEXT WHITE ========== */
+    /* BUTTON TEXT WHITE */
     .stButton > button,
     .stButton > button p,
     .stButton > button span,
@@ -165,7 +165,6 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* Custom colored headings */
     h1[style*="color:#1976d2"], h1[style*="color: #1976d2"] {
         color: #1976d2 !important;
     }
@@ -191,7 +190,6 @@ st.markdown("""
     .summary-box { color: #000000 !important; }
     .booker-row { color: #1976d2 !important; }
 
-    /* ========== Layout ========== */
     [data-testid="stToolbar"] { display: none !important; }
     [data-testid="stDecoration"] { display: none !important; }
     [data-testid="stStatusWidget"] { display: none !important; }
@@ -199,6 +197,7 @@ st.markdown("""
     footer { visibility: hidden !important; }
     header[data-testid="stHeader"] { background: transparent !important; box-shadow: none !important; }
 
+    /* BLUE BACKGROUND */
     .stApp {
         background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important;
     }
@@ -210,18 +209,10 @@ st.markdown("""
         max-width: 100% !important;
     }
 
-    /* ====== COMPACT EVERYTHING (billing friendly) ====== */
-    /* Reduce vertical gaps between elements */
-    .stApp .element-container {
-        margin-bottom: 0.35rem !important;
-    }
-    .stApp [data-testid="stVerticalBlock"] > div {
-        gap: 0.35rem !important;
-    }
-    .stApp [data-testid="stVerticalBlockBorderWrapper"] > div {
-        gap: 0.35rem !important;
-    }
-    /* Reduce label size */
+    /* COMPACT LAYOUT */
+    .stApp .element-container { margin-bottom: 0.35rem !important; }
+    .stApp [data-testid="stVerticalBlock"] > div { gap: 0.35rem !important; }
+    .stApp [data-testid="stVerticalBlockBorderWrapper"] > div { gap: 0.35rem !important; }
     .stApp label,
     .stApp [data-testid="stWidgetLabel"] label,
     .stApp [data-testid="stWidgetLabel"] p {
@@ -229,7 +220,6 @@ st.markdown("""
         font-weight: 600 !important;
         margin-bottom: 2px !important;
     }
-    /* Reduce input height & padding */
     .stTextInput > div > div > input,
     .stNumberInput > div > div > input,
     .stDateInput > div > div > input,
@@ -244,30 +234,20 @@ st.markdown("""
         padding: 2px 4px !important;
         min-height: 34px !important;
     }
-    /* Reduce button height */
     .stButton > button {
         padding: 4px 10px !important;
         min-height: 36px !important;
         font-size: 14px !important;
     }
-    /* Reduce hr margins */
-    .stApp hr {
-        margin: 6px 0 !important;
-    }
-    /* Reduce markdown p margins */
-    .stApp p {
-        margin-bottom: 3px !important;
-    }
-    /* Reduce heading sizes on billing etc */
+    .stApp hr { margin: 6px 0 !important; }
+    .stApp p { margin-bottom: 3px !important; }
     .stApp h3 { margin-top: 6px !important; margin-bottom: 4px !important; font-size: 18px !important; }
 
-    /* Sidebar — Blue */
+    /* SIDEBAR */
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #bbdefb 0%, #90caf9 100%) !important;
     }
-    section[data-testid="stSidebar"] * {
-        color: #000000 !important;
-    }
+    section[data-testid="stSidebar"] * { color: #000000 !important; }
     section[data-testid="stSidebar"] .stRadio label {
         font-size: 15px !important;
         font-weight: 600 !important;
@@ -287,7 +267,7 @@ st.markdown("""
         accent-color: #2196f3 !important;
     }
 
-    /* Inputs */
+    /* INPUTS */
     .stTextInput > div > div > input,
     .stNumberInput > div > div > input,
     .stSelectbox > div > div > div,
@@ -300,11 +280,8 @@ st.markdown("""
         border: 2px solid #90caf9 !important;
         border-radius: 8px !important;
     }
-    div[data-baseweb="select"] * {
-        color: #000000 !important;
-    }
-    ul[role="listbox"] li,
-    div[role="option"] {
+    div[data-baseweb="select"] * { color: #000000 !important; }
+    ul[role="listbox"] li, div[role="option"] {
         color: #000000 !important;
         background-color: #ffffff !important;
     }
@@ -319,7 +296,7 @@ st.markdown("""
         opacity: 1 !important;
     }
 
-    /* Buttons — Blue */
+    /* BUTTONS */
     .stButton > button {
         background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%) !important;
         border: none !important;
@@ -336,32 +313,18 @@ st.markdown("""
         border-radius: 8px !important;
     }
 
-    /* Dataframe */
-    .stDataFrame, .stDataFrame * {
-        color: #000000 !important;
-    }
-    .stDataFrame {
-        background-color: #ffffff !important;
-        border-radius: 10px !important;
-    }
+    /* DATAFRAME */
+    .stDataFrame, .stDataFrame * { color: #000000 !important; }
+    .stDataFrame { background-color: #ffffff !important; border-radius: 10px !important; }
 
-    /* Checkboxes */
-    label[data-baseweb="checkbox"] * {
+    label[data-baseweb="checkbox"] * { color: #000000 !important; }
+
+    details summary, details summary *,
+    .streamlit-expanderHeader, .streamlit-expanderHeader * {
         color: #000000 !important;
     }
 
-    /* Expander */
-    details summary,
-    details summary *,
-    .streamlit-expanderHeader,
-    .streamlit-expanderHeader * {
-        color: #000000 !important;
-    }
-
-    /* Alerts */
-    .stAlert, .stAlert * {
-        color: #000000 !important;
-    }
+    .stAlert, .stAlert * { color: #000000 !important; }
     .stSuccess, .stSuccess * { color: #1b5e20 !important; }
     .stError, .stError * { color: #b71c1c !important; }
     .stWarning, .stWarning * { color: #e65100 !important; }
@@ -381,7 +344,7 @@ st.markdown("""
         height: 0 !important;
     }
 
-    /* ====== CARDS ====== */
+    /* CARDS */
     .metric-card {
         background: #ffffff;
         border: 2px solid #90caf9;
@@ -502,6 +465,35 @@ st.markdown("""
     .sal-metric.adv { background: #fff3e0; }
     .sal-metric.short { background: #ffebee; }
     .sal-metric.remain { background: #e8f5e9; }
+
+    /* Petrol / Lunch row cards */
+    .exp-row {
+        background: #ffffff;
+        border: 1px solid #90caf9;
+        border-radius: 10px;
+        padding: 8px 14px;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .exp-row .exp-left { display: flex; flex-direction: column; gap: 2px; }
+    .exp-row .exp-name { font-size: 14px; font-weight: 700; color: #1976d2; }
+    .exp-row .exp-date { font-size: 11px; color: #0277bd; }
+    .exp-row .exp-amt {
+        background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+        color: #ffffff !important;
+        font-weight: 800;
+        font-size: 15px;
+        padding: 5px 12px;
+        border-radius: 8px;
+        min-width: 80px;
+        text-align: center;
+    }
+    .exp-row.lunch .exp-amt {
+        background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    }
+    .exp-row.lunch .exp-name { color: #e65100; }
 
     .stAlert { border-radius: 10px !important; }
     hr { border-color: #90caf9 !important; opacity: 0.6 !important; }
@@ -650,7 +642,7 @@ def load_database():
         try:
             with open(DATA_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                for k in ["bookers", "salesmen", "load_forms"]:
+                for k in ["bookers", "salesmen", "load_forms", "petrol_expenses", "lunch_expenses"]:
                     if k not in data: data[k] = []
                 for k in ["bookers_salaries", "salesmen_salaries", "product_prices"]:
                     if k not in data: data[k] = {}
@@ -660,7 +652,7 @@ def load_database():
     return {
         "next_bill_no": 1, "bills": [], "bookers": [], "salesmen": [],
         "load_forms": [], "bookers_salaries": {}, "salesmen_salaries": {},
-        "product_prices": {}
+        "product_prices": {}, "petrol_expenses": [], "lunch_expenses": []
     }
 
 def parse_date(dstr):
@@ -683,7 +675,7 @@ if "page" not in st.session_state:
     st.session_state["page"] = "📊 Dashboard"
 
 db = st.session_state.database
-for k in ["bookers", "salesmen", "load_forms"]:
+for k in ["bookers", "salesmen", "load_forms", "petrol_expenses", "lunch_expenses"]:
     if k not in db: db[k] = []
 for k in ["bookers_salaries", "salesmen_salaries", "product_prices"]:
     if k not in db: db[k] = {}
@@ -744,6 +736,7 @@ with st.sidebar:
             "📊 Dashboard", "🧾 Billing", "🛒 All Products",
             "👤 Bookers", "💰 Bookers Salary",
             "🧑‍💼 Salesmen", "💰 Salesmen Salary",
+            "💵 Daily Expense",
             "📋 Bills List", "📦 Load Form",
         ],
         key="page_selector",
@@ -834,7 +827,7 @@ def render_dashboard():
 # ============================================================
 def render_all_products():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🛒 All Products</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#0277bd;font-weight:500;'>Kisi bhi product ka price change karo — billing me wahi naya price use hoga</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#0277bd;font-weight:500;'>Kisi bhi product ka price change karo</p>", unsafe_allow_html=True)
     st.markdown("---")
 
     c1, c2 = st.columns([3, 1])
@@ -1157,18 +1150,211 @@ def render_salaries(role_type):
                 st.info("Koi transaction nahi. Upar se add karo.")
 
 # ============================================================
-# PAGE: BILLING (COMPACT LAYOUT)
+# PAGE: DAILY EXPENSE (Petrol + Lunch)
+# ============================================================
+def render_daily_expense():
+    st.markdown(f"<h1 style='color:#1976d2 !important;'>💵 Daily Expense</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#0277bd;font-weight:500;'>Petrol + Lunch — Date wise</p>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    if "petrol_expenses" not in db: db["petrol_expenses"] = []
+    if "lunch_expenses" not in db: db["lunch_expenses"] = []
+
+    petrol_list = db.get("petrol_expenses", [])
+    lunch_list = db.get("lunch_expenses", [])
+
+    # ============================================================
+    # FILTER (month wise)
+    # ============================================================
+    st.markdown("### 🔎 Filter")
+    today = date.today()
+    c1, c2, c3 = st.columns([2, 2, 2])
+    with c1:
+        filter_mode = st.selectbox(
+            "Filter:",
+            ["📅 Aaj (Today)", "📆 This Month", "🗓️ Last 30 Days", "📋 All"],
+            key="exp_filter_mode"
+        )
+    with c2:
+        from_date = st.date_input("From:", value=today - timedelta(days=30), key="exp_from_date")
+    with c3:
+        to_date = st.date_input("To:", value=today, key="exp_to_date")
+
+    def date_match(dstr):
+        d = parse_date(dstr)
+        if d is None: return False
+        if filter_mode == "📅 Aaj (Today)":
+            return d == today
+        elif filter_mode == "📆 This Month":
+            return d.year == today.year and d.month == today.month
+        elif filter_mode == "🗓️ Last 30 Days":
+            return today - timedelta(days=30) <= d <= today
+        else:
+            return True
+
+    petrol_filtered = [x for x in petrol_list if date_match(x.get("date", ""))]
+    lunch_filtered = [x for x in lunch_list if date_match(x.get("date", ""))]
+
+    total_petrol = sum(float(x.get("amount", 0)) for x in petrol_filtered)
+    total_lunch = sum(float(x.get("amount", 0)) for x in lunch_filtered)
+    grand = total_petrol + total_lunch
+
+    st.markdown(f"""
+    <div class='summary-box'>
+        <b style='color:#1976d2;font-size:16px;'>📊 Summary</b><br>
+        <span style='color:#0277bd;'>
+            ⛽ Petrol: <b>Rs {total_petrol:,.0f}</b> &nbsp;|&nbsp;
+            🍽️ Lunch: <b>Rs {total_lunch:,.0f}</b> &nbsp;|&nbsp;
+            <b style='color:#0d47a1;'>Grand Total: Rs {grand:,.0f}</b>
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ============================================================
+    # TWO COLUMNS — Petrol (left) | Lunch (right)
+    # ============================================================
+    col_left, col_right = st.columns(2)
+
+    # ---------- PETROL ----------
+    with col_left:
+        st.markdown(f"### ⛽ Petrol  <span style='font-size:14px;color:#0277bd;'>(Rs {total_petrol:,.0f})</span>", unsafe_allow_html=True)
+
+        saved_salesmen = db.get("salesmen", [])
+        if not saved_salesmen:
+            st.info("💡 Pehle **Salesmen** page pe jao aur salesmen add karo.")
+        else:
+            st.markdown("**➕ Add Petrol Entry**")
+            c1, c2, c3 = st.columns([2, 2, 1])
+            with c1:
+                p_salesman = st.selectbox("Salesman:", options=["-- Select --"] + saved_salesmen,
+                                          key="petrol_salesman", label_visibility="collapsed")
+            with c2:
+                p_amount = st.number_input("Petrol Amount", min_value=0.0, step=50.0,
+                                           key="petrol_amount", label_visibility="collapsed", placeholder="Amount")
+            with c3:
+                if st.button("➕", key="add_petrol", use_container_width=True, type="primary"):
+                    if p_salesman == "-- Select --":
+                        st.session_state["error_msg"] = "❌ Please select salesman"
+                    elif p_amount <= 0:
+                        st.session_state["error_msg"] = "❌ Enter petrol amount"
+                    else:
+                        next_id = max([x.get("id", 0) for x in db["petrol_expenses"]] + [0]) + 1
+                        new_entry = {
+                            "id": next_id,
+                            "date": datetime.now().strftime("%d-%m-%Y"),
+                            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                            "time": datetime.now().strftime("%H:%M"),
+                            "salesman": p_salesman,
+                            "amount": float(p_amount),
+                        }
+                        db["petrol_expenses"].append(new_entry)
+                        save_database(db)
+                        st.session_state["success_msg"] = f"✅ Petrol Rs {p_amount:,.0f} ({p_salesman}) added"
+                        st.rerun()
+
+            st.markdown(f"**📋 Entries ({len(petrol_filtered)})**")
+            if not petrol_filtered:
+                st.info("Koi entry nahi.")
+            else:
+                sorted_p = sorted(petrol_filtered, key=lambda x: x.get("created_at", ""), reverse=True)
+                for idx, x in enumerate(sorted_p):
+                    x_id = x.get("id", idx)
+                    cc1, cc2 = st.columns([5, 1])
+                    with cc1:
+                        st.markdown(f"""
+                        <div class='exp-row'>
+                            <div class='exp-left'>
+                                <div class='exp-name'>🧑‍💼 {x.get('salesman','-')}</div>
+                                <div class='exp-date'>📅 {x.get('date','')} · 🕐 {x.get('time','')}</div>
+                            </div>
+                            <div class='exp-amt'>Rs {float(x.get('amount',0)):,.0f}</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    with cc2:
+                        if st.button("🗑", key=f"del_petrol_{x_id}_{idx}", use_container_width=True):
+                            db["petrol_expenses"] = [e for e in db["petrol_expenses"] if e.get("id") != x_id]
+                            save_database(db)
+                            st.session_state["success_msg"] = "🗑 Petrol entry deleted"
+                            st.rerun()
+
+                # Per-salesman total (filtered)
+                st.markdown("**📊 Salesman-wise Total (filtered)**")
+                per_sm = {}
+                for x in petrol_filtered:
+                    sm = x.get("salesman", "Unknown")
+                    per_sm[sm] = per_sm.get(sm, 0) + float(x.get("amount", 0))
+                for sm, amt in sorted(per_sm.items()):
+                    st.markdown(f"<div style='padding:4px 8px;font-size:13px;color:#0277bd;'>🧑‍💼 <b>{sm}</b> — Rs {amt:,.0f}</div>", unsafe_allow_html=True)
+
+    # ---------- LUNCH ----------
+    with col_right:
+        st.markdown(f"### 🍽️ Lunch  <span style='font-size:14px;color:#e65100;'>(Rs {total_lunch:,.0f})</span>", unsafe_allow_html=True)
+
+        st.markdown("**➕ Add Lunch Entry**")
+        c1, c2 = st.columns([3, 1])
+        with c1:
+            l_amount = st.number_input("Lunch Amount", min_value=0.0, step=50.0,
+                                       key="lunch_amount", placeholder="Amount", label_visibility="collapsed")
+        with c2:
+            if st.button("➕", key="add_lunch", use_container_width=True, type="primary"):
+                if l_amount <= 0:
+                    st.session_state["error_msg"] = "❌ Enter lunch amount"
+                else:
+                    next_id = max([x.get("id", 0) for x in db["lunch_expenses"]] + [0]) + 1
+                    new_entry = {
+                        "id": next_id,
+                        "date": datetime.now().strftime("%d-%m-%Y"),
+                        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        "time": datetime.now().strftime("%H:%M"),
+                        "amount": float(l_amount),
+                    }
+                    db["lunch_expenses"].append(new_entry)
+                    save_database(db)
+                    st.session_state["success_msg"] = f"✅ Lunch Rs {l_amount:,.0f} added"
+                    st.rerun()
+
+        st.markdown(f"**📋 Entries ({len(lunch_filtered)})**")
+        if not lunch_filtered:
+            st.info("Koi entry nahi.")
+        else:
+            sorted_l = sorted(lunch_filtered, key=lambda x: x.get("created_at", ""), reverse=True)
+            for idx, x in enumerate(sorted_l):
+                x_id = x.get("id", idx)
+                cc1, cc2 = st.columns([5, 1])
+                with cc1:
+                    st.markdown(f"""
+                    <div class='exp-row lunch'>
+                        <div class='exp-left'>
+                            <div class='exp-name'>🍽️ Lunch</div>
+                            <div class='exp-date'>📅 {x.get('date','')} · 🕐 {x.get('time','')}</div>
+                        </div>
+                        <div class='exp-amt'>Rs {float(x.get('amount',0)):,.0f}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                with cc2:
+                    if st.button("🗑", key=f"del_lunch_{x_id}_{idx}", use_container_width=True):
+                        db["lunch_expenses"] = [e for e in db["lunch_expenses"] if e.get("id") != x_id]
+                        save_database(db)
+                        st.session_state["success_msg"] = "🗑 Lunch entry deleted"
+                        st.rerun()
+
+    if st.session_state.get("success_msg"):
+        st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
+    if st.session_state.get("error_msg"):
+        st.error(st.session_state["error_msg"]); st.session_state["error_msg"] = None
+
+# ============================================================
+# PAGE: BILLING (No Delivery Man)
 # ============================================================
 def render_billing():
     st.markdown(f"<h2 style='color:#1976d2 !important;margin:0 0 6px 0;'>🧾 Billing</h2>", unsafe_allow_html=True)
 
-    # Row 1: Bill No + Date
     c1, c2 = st.columns(2)
     with c1: st.text_input("Bill No:", value=str(db["next_bill_no"]), disabled=True, key="dash_bill_no")
     with c2: st.text_input("Date:", value=datetime.now().strftime("%d-%m-%Y"), disabled=True, key="dash_bill_date")
 
-    # Row 2: Shop / Booker / Salesman / Delivery  — 4 columns
-    c1, c2, c3, c4 = st.columns(4)
+    # Row 2: Shop / Booker / Salesman  — 3 columns (Delivery Man HATAYA)
+    c1, c2, c3 = st.columns(3)
     with c1:
         shop_name = st.text_input("Shop:", key="shop_name", placeholder="Shop Name")
     with c2:
@@ -1187,10 +1373,8 @@ def render_billing():
             st.session_state["salesman"] = "" if selected_sm == "-- Select --" else selected_sm
         else:
             st.text_input("Salesman:", key="salesman", placeholder="Salesman")
-    with c4:
-        st.text_input("Delivery Man:", key="delivery_man", placeholder="Delivery")
 
-    # Row 3: Search + Product  — 2 columns
+    # Row 3: Search + Product
     c1, c2 = st.columns([1, 3])
     with c1:
         search_text = st.text_input("🔍 Search:", key="search_text", placeholder="Type name...")
@@ -1220,7 +1404,7 @@ def render_billing():
         st.session_state["tp_box"] = tp_default
         st.session_state["_prev_prod"] = product_sel
 
-    # Row 4: Boxes / TP / Discount / Gross / Net  — 5 columns
+    # Row 4: Boxes / TP / Discount / Gross / Net — 5 columns
     c1, c2, c3, c4, c5 = st.columns(5)
     with c1: boxes = st.number_input("Boxes:", min_value=0, step=1, key="boxes")
     with c2: tp_box = st.number_input("TP/Box:", min_value=0.0, step=1.0, key="tp_box")
@@ -1230,13 +1414,11 @@ def render_billing():
     with c4: st.text_input("Gross:", value=f"{gross:.0f}", disabled=True, key="gross_disp")
     with c5: st.text_input("Net:", value=f"{net:.0f}", disabled=True, key="net_disp")
 
-    # Messages
     if st.session_state.get("success_msg"):
         st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
     if st.session_state.get("error_msg"):
         st.error(st.session_state["error_msg"]); st.session_state["error_msg"] = None
 
-    # Buttons: Row 1 (Add + Refresh), Row 2 (Export Bill + Export Load Form + Refresh Load Form)
     b1, b2 = st.columns(2)
     with b1: st.button("➕ Add Bill", key="btn_add", on_click=add_bill_callback, use_container_width=True, type="primary")
     with b2: st.button("🔄 Refresh", key="btn_refresh", on_click=refresh_callback, use_container_width=True)
@@ -1322,7 +1504,7 @@ def render_bills_list():
         return
 
     st.markdown(f"### 📋 Bills ({len(filtered_records)})")
-    st.caption("👇 Jis bill ko select karna hai uske **Select** checkbox pe ✅ lagao. Phir neeche **Download** ya **Delete** button dabao.")
+    st.caption("👇 Jis bill ko select karna hai uske **Select** checkbox pe ✅ lagao.")
 
     display_data = []
     for r in filtered_records:
@@ -1333,7 +1515,6 @@ def render_bills_list():
             "Shop": r.get("Shop"),
             "Order Booker": r.get("Order Booker"),
             "Salesman": r.get("Salesman"),
-            "Delivery Man": r.get("Delivery Man"),
             "Code": r.get("Code"),
             "Product": r.get("Product"),
             "Boxes": r.get("Boxes"),
@@ -1561,7 +1742,7 @@ def add_bill_callback():
         "Shop": st.session_state.get("shop_name", "").strip(),
         "Order Booker": st.session_state.get("order_booker", "").strip(),
         "Salesman": st.session_state.get("salesman", "").strip(),
-        "Delivery Man": st.session_state.get("delivery_man", "").strip(),
+        "Delivery Man": "",
         "Code": sel["code"], "Product": sel["name"],
         "Boxes": boxes_v, "TP/Box": tp_v, "Discount %": disc_v,
         "Gross": gross_v, "Net": net_v
@@ -1752,6 +1933,8 @@ elif st.session_state["page"] == "🧑‍💼 Salesmen":
     render_salesmen()
 elif st.session_state["page"] == "💰 Salesmen Salary":
     render_salaries("salesmen")
+elif st.session_state["page"] == "💵 Daily Expense":
+    render_daily_expense()
 elif st.session_state["page"] == "📋 Bills List":
     render_bills_list()
 elif st.session_state["page"] == "📦 Load Form":
