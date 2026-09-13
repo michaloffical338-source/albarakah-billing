@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# + Discount Packages (Auto apply on Bill Export)
+# + Multi-Active Discount Packages (4 packages × 3 tiers)
 # ============================================================
 
 import os
@@ -340,21 +340,19 @@ st.markdown("""
         border-radius: 6px; font-size: 11px; font-weight: 700;
     }
 
-    /* Discount package card */
     .disc-card {
         background: #ffffff; border: 2px solid #90caf9; border-radius: 12px;
-        padding: 14px 18px; margin-bottom: 10px;
+        padding: 10px 14px; margin-bottom: 10px;
     }
     .disc-card.active {
         border: 3px solid #2e7d32;
         box-shadow: 0 4px 14px rgba(46,125,50,0.25);
+        background: #f1f8e9;
     }
     .disc-title {
-        font-size: 16px; font-weight: 800; color: #1976d2; margin-bottom: 6px;
+        font-size: 15px; font-weight: 800; color: #1976d2; margin-bottom: 4px;
     }
-    .disc-title-active {
-        color: #2e7d32 !important;
-    }
+    .disc-title-active { color: #2e7d32 !important; }
     .disc-badge-active {
         background: #c8e6c9; color: #1b5e20 !important;
         font-size: 11px; font-weight: 700; padding: 3px 10px;
@@ -494,18 +492,30 @@ PRODUCTS = sorted([
 PRODUCT_NAMES = [p["name"] for p in PRODUCTS]
 
 # ============================================================
-# DEFAULT DISCOUNT PACKAGES
+# DEFAULT DISCOUNT PACKAGES (4 packages × 3 tiers, ALL ACTIVE BY DEFAULT)
 # ============================================================
 def default_discount_packages():
     return [
-        {"id": 1, "name": "Package 1", "tier1_amount": 1200.0, "tier1_pct": 1.0,
-         "tier2_amount": 2100.0, "tier2_pct": 2.0, "active": False},
-        {"id": 2, "name": "Package 2", "tier1_amount": 0.0, "tier1_pct": 0.0,
-         "tier2_amount": 0.0, "tier2_pct": 0.0, "active": False},
-        {"id": 3, "name": "Package 3", "tier1_amount": 0.0, "tier1_pct": 0.0,
-         "tier2_amount": 0.0, "tier2_pct": 0.0, "active": False},
-        {"id": 4, "name": "Package 4", "tier1_amount": 0.0, "tier1_pct": 0.0,
-         "tier2_amount": 0.0, "tier2_pct": 0.0, "active": False},
+        {"id": 1, "name": "Package 1",
+         "tier1_amount": 1200.0, "tier1_pct": 1.0,
+         "tier2_amount": 2100.0, "tier2_pct": 2.0,
+         "tier3_amount": 3100.0, "tier3_pct": 3.0,
+         "active": True},
+        {"id": 2, "name": "Package 2",
+         "tier1_amount": 1200.0, "tier1_pct": 1.0,
+         "tier2_amount": 2100.0, "tier2_pct": 2.0,
+         "tier3_amount": 3100.0, "tier3_pct": 3.0,
+         "active": True},
+        {"id": 3, "name": "Package 3",
+         "tier1_amount": 1200.0, "tier1_pct": 1.0,
+         "tier2_amount": 2100.0, "tier2_pct": 2.0,
+         "tier3_amount": 3100.0, "tier3_pct": 3.0,
+         "active": True},
+        {"id": 4, "name": "Package 4",
+         "tier1_amount": 1200.0, "tier1_pct": 1.0,
+         "tier2_amount": 2100.0, "tier2_pct": 2.0,
+         "tier3_amount": 3100.0, "tier3_pct": 3.0,
+         "active": True},
     ]
 
 # ============================================================
@@ -529,6 +539,11 @@ def load_database():
                     if k not in data: data[k] = {}
                 if "discount_packages" not in data or not data["discount_packages"]:
                     data["discount_packages"] = default_discount_packages()
+                else:
+                    # migrate: ensure tier3 fields exist
+                    for p in data["discount_packages"]:
+                        if "tier3_amount" not in p: p["tier3_amount"] = 0.0
+                        if "tier3_pct" not in p: p["tier3_pct"] = 0.0
                 return data
         except Exception:
             pass
@@ -565,6 +580,9 @@ for k in ["bookers_salaries", "salesmen_salaries", "product_prices"]:
     if k not in db: db[k] = {}
 if "discount_packages" not in db or not db["discount_packages"]:
     db["discount_packages"] = default_discount_packages()
+for p in db["discount_packages"]:
+    if "tier3_amount" not in p: p["tier3_amount"] = 0.0
+    if "tier3_pct" not in p: p["tier3_pct"] = 0.0
 
 # ============================================================
 # HELPERS
@@ -576,28 +594,42 @@ def get_price(code, base_price):
         except Exception: return float(base_price)
     return float(base_price)
 
-def get_active_package():
-    """Return the currently active discount package (or None)."""
-    for pkg in db.get("discount_packages", []):
-        if pkg.get("active"):
-            return pkg
-    return None
+def get_all_active_packages():
+    """Return list of ALL active packages."""
+    return [p for p in db.get("discount_packages", []) if p.get("active")]
 
 def get_package_discount_pct(bill_total):
-    """Given bill total, return (pct, package_name, tier_label) based on ACTIVE package."""
-    pkg = get_active_package()
-    if not pkg:
+    """
+    Check ALL active packages. Return BEST (highest %) applicable discount.
+    Returns: (pct, package_name, tier_label)
+    """
+    active_pkgs = get_all_active_packages()
+    if not active_pkgs:
         return 0.0, None, None
-    t2_amt = float(pkg.get("tier2_amount", 0))
-    t2_pct = float(pkg.get("tier2_pct", 0))
-    t1_amt = float(pkg.get("tier1_amount", 0))
-    t1_pct = float(pkg.get("tier1_pct", 0))
-    # Tier 2 has priority (higher threshold)
-    if t2_amt > 0 and bill_total > t2_amt:
-        return t2_pct, pkg.get("name", "Package"), f"Tier2 (> {t2_amt:,.0f})"
-    if t1_amt > 0 and bill_total > t1_amt:
-        return t1_pct, pkg.get("name", "Package"), f"Tier1 (> {t1_amt:,.0f})"
-    return 0.0, pkg.get("name", "Package"), None
+
+    best_pct = 0.0
+    best_name = None
+    best_tier = None
+
+    for pkg in active_pkgs:
+        pkg_name = pkg.get("name", "Package")
+        tiers = [
+            (float(pkg.get("tier3_amount", 0) or 0), float(pkg.get("tier3_pct", 0) or 0), "Tier3"),
+            (float(pkg.get("tier2_amount", 0) or 0), float(pkg.get("tier2_pct", 0) or 0), "Tier2"),
+            (float(pkg.get("tier1_amount", 0) or 0), float(pkg.get("tier1_pct", 0) or 0), "Tier1"),
+        ]
+        # sort descending by amount so highest threshold is checked first
+        tiers.sort(key=lambda x: x[0], reverse=True)
+        for amt, pct, label in tiers:
+            if amt > 0 and bill_total > amt and pct > best_pct:
+                best_pct = pct
+                best_name = pkg_name
+                best_tier = f"{label} (> {amt:,.0f})"
+                break  # highest tier of this package wins, move to next package
+
+    if best_pct > 0:
+        return best_pct, best_name, best_tier
+    return 0.0, (active_pkgs[0].get("name") if active_pkgs else None), None
 
 def show_auto_download():
     if st.session_state.get("download_file"):
@@ -655,12 +687,13 @@ with st.sidebar:
     st.session_state["page"] = page
 
     st.markdown("---")
-    active_pkg = get_active_package()
-    active_name = active_pkg.get("name", "—") if active_pkg else "Koi nahi"
+    active_pkgs = get_all_active_packages()
+    active_names = ", ".join([p.get("name", "Package") for p in active_pkgs]) if active_pkgs else "Koi nahi"
     st.markdown(f"""
     <div style='padding:10px; color:#0277bd !important; font-size:12px;'>
         <p>📅 {datetime.now().strftime('%d-%m-%Y')}</p>
-        <p>🎁 Active Discount: <b>{active_name}</b></p>
+        <p>🎁 Active Packages: <b>{len(active_pkgs)}</b></p>
+        <p style='font-size:10px;'>{active_names}</p>
         <p>📦 Products: {len(PRODUCTS)}</p>
         <p>👤 Bookers: {len(db.get('bookers', []))}</p>
         <p>🧑‍💼 Salesmen: {len(db.get('salesmen', []))}</p>
@@ -735,11 +768,11 @@ def render_dashboard():
                 """, unsafe_allow_html=True)
 
 # ============================================================
-# PAGE: DISCOUNT
+# PAGE: DISCOUNT (4 packages × 3 tiers, all can be active)
 # ============================================================
 def render_discount():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🎁 Discount Packages</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#0277bd;font-weight:500;'>4 packages — sirf 1 active ho sakta hai. Jab Bill export karoge, active package khud apply ho jayega.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#0277bd;font-weight:500;'>Chaaron packages ek saath active ho sakte hain. Bill export pe sabse zyada % wala apply hoga.</p>", unsafe_allow_html=True)
     st.markdown("---")
 
     pkgs = db.get("discount_packages", [])
@@ -748,51 +781,25 @@ def render_discount():
         db["discount_packages"] = pkgs
         save_database(db)
 
-    active_id = None
     for p in pkgs:
-        if p.get("active"):
-            active_id = p.get("id")
-            break
+        if "tier3_amount" not in p: p["tier3_amount"] = 0.0
+        if "tier3_pct" not in p: p["tier3_pct"] = 0.0
+
+    active_names = [p.get("name", "Package") for p in pkgs if p.get("active")]
+    active_str = ", ".join(active_names) if active_names else "Koi nahi"
 
     st.markdown(f"""
     <div class='summary-box'>
-        <b style='color:#1976d2;font-size:16px;'>📊 Current Active Package</b><br>
-        <span style='color:#0277bd;'>
-            <b style='color:#2e7d32;font-size:15px;'>
-            {"✅ " + next((p["name"] for p in pkgs if p.get("id") == active_id), "Koi nahi") if active_id else "❌ Koi active nahi"}
-            </b>
+        <b style='color:#1976d2;font-size:15px;'>🎁 Active Packages:</b>
+        <span style='color:#2e7d32;font-size:15px;font-weight:700;'>{active_str}</span>
+        <br><span style='font-size:12px;color:#0277bd;'>
+            Har package apne aap check hoga — jo sabse zyada % de raha ho, wahi apply hoga.
         </span>
     </div>
     """, unsafe_allow_html=True)
 
-    # ------- Active selection radio -------
-    st.markdown("### 🔘 Active Package Chuno")
-    options = ["❌ Koi nahi"] + [f"🎁 {p.get('name','Package')}" for p in pkgs]
-    default_idx = 0
-    if active_id:
-        for i, p in enumerate(pkgs):
-            if p.get("id") == active_id:
-                default_idx = i + 1
-                break
-    selected = st.radio("Active:", options=options, index=default_idx, key="active_pkg_radio", label_visibility="collapsed")
-
-    new_active_id = None
-    if selected != "❌ Koi nahi":
-        idx = options.index(selected) - 1
-        new_active_id = pkgs[idx].get("id")
-
-    if new_active_id != active_id:
-        for p in pkgs:
-            p["active"] = (p.get("id") == new_active_id)
-        save_database(db)
-        if new_active_id:
-            st.success(f"✅ Package active: {next((p['name'] for p in pkgs if p['id']==new_active_id), '')}")
-        else:
-            st.success("❌ Koi package active nahi")
-        st.rerun()
-
-    st.markdown("---")
-    st.markdown("### 📝 Packages Edit Karo")
+    st.markdown("### 📝 Packages")
+    st.caption("👇 Har package ke saath **Active** checkbox hai — jitne chahiye utne active rakho.")
 
     for i, pkg in enumerate(pkgs):
         pid = pkg.get("id", i+1)
@@ -800,49 +807,94 @@ def render_discount():
         card_class = "disc-card active" if is_active else "disc-card"
         badge = '<span class="disc-badge-active">ACTIVE</span>' if is_active else ""
 
-        st.markdown(f"""
-        <div class='{card_class}'>
-            <div class='disc-title {"disc-title-active" if is_active else ""}'>
-                🎁 {pkg.get('name','Package')} {badge}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f"<div class='{card_class}'>", unsafe_allow_html=True)
 
-        c1, c2, c3, c4, c5 = st.columns([2, 2, 2, 2, 2])
+        # ---- Header row: checkbox + name ----
+        c1, c2 = st.columns([1, 5])
         with c1:
-            new_name = st.text_input("Package Name", value=pkg.get("name", f"Package {pid}"), key=f"pkgname_{pid}")
+            new_active = st.checkbox("Active", value=is_active, key=f"active_{pid}")
+            if new_active != is_active:
+                for pp in db["discount_packages"]:
+                    if pp.get("id") == pid:
+                        pp["active"] = new_active
+                        break
+                save_database(db)
+                st.rerun()
         with c2:
-            t1_amt = st.number_input("Tier 1: Min Amount", value=float(pkg.get("tier1_amount", 0)), min_value=0.0, step=50.0, key=f"t1a_{pid}")
-        with c3:
-            t1_pct = st.number_input("Tier 1: Disc %", value=float(pkg.get("tier1_pct", 0)), min_value=0.0, max_value=100.0, step=0.5, key=f"t1p_{pid}")
-        with c4:
-            t2_amt = st.number_input("Tier 2: Min Amount", value=float(pkg.get("tier2_amount", 0)), min_value=0.0, step=50.0, key=f"t2a_{pid}")
-        with c5:
-            t2_pct = st.number_input("Tier 2: Disc %", value=float(pkg.get("tier2_pct", 0)), min_value=0.0, max_value=100.0, step=0.5, key=f"t2p_{pid}")
+            new_name = st.text_input(
+                f"Package {pid} Name",
+                value=pkg.get("name", f"Package {pid}"),
+                key=f"pkgname_{pid}",
+                label_visibility="collapsed"
+            )
 
-        cc1, cc2 = st.columns([1, 5])
-        with cc1:
+        st.markdown(
+            f"<div style='font-size:13px;color:#{'2e7d32' if is_active else '1976d2'};font-weight:800;margin:2px 0 4px 0;'>"
+            f"🎁 {pkg.get('name','Package')} {badge}</div>",
+            unsafe_allow_html=True
+        )
+
+        # ---- 3 Tiers compact ----
+        t1, t2, t3 = st.columns(3)
+        with t1:
+            st.markdown("<div style='font-size:11px;font-weight:700;color:#1976d2;'>Tier 1</div>", unsafe_allow_html=True)
+            tc1, tc2 = st.columns(2)
+            with tc1:
+                ta1 = st.number_input("Min", value=float(pkg.get("tier1_amount", 0) or 0),
+                                      min_value=0.0, step=50.0, key=f"t1a_{pid}", label_visibility="collapsed")
+                st.caption("Min Rs")
+            with tc2:
+                tp1 = st.number_input("%", value=float(pkg.get("tier1_pct", 0) or 0),
+                                      min_value=0.0, max_value=100.0, step=0.5, key=f"t1p_{pid}", label_visibility="collapsed")
+                st.caption("Disc %")
+        with t2:
+            st.markdown("<div style='font-size:11px;font-weight:700;color:#1976d2;'>Tier 2</div>", unsafe_allow_html=True)
+            tc1, tc2 = st.columns(2)
+            with tc1:
+                ta2 = st.number_input("Min", value=float(pkg.get("tier2_amount", 0) or 0),
+                                      min_value=0.0, step=50.0, key=f"t2a_{pid}", label_visibility="collapsed")
+                st.caption("Min Rs")
+            with tc2:
+                tp2 = st.number_input("%", value=float(pkg.get("tier2_pct", 0) or 0),
+                                      min_value=0.0, max_value=100.0, step=0.5, key=f"t2p_{pid}", label_visibility="collapsed")
+                st.caption("Disc %")
+        with t3:
+            st.markdown("<div style='font-size:11px;font-weight:700;color:#1976d2;'>Tier 3</div>", unsafe_allow_html=True)
+            tc1, tc2 = st.columns(2)
+            with tc1:
+                ta3 = st.number_input("Min", value=float(pkg.get("tier3_amount", 0) or 0),
+                                      min_value=0.0, step=50.0, key=f"t3a_{pid}", label_visibility="collapsed")
+                st.caption("Min Rs")
+            with tc2:
+                tp3 = st.number_input("%", value=float(pkg.get("tier3_pct", 0) or 0),
+                                      min_value=0.0, max_value=100.0, step=0.5, key=f"t3p_{pid}", label_visibility="collapsed")
+                st.caption("Disc %")
+
+        # ---- Save ----
+        sc1, sc2 = st.columns([1, 5])
+        with sc1:
             if st.button("💾 Save", key=f"savepkg_{pid}", use_container_width=True, type="primary"):
                 for pp in db["discount_packages"]:
                     if pp.get("id") == pid:
                         pp["name"] = new_name.strip() or f"Package {pid}"
-                        pp["tier1_amount"] = float(t1_amt)
-                        pp["tier1_pct"] = float(t1_pct)
-                        pp["tier2_amount"] = float(t2_amt)
-                        pp["tier2_pct"] = float(t2_pct)
+                        pp["tier1_amount"] = float(ta1); pp["tier1_pct"] = float(tp1)
+                        pp["tier2_amount"] = float(ta2); pp["tier2_pct"] = float(tp2)
+                        pp["tier3_amount"] = float(ta3); pp["tier3_pct"] = float(tp3)
                         break
                 save_database(db)
-                st.session_state["success_msg"] = f"✅ Package '{new_name}' saved"
+                st.session_state["success_msg"] = f"✅ Package saved"
                 st.rerun()
-        with cc2:
+        with sc2:
             st.markdown(
-                f"<div style='padding-top:8px;font-size:12px;color:#0277bd;'>"
-                f"<b>Rule:</b> Bill total > Rs {t1_amt:,.0f} → {t1_pct}% discount &nbsp;|&nbsp; "
-                f"Bill total > Rs {t2_amt:,.0f} → {t2_pct}% discount</div>",
+                f"<div style='padding-top:10px;font-size:11px;color:#0277bd;'>"
+                f"&gt; Rs {ta1:,.0f} → {tp1}% &nbsp;|&nbsp; "
+                f"&gt; Rs {ta2:,.0f} → {tp2}% &nbsp;|&nbsp; "
+                f"&gt; Rs {ta3:,.0f} → {tp3}%</div>",
                 unsafe_allow_html=True
             )
 
-        st.markdown("<hr style='margin:6px 0;'>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
 
     if st.session_state.get("success_msg"):
         st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
@@ -1064,11 +1116,8 @@ def render_salaries(role_type):
         st.info(f"❌ Abhi tak koi {role_type[:-1]} add nahi hua. Pehle **{other_page}** page pe add karo.")
         return
 
-    total_base = 0
-    total_adv_pending = 0
-    total_adv_paid = 0
-    total_short_pending = 0
-    total_short_paid = 0
+    total_base = 0; total_adv_pending = 0; total_adv_paid = 0
+    total_short_pending = 0; total_short_paid = 0
     for n in names:
         sd = db[sal_key].get(n, {})
         base = sd.get("base_salary", 0)
@@ -1170,12 +1219,10 @@ def render_salaries(role_type):
                     status = t.get("status", "pending")
                     is_pending = status == "pending"
                     is_adv = t["type"] == "advanced"
-
                     if is_adv:
                         badge_text = "Advanced"; badge_color = "#e65100"; badge_bg = "#fff3e0"
                     else:
                         badge_text = "Shortage"; badge_color = "#c62828"; badge_bg = "#ffebee"
-
                     status_badge = f'<span class="status-pending">⏳ PENDING</span>' if is_pending else f'<span class="status-paid">✅ PAID</span>'
                     note_txt = f" — {t.get('note','')}" if t.get("note") else ""
 
@@ -1200,7 +1247,7 @@ def render_salaries(role_type):
                                         tx["paid_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                                         break
                                 save_database(db)
-                                st.session_state["success_msg"] = f"✅ Rs {t['amount']:,.0f} PAID — amount wapas salary me add ho gaya"
+                                st.session_state["success_msg"] = f"✅ Rs {t['amount']:,.0f} PAID"
                                 st.rerun()
                         else:
                             st.markdown("<div style='padding-top:6px;color:#1b5e20;font-weight:700;font-size:13px;text-align:center;'>✅ PAID</div>", unsafe_allow_html=True)
@@ -1393,9 +1440,10 @@ def render_daily_expense():
 def render_billing():
     st.markdown(f"<h2 style='color:#1976d2 !important;margin:0 0 6px 0;'>🧾 Billing</h2>", unsafe_allow_html=True)
 
-    active_pkg = get_active_package()
-    if active_pkg:
-        st.markdown(f"<div class='hint-box'>🎁 Active Discount Package: <b>{active_pkg.get('name','—')}</b> — Bill export karte waqt khud apply hoga</div>", unsafe_allow_html=True)
+    active_pkgs = get_all_active_packages()
+    if active_pkgs:
+        names = ", ".join([p.get("name", "Package") for p in active_pkgs])
+        st.markdown(f"<div class='hint-box'>🎁 Active Packages ({len(active_pkgs)}): <b>{names}</b> — Bill export pe best discount apply hoga</div>", unsafe_allow_html=True)
     else:
         st.markdown("<div class='hint-box'>💡 Koi discount package active nahi. '🎁 Discount' page se activate karo.</div>", unsafe_allow_html=True)
 
@@ -1816,16 +1864,13 @@ def export_bill_callback():
     shop = st.session_state.get("shop_name", "").strip() or "Bill"
     for ch in ['\\','/',':','*','?','"','<','>','|']: shop = shop.replace(ch, "")
 
-    # ---- Get this shop's bill lines ----
     shop_bills = [b for b in db["bills"] if b["Shop"].strip() == shop]
     if not shop_bills:
         st.session_state["error_msg"] = "❌ Is shop ke liye koi bill nahi mila"; return
 
-    # ---- Total of Net (used to decide package tier) ----
     bill_total_net = sum(float(b.get("Net", 0)) for b in shop_bills)
     pkg_pct, pkg_name, tier_label = get_package_discount_pct(bill_total_net)
 
-    # ---- Build Excel ----
     output = BytesIO()
     workbook = xlsxwriter.Workbook(output, {'in_memory': True})
     worksheet = workbook.add_worksheet("Bill")
@@ -1853,24 +1898,21 @@ def export_bill_callback():
     worksheet.write("H3", last_bill, cell_center)
     worksheet.write("I3","Date",header); worksheet.write("J3", datetime.now().strftime("%d-%m-%Y"), cell_center)
 
-    # package info line
     if pkg_pct > 0:
-        worksheet.merge_range("A4:J4", f"🎁 Discount Package: {pkg_name} | {tier_label} | Applied: {pkg_pct}% on each product", pkg_info)
-        start_row = 6
+        worksheet.merge_range("A4:J4", f"🎁 Best Discount Applied: {pkg_name} | {tier_label} | {pkg_pct}% on each product", pkg_info)
     else:
         if pkg_name:
-            worksheet.merge_range("A4:J4", f"🎁 Package '{pkg_name}' active hai lekin bill total par koi tier apply nahi hua (Total Net: Rs {bill_total_net:,.0f})", pkg_info)
+            worksheet.merge_range("A4:J4", f"🎁 {pkg_name} active hai lekin koi tier apply nahi hua (Total Net: Rs {bill_total_net:,.0f})", pkg_info)
         else:
             worksheet.merge_range("A4:J4", "💡 Koi discount package active nahi", pkg_info)
-        start_row = 6
 
+    start_row = 6
     headers = ["Product", "Code", "Boxes", "TP/Box", "Gross", "Disc %", "Net", "Pkg Disc %", "After Disc Net", "Saved"]
     for col, h in enumerate(headers):
         worksheet.write(start_row, col, h, header)
     row = start_row + 1
 
     gross_total = 0; total_boxes = 0; net_total = 0; after_disc_total = 0; saved_total = 0
-
     for bill in shop_bills:
         b_net = float(bill.get("Net", 0))
         b_gross = float(bill.get("Gross", 0))
@@ -1906,7 +1948,6 @@ def export_bill_callback():
     worksheet.write(row, 8, after_disc_total, total)
     worksheet.write(row, 9, saved_total, total)
 
-    # big net below
     row += 2
     worksheet.merge_range(row, 0, row, 6, "NET AMOUNT (After Package Discount)", header)
     worksheet.merge_range(row, 7, row, 9, f"Rs {after_disc_total:,.0f}", total)
@@ -1920,7 +1961,7 @@ def export_bill_callback():
     db["next_bill_no"] += 1; save_database(db)
     st.session_state["last_bill_no"] = None
     if pkg_pct > 0:
-        st.session_state["success_msg"] = f"✅ Bill Exported | {pkg_name} {tier_label} | {pkg_pct}% discount applied | Total Net: Rs {after_disc_total:,.0f} (Saved Rs {saved_total:,.0f})"
+        st.session_state["success_msg"] = f"✅ Bill Exported | {pkg_name} {tier_label} | {pkg_pct}% | Net: Rs {after_disc_total:,.0f} (Saved Rs {saved_total:,.0f})"
     else:
         st.session_state["success_msg"] = f"✅ Bill Exported | Next Bill No: {db['next_bill_no']}"
 
