@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# FINAL - Custom Floating Sidebar Toggle Button
+# Dashboard + All Products (Editable Prices)
 # ============================================================
 
 import os
@@ -20,7 +20,7 @@ st.set_page_config(
 )
 
 # ============================================================
-# CUSTOM FLOATING SIDEBAR TOGGLE (top-left)
+# CUSTOM FLOATING SIDEBAR TOGGLE
 # ============================================================
 components.html("""
 <script>
@@ -35,23 +35,14 @@ components.html("""
             btn.id = 'custom-sidebar-toggle';
             btn.title = 'Sidebar Open/Close';
             btn.innerHTML = '\\u2630';
-
-            var styles = {
-                'position':'fixed',
-                'top':'14px',
-                'left':'14px',
-                'z-index':'2147483647',
+            var s = {
+                'position':'fixed','top':'14px','left':'14px','z-index':'2147483647',
                 'background':'linear-gradient(135deg, #4caf50 0%, #26a69a 100%)',
-                'color':'#ffffff',
-                'border':'none',
-                'border-radius':'10px',
-                'padding':'8px 14px',
-                'font-size':'20px',
-                'font-weight':'bold',
-                'cursor':'pointer',
+                'color':'#fff','border':'none','border-radius':'10px','padding':'8px 14px',
+                'font-size':'20px','font-weight':'bold','cursor':'pointer',
                 'box-shadow':'0 3px 10px rgba(76,175,80,0.5)'
             };
-            for (var k in styles) { btn.style.setProperty(k, styles[k], 'important'); }
+            for (var k in s) btn.style.setProperty(k, s[k], 'important');
 
             btn.onclick = function() {
                 var targets = [
@@ -61,24 +52,14 @@ components.html("""
                     '[data-testid="stExpandSidebarButton"] button',
                     'button[kind="headerNoPadding"]'
                 ];
-                var clicked = false;
                 for (var i = 0; i < targets.length; i++) {
                     var el = doc.querySelector(targets[i]);
-                    if (el) { el.click(); clicked = true; break; }
-                }
-                if (!clicked) {
-                    var sb = doc.querySelector('section[data-testid="stSidebar"]');
-                    if (sb) {
-                        var cur = sb.getAttribute('aria-expanded');
-                        sb.setAttribute('aria-expanded', cur === 'true' ? 'false' : 'true');
-                    }
+                    if (el) { el.click(); return; }
                 }
             };
-
             if (doc.body) doc.body.appendChild(btn);
         } catch(e) {}
     }
-
     setTimeout(attach, 400);
     setTimeout(attach, 1200);
     setTimeout(attach, 2500);
@@ -92,23 +73,14 @@ components.html("""
 # ============================================================
 st.markdown("""
 <style>
-    /* Hide ONLY the toolbar icons */
     [data-testid="stToolbar"] { display: none !important; }
     [data-testid="stDecoration"] { display: none !important; }
     [data-testid="stStatusWidget"] { display: none !important; }
     #MainMenu { visibility: hidden !important; }
     footer { visibility: hidden !important; }
+    header[data-testid="stHeader"] { background: transparent !important; box-shadow: none !important; }
 
-    /* Header transparent but NOT hidden */
-    header[data-testid="stHeader"] {
-        background: transparent !important;
-        box-shadow: none !important;
-    }
-
-    /* Main background */
-    .stApp {
-        background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%) !important;
-    }
+    .stApp { background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%) !important; }
     .block-container {
         padding-top: 1rem !important;
         padding-left: 2rem !important;
@@ -117,12 +89,9 @@ st.markdown("""
         max-width: 100% !important;
     }
 
-    /* Sidebar */
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #c8e6c9 0%, #b2ebf2 100%) !important;
     }
-
-    /* Sidebar options */
     section[data-testid="stSidebar"] .stRadio label {
         font-size: 15px !important;
         font-weight: 600 !important;
@@ -140,7 +109,6 @@ st.markdown("""
         border-color: #4caf50 !important;
     }
 
-    /* Inputs */
     .stTextInput > div > div > input,
     .stNumberInput > div > div > input,
     .stSelectbox > div > div > div,
@@ -151,7 +119,6 @@ st.markdown("""
         border-radius: 8px !important;
     }
 
-    /* Buttons */
     .stButton > button {
         background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%) !important;
         color: #ffffff !important;
@@ -179,7 +146,6 @@ st.markdown("""
         height: 0 !important;
     }
 
-    /* Cards */
     .metric-card {
         background: #ffffff;
         border: 2px solid #a5d6a7;
@@ -209,6 +175,46 @@ st.markdown("""
         padding: 12px 18px;
         margin-bottom: 8px;
     }
+
+    /* Dashboard people cards */
+    .person-card {
+        background: #ffffff;
+        border-left: 6px solid #4caf50;
+        border-radius: 12px;
+        padding: 14px 18px;
+        margin-bottom: 10px;
+        box-shadow: 0 3px 10px rgba(76,175,80,0.12);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .person-card .info { display: flex; flex-direction: column; gap: 3px; }
+    .person-card .name { font-size: 16px; font-weight: 700; color: #2e7d32; }
+    .person-card .sub { font-size: 12px; color: #00695c; }
+    .person-card .badge {
+        background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%);
+        color: #fff;
+        font-weight: 800;
+        font-size: 14px;
+        padding: 6px 12px;
+        border-radius: 8px;
+        min-width: 60px;
+        text-align: center;
+    }
+    .sal-badge {
+        background: linear-gradient(135deg, #0288d1 0%, #26a69a 100%);
+    }
+
+    .empty-box {
+        background: #ffffff;
+        border: 2px dashed #a5d6a7;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        color: #00695c;
+        font-size: 14px;
+    }
+
     .hint-box {
         background: #e8f5e9;
         border-left: 4px solid #4caf50;
@@ -270,6 +276,15 @@ st.markdown("""
     .sal-metric.short { background: #ffebee; color: #c62828; }
     .sal-metric.remain { background: #e8f5e9; color: #1b5e20; }
 
+    /* Product cards */
+    .prod-row {
+        background: #ffffff;
+        border: 1px solid #a5d6a7;
+        border-radius: 10px;
+        padding: 10px 14px;
+        margin-bottom: 8px;
+    }
+
     .stAlert { border-radius: 10px !important; }
     hr { border-color: #a5d6a7 !important; opacity: 0.6 !important; }
 </style>
@@ -279,7 +294,7 @@ COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
 DATA_FILE = "billing_database.json"
 
 # ============================================================
-# PRODUCT LIST
+# PRODUCT LIST (base prices — original)
 # ============================================================
 PRODUCTS = sorted([
     {"code":"51","name":"BOOMZ LIQUID MANGO","price":135},
@@ -417,16 +432,12 @@ def load_database():
         try:
             with open(DATA_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                if "bookers" not in data:
-                    data["bookers"] = []
-                if "salesmen" not in data:
-                    data["salesmen"] = []
-                if "load_forms" not in data:
-                    data["load_forms"] = []
-                if "bookers_salaries" not in data:
-                    data["bookers_salaries"] = {}
-                if "salesmen_salaries" not in data:
-                    data["salesmen_salaries"] = {}
+                defaults = ["bookers", "salesmen", "load_forms"]
+                for k in defaults:
+                    if k not in data: data[k] = []
+                if "bookers_salaries" not in data: data["bookers_salaries"] = {}
+                if "salesmen_salaries" not in data: data["salesmen_salaries"] = {}
+                if "product_prices" not in data: data["product_prices"] = {}
                 return data
         except Exception:
             pass
@@ -437,7 +448,8 @@ def load_database():
         "salesmen": [],
         "load_forms": [],
         "bookers_salaries": {},
-        "salesmen_salaries": {}
+        "salesmen_salaries": {},
+        "product_prices": {}
     }
 
 def parse_date(dstr):
@@ -460,9 +472,23 @@ if "page" not in st.session_state:
     st.session_state["page"] = "📊 Dashboard"
 
 db = st.session_state.database
-for k in ["bookers", "salesmen", "load_forms", "bookers_salaries", "salesmen_salaries"]:
-    if k not in db:
-        db[k] = [] if k in ["bookers", "salesmen", "load_forms"] else {}
+for k in ["bookers", "salesmen", "load_forms"]:
+    if k not in db: db[k] = []
+for k in ["bookers_salaries", "salesmen_salaries", "product_prices"]:
+    if k not in db: db[k] = {}
+
+# ============================================================
+# HELPER: Get current price (custom or base)
+# ============================================================
+def get_price(code, base_price):
+    """Return custom price if set, else base price."""
+    custom = db.get("product_prices", {})
+    if str(code) in custom:
+        try:
+            return float(custom[str(code)])
+        except Exception:
+            return float(base_price)
+    return float(base_price)
 
 # ============================================================
 # AUTO-DOWNLOAD
@@ -472,17 +498,14 @@ def show_auto_download():
         fname, fdata = st.session_state["download_file"]
         st.session_state["download_file"] = None
         st.session_state["_dl_counter"] += 1
-
         st.markdown('<div class="auto-dl-hidden">', unsafe_allow_html=True)
         st.download_button(
             label=f"Download {fname}",
-            data=fdata,
-            file_name=fname,
+            data=fdata, file_name=fname,
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             key=f"auto_dl_{st.session_state['_dl_counter']}",
         )
         st.markdown('</div>', unsafe_allow_html=True)
-
         components.html("""
         <script>
         (function(){
@@ -515,6 +538,7 @@ with st.sidebar:
         [
             "📊 Dashboard",
             "🧾 Billing",
+            "🛒 All Products",
             "👤 Bookers",
             "💰 Bookers Salary",
             "🧑‍💼 Salesmen",
@@ -540,58 +564,215 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
 # ============================================================
-# PAGE: DASHBOARD
+# PAGE: DASHBOARD (NEW)
 # ============================================================
 def render_dashboard():
     st.markdown(f"<h1 style='color:#2e7d32 !important;'>📊 Dashboard</h1>", unsafe_allow_html=True)
-    st.markdown(f"<p style='color:#00695c;font-weight:500;'>Welcome to {COMPANY_NAME} — Overview & Statistics</p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color:#00695c;font-weight:500;'>Welcome to {COMPANY_NAME}</p>", unsafe_allow_html=True)
     st.markdown("---")
 
-    bills = db["bills"]
-    total_bills = len(bills)
-    total_boxes = sum(b["Boxes"] for b in bills) if bills else 0
-    total_gross = sum(b["Gross"] for b in bills) if bills else 0
-    total_net = sum(b["Net"] for b in bills) if bills else 0
-    unique_shops = len(set(b["Shop"] for b in bills if b["Shop"])) if bills else 0
-    unique_bookers = len(set(b["Order Booker"] for b in bills if b["Order Booker"])) if bills else 0
+    bookers = db.get("bookers", [])
+    salesmen = db.get("salesmen", [])
 
-    c1, c2, c3, c4 = st.columns(4)
+    # Quick action buttons
+    c1, c2, c3 = st.columns(3)
     with c1:
-        st.markdown(f"<div class='metric-card'><h3>TOTAL BILLS</h3><h1>{total_bills}</h1></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-card'><h3>TOTAL BOOKERS</h3><h1>{len(bookers)}</h1></div>", unsafe_allow_html=True)
     with c2:
-        st.markdown(f"<div class='metric-card'><h3>TOTAL BOXES</h3><h1>{total_boxes}</h1></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-card'><h3>TOTAL SALESMEN</h3><h1>{len(salesmen)}</h1></div>", unsafe_allow_html=True)
     with c3:
-        st.markdown(f"<div class='metric-card'><h3>UNIQUE SHOPS</h3><h1>{unique_shops}</h1></div>", unsafe_allow_html=True)
-    with c4:
-        st.markdown(f"<div class='metric-card'><h3>ORDER BOOKERS</h3><h1>{unique_bookers}</h1></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-card'><h3>TOTAL PRODUCTS</h3><h1>{len(PRODUCTS)}</h1></div>", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
+
+    # Two columns: Bookers list | Salesmen list
     c1, c2 = st.columns(2)
-    with c1:
-        st.markdown(f"<div class='metric-card'><h3>TOTAL GROSS AMOUNT</h3><h1>Rs {total_gross:,.0f}</h1></div>", unsafe_allow_html=True)
-    with c2:
-        st.markdown(f"<div class='metric-card'><h3>TOTAL NET AMOUNT</h3><h1>Rs {total_net:,.0f}</h1></div>", unsafe_allow_html=True)
 
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    st.markdown("### 🕐 Recent Bills (Last 5)")
-    if bills:
-        recent = bills[-5:][::-1]
-        st.dataframe(pd.DataFrame(recent), use_container_width=True, hide_index=True)
-    else:
-        st.info("Abhi tak koi bill add nahi hua. 'Billing' page pe jao aur pehla bill banao.")
+    # ---- BOOKERS LIST ----
+    with c1:
+        st.markdown("### 👤 Bookers")
+        if not bookers:
+            st.markdown("<div class='empty-box'>Abhi tak koi booker add nahi hua.<br>Sidebar → 👤 Bookers pe jaake add karo.</div>", unsafe_allow_html=True)
+        else:
+            for i, b_name in enumerate(bookers):
+                sd = db.get("bookers_salaries", {}).get(b_name, {})
+                base = sd.get("base_salary", 0)
+                txns = sd.get("transactions", [])
+                adv = sum(t["amount"] for t in txns if t.get("type") == "advanced")
+                short = sum(t["amount"] for t in txns if t.get("type") == "shortage")
+                remaining = base - adv - short
+                st.markdown(f"""
+                <div class='person-card'>
+                    <div class='info'>
+                        <div class='name'>👤 {b_name}</div>
+                        <div class='sub'>Remaining Salary: Rs {remaining:,.0f}</div>
+                    </div>
+                    <div class='badge'>#{i+1}</div>
+                </div>
+                """, unsafe_allow_html=True)
+
+    # ---- SALESMEN LIST ----
+    with c2:
+        st.markdown("### 🧑‍💼 Salesmen")
+        if not salesmen:
+            st.markdown("<div class='empty-box'>Abhi tak koi salesman add nahi hua.<br>Sidebar → 🧑‍💼 Salesmen pe jaake add karo.</div>", unsafe_allow_html=True)
+        else:
+            for i, s_name in enumerate(salesmen):
+                sd = db.get("salesmen_salaries", {}).get(s_name, {})
+                base = sd.get("base_salary", 0)
+                txns = sd.get("transactions", [])
+                adv = sum(t["amount"] for t in txns if t.get("type") == "advanced")
+                short = sum(t["amount"] for t in txns if t.get("type") == "shortage")
+                remaining = base - adv - short
+                st.markdown(f"""
+                <div class='person-card'>
+                    <div class='info'>
+                        <div class='name'>🧑‍💼 {s_name}</div>
+                        <div class='sub'>Remaining Salary: Rs {remaining:,.0f}</div>
+                    </div>
+                    <div class='badge sal-badge'>#{i+1}</div>
+                </div>
+                """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    if bills:
-        st.markdown("### 🏆 Top Products (By Boxes)")
-        prod_summary = {}
-        for b in bills:
-            name = b["Product"]
-            if name not in prod_summary:
-                prod_summary[name] = {"Product": name, "Boxes": 0, "Amount": 0}
-            prod_summary[name]["Boxes"] += b["Boxes"]
-            prod_summary[name]["Amount"] += b["Net"]
-        top_products = sorted(prod_summary.values(), key=lambda x: x["Boxes"], reverse=True)[:5]
-        st.dataframe(pd.DataFrame(top_products), use_container_width=True, hide_index=True)
+    st.markdown("---")
+    st.markdown("### ⚡ Quick Actions")
+    q1, q2, q3 = st.columns(3)
+    with q1:
+        if st.button("🧾 Go to Billing", use_container_width=True, key="qa_billing"):
+            st.session_state["page"] = "🧾 Billing"
+            st.session_state["page_selector"] = "🧾 Billing"
+            st.rerun()
+    with q2:
+        if st.button("🛒 All Products (Edit Price)", use_container_width=True, key="qa_products"):
+            st.session_state["page"] = "🛒 All Products"
+            st.session_state["page_selector"] = "🛒 All Products"
+            st.rerun()
+    with q3:
+        if st.button("📋 View Bills", use_container_width=True, key="qa_bills"):
+            st.session_state["page"] = "📋 Bills List"
+            st.session_state["page_selector"] = "📋 Bills List"
+            st.rerun()
+
+# ============================================================
+# PAGE: ALL PRODUCTS (EDITABLE PRICES)
+# ============================================================
+def render_all_products():
+    st.markdown(f"<h1 style='color:#2e7d32 !important;'>🛒 All Products</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#00695c;font-weight:500;'>Kisi bhi product ka price change karo — billing me wahi naya price use hoga</p>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    # Search + filter
+    c1, c2 = st.columns([3, 1])
+    with c1:
+        search = st.text_input("🔍 Search Product:", key="prod_search", placeholder="Type product name...")
+    with c2:
+        show_only_edited = st.checkbox("Sirf edited prices", key="prod_only_edited")
+
+    search_upper = search.strip().upper()
+
+    edited_prices = db.get("product_prices", {})
+
+    # Build list
+    shown = []
+    for p in PRODUCTS:
+        if search_upper and search_upper not in p["name"].upper():
+            continue
+        if show_only_edited and str(p["code"]) not in edited_prices:
+            continue
+        shown.append(p)
+
+    # Summary
+    st.markdown(f"""
+    <div class='summary-box'>
+        <b style='color:#2e7d32;font-size:16px;'>📊 Summary</b><br>
+        <span style='color:#00695c;'>
+            Total Products: <b>{len(PRODUCTS)}</b> &nbsp;|&nbsp;
+            Showing: <b>{len(shown)}</b> &nbsp;|&nbsp;
+            Edited Prices: <b>{len(edited_prices)}</b>
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if edited_prices:
+        c1, c2 = st.columns([1, 3])
+        with c1:
+            if st.button("🔄 Reset All Prices", key="reset_all_prices", use_container_width=True):
+                db["product_prices"] = {}
+                save_database(db)
+                st.session_state["success_msg"] = "✅ Sab prices original pe reset ho gaye"
+                st.rerun()
+
+    st.markdown("---")
+
+    if not shown:
+        st.info("Is filter ke hisaab se koi product nahi mila.")
+        return
+
+    # Show table
+    st.markdown(f"### 📋 Products ({len(shown)})")
+
+    # Header row
+    hc1, hc2, hc3, hc4 = st.columns([1, 4, 2, 2])
+    with hc1: st.markdown("**Code**")
+    with hc2: st.markdown("**Product**")
+    with hc3: st.markdown("**Current Price**")
+    with hc4: st.markdown("**Change / Reset**")
+
+    st.markdown("<hr style='margin:6px 0;'>", unsafe_allow_html=True)
+
+    for p in shown:
+        code = str(p["code"])
+        base = float(p["price"])
+        current = get_price(code, base)
+        is_edited = code in edited_prices
+
+        c1, c2, c3, c4 = st.columns([1, 4, 2, 2])
+
+        with c1:
+            st.markdown(f"<div style='padding-top:8px;color:#2e7d32;font-weight:700;'>{code}</div>", unsafe_allow_html=True)
+
+        with c2:
+            edited_mark = " ✏️" if is_edited else ""
+            color = "#c62828" if is_edited else "#2e7d32"
+            st.markdown(f"<div style='padding-top:6px;color:{color};font-weight:600;font-size:14px;'>{p['name']}{edited_mark}</div>", unsafe_allow_html=True)
+
+        with c3:
+            new_price = st.number_input(
+                "Price",
+                value=float(current),
+                min_value=0.0,
+                step=1.0,
+                key=f"price_{code}",
+                label_visibility="collapsed"
+            )
+
+        with c4:
+            sub1, sub2 = st.columns(2)
+            with sub1:
+                if st.button("💾 Save", key=f"save_price_{code}", use_container_width=True):
+                    if float(new_price) == base:
+                        # Same as base, remove override
+                        db.get("product_prices", {}).pop(code, None)
+                        save_database(db)
+                        st.session_state["success_msg"] = f"✅ {p['name']}: price original (Rs {base:,.0f})"
+                    else:
+                        db.setdefault("product_prices", {})[code] = float(new_price)
+                        save_database(db)
+                        st.session_state["success_msg"] = f"✅ {p['name']}: naya price Rs {new_price:,.0f}"
+                    st.rerun()
+            with sub2:
+                if is_edited:
+                    if st.button("↩️ Reset", key=f"reset_price_{code}", use_container_width=True):
+                        db.get("product_prices", {}).pop(code, None)
+                        save_database(db)
+                        st.session_state["success_msg"] = f"↩️ {p['name']}: original price (Rs {base:,.0f})"
+                        st.rerun()
+
+    # Messages
+    if st.session_state.get("success_msg"):
+        st.success(st.session_state["success_msg"])
+        st.session_state["success_msg"] = None
 
 # ============================================================
 # PAGE: BOOKERS
@@ -700,32 +881,22 @@ def render_salesmen():
 # ============================================================
 def render_salaries(role_type):
     if role_type == "bookers":
-        title = "💰 Bookers Salary"
-        emoji = "👤"
-        names = db.get("bookers", [])
-        sal_key = "bookers_salaries"
-        other_page = "👤 Bookers"
+        title = "💰 Bookers Salary"; emoji = "👤"; names = db.get("bookers", [])
+        sal_key = "bookers_salaries"; other_page = "👤 Bookers"
     else:
-        title = "💰 Salesmen Salary"
-        emoji = "🧑‍💼"
-        names = db.get("salesmen", [])
-        sal_key = "salesmen_salaries"
-        other_page = "🧑‍💼 Salesmen"
+        title = "💰 Salesmen Salary"; emoji = "🧑‍💼"; names = db.get("salesmen", [])
+        sal_key = "salesmen_salaries"; other_page = "🧑‍💼 Salesmen"
 
     st.markdown(f"<h1 style='color:#2e7d32 !important;'>{title}</h1>", unsafe_allow_html=True)
     st.markdown("<p style='color:#00695c;font-weight:500;'>Base Salary + Advanced + Shortage = Remaining</p>", unsafe_allow_html=True)
     st.markdown("---")
 
-    if sal_key not in db:
-        db[sal_key] = {}
-
+    if sal_key not in db: db[sal_key] = {}
     if not names:
         st.info(f"❌ Abhi tak koi {role_type[:-1]} add nahi hua. Pehle **{other_page}** page pe add karo.")
         return
 
-    total_base = 0
-    total_adv = 0
-    total_short = 0
+    total_base = total_adv = total_short = 0
     for n in names:
         sd = db[sal_key].get(n, {})
         base = sd.get("base_salary", 0)
@@ -758,13 +929,8 @@ def render_salaries(role_type):
         with st.expander(f"💰 {emoji} {person_name}  —  Remaining: Rs {remaining:,.0f}", expanded=False):
             c1, c2 = st.columns([3, 1])
             with c1:
-                new_base = st.number_input(
-                    "Base Salary (Rs):",
-                    value=float(base),
-                    min_value=0.0,
-                    step=500.0,
-                    key=f"base_{role_type}_{person_name}"
-                )
+                new_base = st.number_input("Base Salary (Rs):", value=float(base), min_value=0.0, step=500.0,
+                                           key=f"base_{role_type}_{person_name}")
             with c2:
                 st.markdown("<br>", unsafe_allow_html=True)
                 if st.button("💾 Save Base", key=f"savebase_{role_type}_{person_name}", use_container_width=True):
@@ -787,14 +953,10 @@ def render_salaries(role_type):
             st.markdown("**➕ Add Transaction**")
 
             c1, c2, c3, c4, c5 = st.columns([2, 2, 2, 3, 1])
-            with c1:
-                txn_date = st.date_input("Date", value=date.today(), key=f"txn_date_{role_type}_{person_name}")
-            with c2:
-                txn_type = st.selectbox("Type", ["Advanced", "Shortage"], key=f"txn_type_{role_type}_{person_name}")
-            with c3:
-                txn_amt = st.number_input("Amount", min_value=0.0, step=100.0, key=f"txn_amt_{role_type}_{person_name}")
-            with c4:
-                txn_note = st.text_input("Note (optional)", key=f"txn_note_{role_type}_{person_name}", placeholder="Reason...")
+            with c1: txn_date = st.date_input("Date", value=date.today(), key=f"txn_date_{role_type}_{person_name}")
+            with c2: txn_type = st.selectbox("Type", ["Advanced", "Shortage"], key=f"txn_type_{role_type}_{person_name}")
+            with c3: txn_amt = st.number_input("Amount", min_value=0.0, step=100.0, key=f"txn_amt_{role_type}_{person_name}")
+            with c4: txn_note = st.text_input("Note (optional)", key=f"txn_note_{role_type}_{person_name}", placeholder="Reason...")
             with c5:
                 st.markdown("<br>", unsafe_allow_html=True)
                 if st.button("➕ Add", key=f"addtxn_{role_type}_{person_name}", use_container_width=True):
@@ -805,12 +967,10 @@ def render_salaries(role_type):
                         existing = db[sal_key][person_name].get("transactions", [])
                         next_id = max([t.get("id", 0) for t in existing] + [0]) + 1
                         new_txn = {
-                            "id": next_id,
-                            "date": txn_date.strftime("%d-%m-%Y"),
+                            "id": next_id, "date": txn_date.strftime("%d-%m-%Y"),
                             "time": datetime.now().strftime("%H:%M"),
                             "type": "advanced" if txn_type == "Advanced" else "shortage",
-                            "amount": float(txn_amt),
-                            "note": txn_note.strip(),
+                            "amount": float(txn_amt), "note": txn_note.strip(),
                             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         }
                         db[sal_key][person_name]["transactions"].append(new_txn)
@@ -827,7 +987,6 @@ def render_salaries(role_type):
                     badge_bg = "#fff3e0" if t["type"] == "advanced" else "#ffebee"
                     badge_text = "Advanced" if t["type"] == "advanced" else "Shortage"
                     note_txt = f" — {t.get('note','')}" if t.get("note") else ""
-
                     c1, c2 = st.columns([6, 1])
                     with c1:
                         st.markdown(f"""
@@ -857,10 +1016,8 @@ def render_billing():
     st.markdown("---")
 
     c1, c2 = st.columns(2)
-    with c1:
-        st.text_input("Bill No:", value=str(db["next_bill_no"]), disabled=True, key="dash_bill_no")
-    with c2:
-        st.text_input("Date:", value=datetime.now().strftime("%d-%m-%Y"), disabled=True, key="dash_bill_date")
+    with c1: st.text_input("Bill No:", value=str(db["next_bill_no"]), disabled=True, key="dash_bill_no")
+    with c2: st.text_input("Date:", value=datetime.now().strftime("%d-%m-%Y"), disabled=True, key="dash_bill_date")
 
     shop_name = st.text_input("Shop:", key="shop_name", placeholder="Enter Shop Name")
 
@@ -868,23 +1025,21 @@ def render_billing():
     if saved_bookers:
         booker_options = ["-- Select Booker --"] + saved_bookers
         selected_bk = st.selectbox("Order Booker:", options=booker_options, key="order_booker_select")
-        order_booker_value = "" if selected_bk == "-- Select Booker --" else selected_bk
-        st.session_state["order_booker"] = order_booker_value
-        st.markdown(f"<div class='hint-box'>💡 {len(saved_bookers)} bookers available — select karo aur aage barho</div>", unsafe_allow_html=True)
+        st.session_state["order_booker"] = "" if selected_bk == "-- Select Booker --" else selected_bk
+        st.markdown(f"<div class='hint-box'>💡 {len(saved_bookers)} bookers available</div>", unsafe_allow_html=True)
     else:
         order_booker = st.text_input("Order Booker:", key="order_booker", placeholder="Enter Order Booker")
-        st.markdown("<div class='hint-box'>💡 Tip: 'Bookers' page pe jao aur bookers add karo — phir yahan dropdown milega</div>", unsafe_allow_html=True)
+        st.markdown("<div class='hint-box'>💡 Tip: 'Bookers' page pe jao aur bookers add karo</div>", unsafe_allow_html=True)
 
     saved_salesmen = db.get("salesmen", [])
     if saved_salesmen:
         salesman_options = ["-- Select Salesman --"] + saved_salesmen
         selected_sm = st.selectbox("Salesman:", options=salesman_options, key="salesman_select")
-        salesman_value = "" if selected_sm == "-- Select Salesman --" else selected_sm
-        st.session_state["salesman"] = salesman_value
-        st.markdown(f"<div class='hint-box'>💡 {len(saved_salesmen)} salesmen available — select karo aur aage barho</div>", unsafe_allow_html=True)
+        st.session_state["salesman"] = "" if selected_sm == "-- Select Salesman --" else selected_sm
+        st.markdown(f"<div class='hint-box'>💡 {len(saved_salesmen)} salesmen available</div>", unsafe_allow_html=True)
     else:
         salesman = st.text_input("Salesman:", key="salesman", placeholder="Enter Salesman")
-        st.markdown("<div class='hint-box'>💡 Tip: 'Salesmen' page pe jao aur salesmen add karo — phir yahan dropdown milega</div>", unsafe_allow_html=True)
+        st.markdown("<div class='hint-box'>💡 Tip: 'Salesmen' page pe jao aur salesmen add karo</div>", unsafe_allow_html=True)
 
     delivery_man = st.text_input("Delivery Man:", key="delivery_man", placeholder="Enter Delivery Man")
 
@@ -908,8 +1063,13 @@ def render_billing():
                 break
 
     if selected_product:
-        st.success(f"✅ {selected_product['name']}  (Code: {selected_product['code']})")
-        tp_default = float(selected_product["price"])
+        current_price = get_price(selected_product["code"], selected_product["price"])
+        base_price = float(selected_product["price"])
+        price_note = ""
+        if current_price != base_price:
+            price_note = f"  (edited — original Rs {base_price:,.0f})"
+        st.success(f"✅ {selected_product['name']}  (Code: {selected_product['code']}) — Rs {current_price:,.0f}{price_note}")
+        tp_default = float(current_price)
     else:
         st.error("No Product Selected")
         tp_default = 0.0
@@ -921,44 +1081,32 @@ def render_billing():
     st.markdown("---")
 
     c1, c2, c3 = st.columns(3)
-    with c1:
-        boxes = st.number_input("Boxes:", min_value=0, step=1, key="boxes")
-    with c2:
-        tp_box = st.number_input("TP/Box:", min_value=0.0, step=1.0, key="tp_box")
-    with c3:
-        discount = st.number_input("Discount %:", min_value=0.0, step=0.5, key="discount")
+    with c1: boxes = st.number_input("Boxes:", min_value=0, step=1, key="boxes")
+    with c2: tp_box = st.number_input("TP/Box:", min_value=0.0, step=1.0, key="tp_box")
+    with c3: discount = st.number_input("Discount %:", min_value=0.0, step=0.5, key="discount")
 
     gross = boxes * tp_box
     net = gross - (gross * discount / 100)
 
     c1, c2 = st.columns(2)
-    with c1:
-        st.text_input("Gross:", value=f"{gross:.2f}", disabled=True, key="gross_disp")
-    with c2:
-        st.text_input("Net:", value=f"{net:.2f}", disabled=True, key="net_disp")
+    with c1: st.text_input("Gross:", value=f"{gross:.2f}", disabled=True, key="gross_disp")
+    with c2: st.text_input("Net:", value=f"{net:.2f}", disabled=True, key="net_disp")
 
     if st.session_state.get("success_msg"):
-        st.success(st.session_state["success_msg"])
-        st.session_state["success_msg"] = None
+        st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
     if st.session_state.get("error_msg"):
-        st.error(st.session_state["error_msg"])
-        st.session_state["error_msg"] = None
+        st.error(st.session_state["error_msg"]); st.session_state["error_msg"] = None
 
     st.markdown("---")
 
     c1, c2 = st.columns(2)
-    with c1:
-        st.button("➕ Add Bill", key="btn_add", on_click=add_bill_callback, use_container_width=True, type="primary")
-    with c2:
-        st.button("🔄 Refresh", key="btn_refresh", on_click=refresh_callback, use_container_width=True)
+    with c1: st.button("➕ Add Bill", key="btn_add", on_click=add_bill_callback, use_container_width=True, type="primary")
+    with c2: st.button("🔄 Refresh", key="btn_refresh", on_click=refresh_callback, use_container_width=True)
 
     c1, c2, c3 = st.columns(3)
-    with c1:
-        st.button("📄 Export Bill", key="btn_export", on_click=export_bill_callback, use_container_width=True)
-    with c2:
-        st.button("📦 Export Load Form", key="btn_export_lf", on_click=export_load_form_from_billing_callback, use_container_width=True)
-    with c3:
-        st.button("🗑 Refresh Load Form", key="btn_load_refresh", on_click=refresh_load_form_callback, use_container_width=True)
+    with c1: st.button("📄 Export Bill", key="btn_export", on_click=export_bill_callback, use_container_width=True)
+    with c2: st.button("📦 Export Load Form", key="btn_export_lf", on_click=export_load_form_from_billing_callback, use_container_width=True)
+    with c3: st.button("🗑 Refresh Load Form", key="btn_load_refresh", on_click=refresh_load_form_callback, use_container_width=True)
 
     show_auto_download()
 
@@ -976,22 +1124,16 @@ def render_bills_list():
 
     st.markdown("### 🔎 Filter Bills")
     today = date.today()
-
     c1, c2, c3 = st.columns(3)
     with c1:
-        filter_mode = st.selectbox(
-            "Filter Mode:",
+        filter_mode = st.selectbox("Filter Mode:",
             ["📅 Aaj Ki Bills (Today)", "📆 Custom Date Range", "🗓️ Specific Date", "📋 All Bills"],
-            key="bills_filter_mode"
-        )
-    with c2:
-        from_date = st.date_input("From Date:", value=today - timedelta(days=7), key="bills_from_date")
-    with c3:
-        to_date = st.date_input("To Date:", value=today, key="bills_to_date")
+            key="bills_filter_mode")
+    with c2: from_date = st.date_input("From Date:", value=today - timedelta(days=7), key="bills_from_date")
+    with c3: to_date = st.date_input("To Date:", value=today, key="bills_to_date")
 
     c1, c2 = st.columns(2)
-    with c1:
-        search = st.text_input("🔍 Search (Shop / Product / Booker):", key="bills_search")
+    with c1: search = st.text_input("🔍 Search (Shop / Product / Booker):", key="bills_search")
     with c2:
         shops_list = sorted(set(b["Shop"] for b in db["bills"] if b["Shop"]))
         shop_filter = st.selectbox("Filter by Shop:", options=["All"] + shops_list, key="shop_filter")
@@ -1009,11 +1151,9 @@ def render_bills_list():
 
     if search:
         s = search.upper()
-        mask = (
-            filtered_df["Shop"].astype(str).str.upper().str.contains(s, na=False) |
-            filtered_df["Product"].astype(str).str.upper().str.contains(s, na=False) |
-            filtered_df["Order Booker"].astype(str).str.upper().str.contains(s, na=False)
-        )
+        mask = (filtered_df["Shop"].astype(str).str.upper().str.contains(s, na=False) |
+                filtered_df["Product"].astype(str).str.upper().str.contains(s, na=False) |
+                filtered_df["Order Booker"].astype(str).str.upper().str.contains(s, na=False))
         filtered_df = filtered_df[mask]
 
     if shop_filter != "All":
@@ -1022,20 +1162,14 @@ def render_bills_list():
     filtered_df = filtered_df.drop(columns=["_parsed_date"])
 
     if len(filtered_df) > 0:
-        total_boxes = int(filtered_df["Boxes"].sum())
-        total_gross = float(filtered_df["Gross"].sum())
-        total_net = float(filtered_df["Net"].sum())
-        unique_shops = filtered_df["Shop"].nunique()
-
         st.markdown(f"""
         <div class='summary-box'>
             <b style='color:#2e7d32;font-size:16px;'>📊 Summary</b><br>
             <span style='color:#00695c;'>
-                Bills: <b>{len(filtered_df)}</b> &nbsp;|&nbsp;
-                Boxes: <b>{total_boxes}</b> &nbsp;|&nbsp;
-                Shops: <b>{unique_shops}</b> &nbsp;|&nbsp;
-                Gross: <b>Rs {total_gross:,.0f}</b> &nbsp;|&nbsp;
-                Net: <b>Rs {total_net:,.0f}</b>
+                Bills: <b>{len(filtered_df)}</b> | Boxes: <b>{int(filtered_df["Boxes"].sum())}</b> |
+                Shops: <b>{filtered_df["Shop"].nunique()}</b> |
+                Gross: <b>Rs {float(filtered_df["Gross"].sum()):,.0f}</b> |
+                Net: <b>Rs {float(filtered_df["Net"].sum()):,.0f}</b>
             </span>
         </div>
         """, unsafe_allow_html=True)
@@ -1044,7 +1178,6 @@ def render_bills_list():
         st.warning("❌ Is filter ke hisaab se koi bill nahi mila.")
     else:
         st.dataframe(filtered_df, use_container_width=True, hide_index=True)
-        st.caption(f"Showing {len(filtered_df)} of {len(df)} bills")
 
     st.markdown("---")
     if len(filtered_df) > 0:
@@ -1053,23 +1186,14 @@ def render_bills_list():
         ws = wb.add_worksheet("Bills")
         header_fmt = wb.add_format({"bold": True, "bg_color": "#D9EAD3", "border": 1, "align": "center"})
         cell_fmt = wb.add_format({"border": 1})
-
-        for i, col in enumerate(filtered_df.columns):
-            ws.write(0, i, col, header_fmt)
+        for i, col in enumerate(filtered_df.columns): ws.write(0, i, col, header_fmt)
         for r, (_, row) in enumerate(filtered_df.iterrows(), start=1):
-            for c, col in enumerate(filtered_df.columns):
-                ws.write(r, c, row[col], cell_fmt)
-        wb.close()
-        output.seek(0)
-
-        st.download_button(
-            label=f"⬇️ Download Filtered Bills ({len(filtered_df)} rows)",
-            data=output.getvalue(),
-            file_name=f"bills_filtered_{datetime.now().strftime('%d-%m-%Y')}.xlsx",
+            for c, col in enumerate(filtered_df.columns): ws.write(r, c, row[col], cell_fmt)
+        wb.close(); output.seek(0)
+        st.download_button(label=f"⬇️ Download Filtered Bills ({len(filtered_df)} rows)",
+            data=output.getvalue(), file_name=f"bills_filtered_{datetime.now().strftime('%d-%m-%Y')}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            key="dl_filtered_bills",
-            use_container_width=True,
-        )
+            key="dl_filtered_bills", use_container_width=True)
 
 # ============================================================
 # PAGE: LOAD FORM
@@ -1086,18 +1210,13 @@ def render_load_form():
 
     st.markdown("### 🔎 Filter Load Forms")
     today = date.today()
-
     c1, c2, c3 = st.columns(3)
     with c1:
-        filter_mode = st.selectbox(
-            "Filter Mode:",
+        filter_mode = st.selectbox("Filter Mode:",
             ["📅 Aaj Ke Load Forms (Today)", "📆 Custom Date Range", "🗓️ Specific Date", "📋 All Load Forms"],
-            key="lf_filter_mode"
-        )
-    with c2:
-        from_date = st.date_input("From Date:", value=today - timedelta(days=7), key="lf_from_date")
-    with c3:
-        to_date = st.date_input("To Date:", value=today, key="lf_to_date")
+            key="lf_filter_mode")
+    with c2: from_date = st.date_input("From Date:", value=today - timedelta(days=7), key="lf_from_date")
+    with c3: to_date = st.date_input("To Date:", value=today, key="lf_to_date")
 
     all_booker_names = sorted(set(lf["booker"] for lf in load_forms if lf.get("booker")))
     booker_filter = st.selectbox("Filter by Booker:", options=["All"] + all_booker_names, key="lf_booker_filter")
@@ -1105,22 +1224,14 @@ def render_load_form():
     filtered_lfs = []
     for lf in load_forms:
         lf_date = parse_date(lf.get("date", ""))
-        if lf_date is None:
-            continue
-
+        if lf_date is None: continue
         if filter_mode == "📅 Aaj Ke Load Forms (Today)":
-            if lf_date != today:
-                continue
+            if lf_date != today: continue
         elif filter_mode == "🗓️ Specific Date":
-            if lf_date != from_date:
-                continue
+            if lf_date != from_date: continue
         elif filter_mode == "📆 Custom Date Range":
-            if not (from_date <= lf_date <= to_date):
-                continue
-
-        if booker_filter != "All" and lf.get("booker") != booker_filter:
-            continue
-
+            if not (from_date <= lf_date <= to_date): continue
+        if booker_filter != "All" and lf.get("booker") != booker_filter: continue
         filtered_lfs.append(lf)
 
     if not filtered_lfs:
@@ -1134,47 +1245,38 @@ def render_load_form():
     <div class='summary-box'>
         <b style='color:#2e7d32;font-size:16px;'>📊 Summary</b><br>
         <span style='color:#00695c;'>
-            Load Forms: <b>{total_forms}</b> &nbsp;|&nbsp;
-            Total Boxes: <b>{total_boxes_all}</b>
+            Load Forms: <b>{total_forms}</b> | Total Boxes: <b>{total_boxes_all}</b>
         </span>
     </div>
     """, unsafe_allow_html=True)
 
     if st.button("⬇️ Download All Filtered Load Forms (Excel)", key="lf_dl_all", use_container_width=True):
-        export_all_filtered_load_forms(filtered_lfs)
-        st.rerun()
+        export_all_filtered_load_forms(filtered_lfs); st.rerun()
 
     st.markdown("---")
     st.markdown(f"### 📋 Load Forms ({len(filtered_lfs)})")
 
     sorted_lfs = sorted(filtered_lfs, key=lambda x: x.get("created_at", ""), reverse=True)
-
     for idx, lf in enumerate(sorted_lfs):
         lf_id = lf.get("id", idx)
         booker = lf.get("booker", "Unknown")
-        date_str = lf.get("date", "")
-        time_str = lf.get("time", "")
+        date_str = lf.get("date", ""); time_str = lf.get("time", "")
         total_boxes = lf.get("total_boxes", 0)
-
         c1, c2 = st.columns([4, 1])
         with c1:
             st.markdown(f"""
             <div class='lf-simple-card'>
                 <div class='lf-info'>
                     <div class='lf-line1'>👤 {booker}</div>
-                    <div class='lf-line2'>📅 {date_str} &nbsp;·&nbsp; 🕐 {time_str}</div>
+                    <div class='lf-line2'>📅 {date_str} · 🕐 {time_str}</div>
                 </div>
-                <div class='lf-boxes'>
-                    {total_boxes}
-                    <small>BOXES</small>
-                </div>
+                <div class='lf-boxes'>{total_boxes}<small>BOXES</small></div>
             </div>
             """, unsafe_allow_html=True)
         with c2:
             if st.button("⬇️ Download", key=f"dl_lf_{lf_id}_{idx}", use_container_width=True):
                 booker_bills = [{"Code": it["Code"], "Product": it["Product"], "Boxes": it["Boxes"]} for it in lf.get("items", [])]
-                export_load_form_for_booker(booker, booker_bills)
-                st.rerun()
+                export_load_form_for_booker(booker, booker_bills); st.rerun()
             if st.button("🗑 Delete", key=f"del_lf_{lf_id}_{idx}", use_container_width=True):
                 db["load_forms"] = [x for x in db["load_forms"] if x.get("id") != lf_id]
                 save_database(db)
@@ -1194,115 +1296,77 @@ def add_bill_callback():
     disc_v = st.session_state.get("discount", 0.0)
 
     if not product_sel:
-        st.session_state["error_msg"] = "❌ Please Select Product from dropdown"
-        return
+        st.session_state["error_msg"] = "❌ Please Select Product from dropdown"; return
     if boxes_v <= 0:
-        st.session_state["error_msg"] = "❌ Enter Boxes"
-        return
+        st.session_state["error_msg"] = "❌ Enter Boxes"; return
 
     sel = next((p for p in PRODUCTS if p["name"] == product_sel), None)
     if not sel:
-        st.session_state["error_msg"] = "❌ Invalid Product"
-        return
+        st.session_state["error_msg"] = "❌ Invalid Product"; return
 
     gross_v = boxes_v * tp_v
     net_v = gross_v - (gross_v * disc_v / 100)
 
     bill = {
-        "Bill No": db["next_bill_no"],
-        "Date": datetime.now().strftime("%d-%m-%Y"),
+        "Bill No": db["next_bill_no"], "Date": datetime.now().strftime("%d-%m-%Y"),
         "Shop": st.session_state.get("shop_name", "").strip(),
         "Order Booker": st.session_state.get("order_booker", "").strip(),
         "Salesman": st.session_state.get("salesman", "").strip(),
         "Delivery Man": st.session_state.get("delivery_man", "").strip(),
-        "Code": sel["code"],
-        "Product": sel["name"],
-        "Boxes": boxes_v,
-        "TP/Box": tp_v,
-        "Discount %": disc_v,
-        "Gross": gross_v,
-        "Net": net_v
+        "Code": sel["code"], "Product": sel["name"],
+        "Boxes": boxes_v, "TP/Box": tp_v, "Discount %": disc_v,
+        "Gross": gross_v, "Net": net_v
     }
 
-    db["bills"].append(bill)
-    save_database(db)
+    db["bills"].append(bill); save_database(db)
     st.session_state["last_bill_no"] = db["next_bill_no"]
     st.session_state["success_msg"] = f"✅ Bill Added | Bill No: {db['next_bill_no']} | Total: {len(db['bills'])}"
-
-    st.session_state["search_text"] = ""
-    st.session_state["product_sel"] = ""
+    for k in ["search_text", "product_sel"]:
+        st.session_state[k] = ""
     st.session_state["_prev_prod"] = None
-    st.session_state["boxes"] = 0
-    st.session_state["tp_box"] = 0.0
-    st.session_state["discount"] = 0.0
-
+    for k in ["boxes", "tp_box", "discount"]:
+        st.session_state[k] = 0
 
 def refresh_callback():
-    st.session_state["search_text"] = ""
-    st.session_state["product_sel"] = ""
+    for k in ["search_text", "product_sel"]: st.session_state[k] = ""
     st.session_state["_prev_prod"] = None
-    st.session_state["boxes"] = 0
-    st.session_state["tp_box"] = 0.0
-    st.session_state["discount"] = 0.0
+    for k in ["boxes", "tp_box", "discount"]: st.session_state[k] = 0
     st.session_state["success_msg"] = "✅ Ready For Next Product"
-
 
 def export_bill_callback():
     db = st.session_state.database
     if len(db["bills"]) == 0:
-        st.session_state["error_msg"] = "❌ No Bills Found"
-        return
-
+        st.session_state["error_msg"] = "❌ No Bills Found"; return
     shop = st.session_state.get("shop_name", "").strip() or "Bill"
-    for ch in ['\\','/',':','*','?','"','<','>','|']:
-        shop = shop.replace(ch, "")
-
+    for ch in ['\\','/',':','*','?','"','<','>','|']: shop = shop.replace(ch, "")
     output = BytesIO()
     workbook = xlsxwriter.Workbook(output, {'in_memory': True})
     worksheet = workbook.add_worksheet("Bill")
-
-    worksheet.set_paper(9)
-    worksheet.set_portrait()
-    worksheet.fit_to_pages(1, 1)
-    worksheet.set_column("A:A", 47.86)
-    worksheet.set_column("B:B", 23.71)
-    worksheet.set_column("C:C", 12.71)
-    worksheet.set_column("D:D", 12.71)
-    worksheet.set_column("E:E", 12.71)
-    worksheet.set_column("F:F", 12.14)
-    worksheet.set_column("G:G", 13.14)
-    worksheet.set_column("H:H", 14.14)
-
+    worksheet.set_paper(9); worksheet.set_portrait(); worksheet.fit_to_pages(1, 1)
+    worksheet.set_column("A:A", 47.86); worksheet.set_column("B:B", 23.71)
+    worksheet.set_column("C:C", 12.71); worksheet.set_column("D:D", 12.71)
+    worksheet.set_column("E:E", 12.71); worksheet.set_column("F:F", 12.14)
+    worksheet.set_column("G:G", 13.14); worksheet.set_column("H:H", 14.14)
     title = workbook.add_format({"bold":True, "font_size":18, "align":"center", "border":2})
     header = workbook.add_format({"bold":True, "font_size":12, "bg_color":"#D9EAD3", "align":"center", "border":2})
     cell_left = workbook.add_format({"font_size":14, "border":1, "align":"left"})
     cell_center = workbook.add_format({"font_size":14, "border":1, "align":"center"})
     total = workbook.add_format({"bold":True, "font_size":14, "bg_color":"#FFF2CC", "align":"center", "border":2})
-
     worksheet.merge_range("A1:H1", COMPANY_NAME, title)
-    worksheet.write("A3","Shop Name",header)
-    worksheet.write("B3", st.session_state.get("shop_name", ""), cell_center)
-    worksheet.write("D3","Booker",header)
-    worksheet.write("E3", st.session_state.get("order_booker", ""), cell_center)
+    worksheet.write("A3","Shop Name",header); worksheet.write("B3", st.session_state.get("shop_name", ""), cell_center)
+    worksheet.write("D3","Booker",header); worksheet.write("E3", st.session_state.get("order_booker", ""), cell_center)
     worksheet.write("G3","Bill No",header)
     last_bill = st.session_state.get("last_bill_no") or (db["next_bill_no"] - 1)
     worksheet.write("H3", last_bill, cell_center)
-    worksheet.write("G4","Date",header)
-    worksheet.write("H4", datetime.now().strftime("%d-%m-%Y"), cell_center)
-
+    worksheet.write("G4","Date",header); worksheet.write("H4", datetime.now().strftime("%d-%m-%Y"), cell_center)
     row = 6
-    headers = ["Product", "Code", "Boxes", "TP/Box", "Gross", "Discount %", "Net"]
-    for col, value in enumerate(headers):
+    for col, value in enumerate(["Product", "Code", "Boxes", "TP/Box", "Gross", "Discount %", "Net"]):
         worksheet.write(row, col, value, header)
     row += 1
-
-    gross_total = 0
-    total_boxes = 0
+    gross_total = 0; total_boxes = 0
     shop_filter = st.session_state.get("shop_name", "").strip()
-
     for bill in db["bills"]:
-        if bill["Shop"].strip() != shop_filter:
-            continue
+        if bill["Shop"].strip() != shop_filter: continue
         worksheet.write(row, 0, bill["Product"], cell_left)
         worksheet.write(row, 1, bill["Code"], cell_center)
         worksheet.write(row, 2, bill["Boxes"], cell_center)
@@ -1311,198 +1375,117 @@ def export_bill_callback():
         worksheet.write(row, 5, bill["Discount %"], cell_center)
         excel_row = row + 1
         worksheet.write_formula(row, 6, f"=E{excel_row}-(E{excel_row}*F{excel_row}/100)", cell_center)
-        gross_total += bill["Gross"]
-        total_boxes += bill["Boxes"]
-        row += 1
-
-    worksheet.write(row, 1, "TOTAL", total)
-    worksheet.write(row, 2, total_boxes, total)
-    worksheet.write(row, 4, gross_total, total)
-    worksheet.write_blank(row, 5, None, total)
+        gross_total += bill["Gross"]; total_boxes += bill["Boxes"]; row += 1
+    worksheet.write(row, 1, "TOTAL", total); worksheet.write(row, 2, total_boxes, total)
+    worksheet.write(row, 4, gross_total, total); worksheet.write_blank(row, 5, None, total)
     worksheet.write_formula(row, 6, f"=E{row+1}-(E{row+1}*F{row+1}/100)", total)
-
-    workbook.close()
-    output.seek(0)
-
+    workbook.close(); output.seek(0)
     st.session_state["download_file"] = (f"{shop}.xlsx", output.getvalue())
-    db["next_bill_no"] += 1
-    save_database(db)
+    db["next_bill_no"] += 1; save_database(db)
     st.session_state["last_bill_no"] = None
     st.session_state["success_msg"] = f"✅ Bill Exported | Next Bill No: {db['next_bill_no']}"
-
 
 def export_load_form_from_billing_callback():
     db = st.session_state.database
     booker = st.session_state.get("order_booker", "").strip()
-
     if not booker:
-        st.session_state["error_msg"] = "❌ Please select Order Booker first"
-        return
-
+        st.session_state["error_msg"] = "❌ Please select Order Booker first"; return
     booker_bills = [b for b in db["bills"] if b["Order Booker"].strip() == booker]
     if not booker_bills:
-        st.session_state["error_msg"] = f"❌ No bills found for booker: {booker}"
-        return
-
+        st.session_state["error_msg"] = f"❌ No bills found for booker: {booker}"; return
     summary = {}
     for b in booker_bills:
         code = b["Code"]
-        if code not in summary:
-            summary[code] = {"Code": code, "Product": b["Product"], "Boxes": 0}
+        if code not in summary: summary[code] = {"Code": code, "Product": b["Product"], "Boxes": 0}
         summary[code]["Boxes"] += b["Boxes"]
-
-    items = list(summary.values())
-    total_boxes = sum(it["Boxes"] for it in items)
-
-    if "load_forms" not in db:
-        db["load_forms"] = []
-
+    items = list(summary.values()); total_boxes = sum(it["Boxes"] for it in items)
+    if "load_forms" not in db: db["load_forms"] = []
     next_id = 1
-    if db["load_forms"]:
-        next_id = max(lf.get("id", 0) for lf in db["load_forms"]) + 1
-
+    if db["load_forms"]: next_id = max(lf.get("id", 0) for lf in db["load_forms"]) + 1
     lf_record = {
-        "id": next_id,
-        "date": datetime.now().strftime("%d-%m-%Y"),
+        "id": next_id, "date": datetime.now().strftime("%d-%m-%Y"),
         "time": datetime.now().strftime("%H:%M"),
         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "booker": booker,
-        "items": items,
-        "total_boxes": total_boxes,
-        "total_products": len(items)
+        "booker": booker, "items": items,
+        "total_boxes": total_boxes, "total_products": len(items)
     }
-    db["load_forms"].append(lf_record)
-    save_database(db)
-
+    db["load_forms"].append(lf_record); save_database(db)
     export_load_form_for_booker(booker, booker_bills)
     st.session_state["success_msg"] = f"✅ Load Form #{next_id} saved & exported | {len(items)} products, {total_boxes} boxes"
-
 
 def export_load_form_for_booker(booker, booker_bills=None):
     db = st.session_state.database
     if booker_bills is None:
         booker_bills = [b for b in db["bills"] if b["Order Booker"].strip() == booker]
     if not booker_bills:
-        st.session_state["error_msg"] = "❌ No Bills Found for this Booker"
-        return
-
+        st.session_state["error_msg"] = "❌ No Bills Found for this Booker"; return
     summary = {}
     for bill in booker_bills:
         code = bill["Code"]
-        if code not in summary:
-            summary[code] = {"Product": bill["Product"], "Boxes": 0}
+        if code not in summary: summary[code] = {"Product": bill["Product"], "Boxes": 0}
         summary[code]["Boxes"] += bill["Boxes"]
-
     output = BytesIO()
     workbook = xlsxwriter.Workbook(output, {'in_memory': True})
     worksheet = workbook.add_worksheet("Load Form")
-
     title = workbook.add_format({"bold":True, "font_size":16, "align":"center", "border":2})
     header = workbook.add_format({"bold":True, "font_size":12, "bg_color":"#D9EAD3", "align":"center", "border":2})
     cell_left = workbook.add_format({"font_size":14, "border":1, "align":"left"})
     cell_center = workbook.add_format({"font_size":14, "border":1, "align":"center"})
     total = workbook.add_format({"bold":True, "font_size":14, "bg_color":"#FFF2CC", "align":"center", "border":2})
-
-    worksheet.set_column("A:A", 47.86)
-    worksheet.set_column("B:B", 12.71)
+    worksheet.set_column("A:A", 47.86); worksheet.set_column("B:B", 12.71)
     worksheet.merge_range("A1:B1", COMPANY_NAME, title)
-    worksheet.write("A3","Order Booker",header)
-    worksheet.write("B3",booker,cell_center)
-    worksheet.write("A5","Product",header)
-    worksheet.write("B5","Boxes",header)
-
-    row = 5
-    total_boxes = 0
+    worksheet.write("A3","Order Booker",header); worksheet.write("B3",booker,cell_center)
+    worksheet.write("A5","Product",header); worksheet.write("B5","Boxes",header)
+    row = 5; total_boxes = 0
     for item in summary.values():
         worksheet.write(row, 0, item["Product"], cell_left)
         worksheet.write(row, 1, item["Boxes"], cell_center)
-        total_boxes += item["Boxes"]
-        row += 1
-
-    worksheet.write(row, 0, "TOTAL", total)
-    worksheet.write(row, 1, total_boxes, total)
-
-    workbook.close()
-    output.seek(0)
-
+        total_boxes += item["Boxes"]; row += 1
+    worksheet.write(row, 0, "TOTAL", total); worksheet.write(row, 1, total_boxes, total)
+    workbook.close(); output.seek(0)
     st.session_state["download_file"] = (f"{booker}_Load_Form.xlsx", output.getvalue())
-
 
 def export_all_filtered_load_forms(filtered_lfs):
     if not filtered_lfs:
-        st.session_state["error_msg"] = "❌ No Load Forms to export"
-        return
-
-    output = BytesIO()
-    wb = xlsxwriter.Workbook(output, {'in_memory': True})
-
+        st.session_state["error_msg"] = "❌ No Load Forms to export"; return
+    output = BytesIO(); wb = xlsxwriter.Workbook(output, {'in_memory': True})
     title_fmt = wb.add_format({"bold": True, "font_size": 14, "align": "center", "border": 2, "bg_color": "#D9EAD3"})
     header_fmt = wb.add_format({"bold": True, "bg_color": "#E8F5E9", "border": 1, "align": "center"})
-    cell_fmt = wb.add_format({"border": 1})
-    cell_center = wb.add_format({"border": 1, "align": "center"})
+    cell_fmt = wb.add_format({"border": 1}); cell_center = wb.add_format({"border": 1, "align": "center"})
     total_fmt = wb.add_format({"bold": True, "bg_color": "#FFF2CC", "border": 1, "align": "center"})
-
     for lf in filtered_lfs:
-        booker = lf.get("booker", "Unknown")
-        date_str = lf.get("date", "")
-        time_str = lf.get("time", "")
+        booker = lf.get("booker", "Unknown"); date_str = lf.get("date", ""); time_str = lf.get("time", "")
         sheet_name = f"{booker}_{date_str}".replace("/", "-")[:31] or f"LF_{lf.get('id')}"
-        base_name = sheet_name
-        counter = 1
-        existing = wb.sheetnames
+        base_name = sheet_name; counter = 1; existing = wb.sheetnames
         while sheet_name in existing:
-            sheet_name = f"{base_name[:28]}_{counter}"
-            counter += 1
-
+            sheet_name = f"{base_name[:28]}_{counter}"; counter += 1
         ws = wb.add_worksheet(sheet_name)
-        ws.set_column("A:A", 45)
-        ws.set_column("B:B", 10)
-        ws.set_column("C:C", 10)
-
+        ws.set_column("A:A", 45); ws.set_column("B:B", 10); ws.set_column("C:C", 10)
         ws.merge_range("A1:C1", f"{COMPANY_NAME} - Load Form", title_fmt)
-        ws.write("A3", "Booker", header_fmt)
-        ws.write("B3", booker, cell_fmt)
-        ws.write("A4", "Date", header_fmt)
-        ws.write("B4", f"{date_str} {time_str}", cell_fmt)
-
-        ws.write("A6", "Product", header_fmt)
-        ws.write("B6", "Code", header_fmt)
-        ws.write("C6", "Boxes", header_fmt)
-
-        row = 6
-        total_boxes = 0
+        ws.write("A3", "Booker", header_fmt); ws.write("B3", booker, cell_fmt)
+        ws.write("A4", "Date", header_fmt); ws.write("B4", f"{date_str} {time_str}", cell_fmt)
+        ws.write("A6", "Product", header_fmt); ws.write("B6", "Code", header_fmt); ws.write("C6", "Boxes", header_fmt)
+        row = 6; total_boxes = 0
         for it in lf.get("items", []):
             ws.write(row, 0, it["Product"], cell_fmt)
             ws.write(row, 1, it["Code"], cell_center)
             ws.write(row, 2, it["Boxes"], cell_center)
-            total_boxes += it["Boxes"]
-            row += 1
-
-        ws.write(row, 0, "TOTAL", total_fmt)
-        ws.write(row, 1, "", total_fmt)
-        ws.write(row, 2, total_boxes, total_fmt)
-
-    wb.close()
-    output.seek(0)
-
+            total_boxes += it["Boxes"]; row += 1
+        ws.write(row, 0, "TOTAL", total_fmt); ws.write(row, 1, "", total_fmt); ws.write(row, 2, total_boxes, total_fmt)
+    wb.close(); output.seek(0)
     fname = f"Load_Forms_{datetime.now().strftime('%d-%m-%Y_%H%M')}.xlsx"
     st.session_state["download_file"] = (fname, output.getvalue())
-
 
 def refresh_load_form_callback():
     db = st.session_state.database
     booker = st.session_state.get("order_booker", "").strip()
     if not booker:
-        st.session_state["error_msg"] = "❌ Please Enter Order Booker"
-        return
+        st.session_state["error_msg"] = "❌ Please Enter Order Booker"; return
     db["bills"] = [b for b in db["bills"] if b["Order Booker"].strip() != booker]
     save_database(db)
-    st.session_state["search_text"] = ""
-    st.session_state["product_sel"] = ""
+    for k in ["search_text", "product_sel"]: st.session_state[k] = ""
     st.session_state["_prev_prod"] = None
-    st.session_state["boxes"] = 0
-    st.session_state["tp_box"] = 0.0
-    st.session_state["discount"] = 0.0
+    for k in ["boxes", "tp_box", "discount"]: st.session_state[k] = 0
     st.session_state["success_msg"] = f"✅ Load Form Cleared | Booker: {booker}"
 
 # ============================================================
@@ -1512,6 +1495,8 @@ if st.session_state["page"] == "📊 Dashboard":
     render_dashboard()
 elif st.session_state["page"] == "🧾 Billing":
     render_billing()
+elif st.session_state["page"] == "🛒 All Products":
+    render_all_products()
 elif st.session_state["page"] == "👤 Bookers":
     render_bookers()
 elif st.session_state["page"] == "💰 Bookers Salary":
