@@ -23,11 +23,9 @@ st.set_page_config(
 # ============================================================
 st.markdown("""
 <style>
-    /* Hide Streamlit default header & toolbar */
+    /* Header visible but transparent - KEEP the toggle button alive */
     header[data-testid="stHeader"] {
         background: transparent !important;
-        height: 0 !important;
-        min-height: 0 !important;
     }
     [data-testid="stToolbar"] { display: none !important; }
     [data-testid="stDecoration"] { display: none !important; }
@@ -38,7 +36,7 @@ st.markdown("""
     footer { visibility: hidden !important; }
     .stAppDeployButton { display: none !important; }
 
-    /* Hide "Manage app" from Streamlit Cloud - multiple selectors */
+    /* Hide "Manage app" from Streamlit Cloud */
     iframe[title="streamlit_cloud_status"] {
         display: none !important;
     }
@@ -47,6 +45,19 @@ st.markdown("""
     }
     button[kind="header"] {
         display: none !important;
+    }
+
+    /* Cover "Manage app" corner overlay */
+    .stApp::after {
+        content: "";
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        width: 240px;
+        height: 60px;
+        background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%);
+        z-index: 2147483646;
+        pointer-events: none;
     }
 
     /* Force sidebar collapse/expand button to be visible */
