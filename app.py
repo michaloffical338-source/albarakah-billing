@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# Full Screen + Bigger Sidebar + Salary Management
+# FINAL FIXED VERSION - Full Screen + Working Toggle + Clean Sidebar
 # ============================================================
 
 import os
@@ -20,16 +20,14 @@ st.set_page_config(
 )
 
 # ============================================================
-# FULL SCREEN + HEADER HIDE + MANAGE APP HIDE + BIG SIDEBAR
+# CSS — FULL SCREEN + WORKING TOGGLE + CLEAN SIDEBAR + NO MANAGE APP
 # ============================================================
 st.markdown("""
 <style>
-    /* ==== Hide Streamlit default header completely ==== */
+    /* ==== Header transparent (VISIBLE - keeps sidebar toggle alive) ==== */
     header[data-testid="stHeader"] {
-        display: none !important;
-        visibility: hidden !important;
-        height: 0 !important;
-        min-height: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
     }
     [data-testid="stToolbar"] { display: none !important; }
     [data-testid="stDecoration"] { display: none !important; }
@@ -37,7 +35,7 @@ st.markdown("""
     #MainMenu { visibility: hidden !important; }
     footer { visibility: hidden !important; }
 
-    /* ==== KILL "Manage app" button completely ==== */
+    /* ==== Kill "Manage app" button completely ==== */
     [data-testid="manage-app-button"],
     [data-testid="stAppDeployButton"],
     [data-testid="stCloudAppManageButton"],
@@ -59,33 +57,35 @@ st.markdown("""
         overflow: hidden !important;
     }
 
-    /* Fallback: cover bottom-right corner with same background */
+    /* Cover bottom-right corner as fallback */
     .stApp::after {
         content: "" !important;
         position: fixed !important;
         bottom: 0 !important;
         right: 0 !important;
-        width: 260px !important;
-        height: 65px !important;
+        width: 280px !important;
+        height: 70px !important;
         background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%) !important;
-        z-index: 2147483647 !important;
+        z-index: 2147483640 !important;
         pointer-events: none !important;
     }
 
-    /* ==== Force sidebar toggle visible (top-left) ==== */
+    /* ==== Sidebar toggle (both collapsed & expanded) — always visible ==== */
     [data-testid="stSidebarCollapsedControl"],
     [data-testid="collapsedControl"] {
         display: flex !important;
         visibility: visible !important;
         opacity: 1 !important;
-        position: fixed !important;
-        top: 12px !important;
-        left: 12px !important;
-        z-index: 9999999 !important;
+        z-index: 999999 !important;
+    }
+    [data-testid="stSidebarCollapsedControl"] button,
+    [data-testid="collapsedControl"] button {
         background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%) !important;
-        border-radius: 10px !important;
-        box-shadow: 0 3px 10px rgba(76,175,80,0.5) !important;
-        padding: 6px 10px !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 6px rgba(76,175,80,0.4) !important;
+        padding: 4px 6px !important;
     }
     [data-testid="stSidebarCollapsedControl"] svg,
     [data-testid="collapsedControl"] svg {
@@ -104,50 +104,49 @@ st.markdown("""
         background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%) !important;
     }
     .block-container {
-        padding-top: 1.5rem !important;
+        padding-top: 1rem !important;
         padding-left: 2rem !important;
         padding-right: 2rem !important;
         padding-bottom: 1rem !important;
         max-width: 100% !important;
     }
 
-    /* ==== Sidebar background ==== */
+    /* ==== Sidebar ==== */
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #c8e6c9 0%, #b2ebf2 100%) !important;
     }
 
-    /* ==== BIGGER, MORE VISIBLE SIDEBAR RADIO OPTIONS ==== */
+    /* ==== Sidebar radio options — BALANCED size ==== */
     section[data-testid="stSidebar"] .stRadio label p,
     section[data-testid="stSidebar"] .stRadio label span,
     section[data-testid="stSidebar"] .stRadio label {
-        font-size: 17px !important;
+        font-size: 15px !important;
         font-weight: 600 !important;
         color: #0d3b1e !important;
     }
     section[data-testid="stSidebar"] div[role="radiogroup"] > label {
         background-color: #ffffff !important;
-        border: 2px solid #81c784 !important;
-        border-radius: 12px !important;
-        margin-bottom: 10px !important;
-        padding: 12px 14px !important;
-        transition: all 0.2s ease !important;
-        box-shadow: 0 2px 6px rgba(76,175,80,0.15) !important;
+        border: 1px solid #a5d6a7 !important;
+        border-radius: 8px !important;
+        margin-bottom: 6px !important;
+        padding: 6px 10px !important;
+        transition: all 0.15s ease !important;
+        box-shadow: 0 1px 3px rgba(76,175,80,0.1) !important;
         cursor: pointer !important;
     }
     section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover {
         background-color: #e8f5e9 !important;
         border-color: #4caf50 !important;
-        transform: translateX(4px) !important;
-        box-shadow: 0 4px 10px rgba(76,175,80,0.3) !important;
+        transform: translateX(3px) !important;
     }
     section[data-testid="stSidebar"] div[role="radiogroup"] > label[data-checked="true"],
     section[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) {
-        background: linear-gradient(135deg, #a5d6a7 0%, #80deea 100%) !important;
-        border-color: #2e7d32 !important;
+        background: linear-gradient(135deg, #c8e6c9 0%, #b2ebf2 100%) !important;
+        border-color: #4caf50 !important;
     }
     section[data-testid="stSidebar"] div[role="radiogroup"] input[type="radio"] {
-        width: 20px !important;
-        height: 20px !important;
+        width: 16px !important;
+        height: 16px !important;
     }
 
     /* ==== Inputs ==== */
@@ -278,7 +277,6 @@ st.markdown("""
         opacity: 0.9;
     }
 
-    /* ==== Salary metric pills ==== */
     .sal-metric {
         display: inline-block;
         padding: 8px 14px;
@@ -299,7 +297,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# JS: Aggressive removal of "Manage app" + sidebar toggle fix
+# JS: Aggressive removal of "Manage app" + ensure sidebar toggle alive
 # ============================================================
 components.html("""
 <script>
@@ -349,14 +347,7 @@ components.html("""
                 el.style.setProperty('display', 'flex', 'important');
                 el.style.setProperty('visibility', 'visible', 'important');
                 el.style.setProperty('opacity', '1', 'important');
-                el.style.setProperty('position', 'fixed', 'important');
-                el.style.setProperty('top', '12px', 'important');
-                el.style.setProperty('left', '12px', 'important');
-                el.style.setProperty('z-index', '9999999', 'important');
-                el.style.setProperty('background', 'linear-gradient(135deg,#4caf50,#26a69a)', 'important');
-                el.style.setProperty('border-radius', '10px', 'important');
-                el.style.setProperty('padding', '6px 10px', 'important');
-                el.style.setProperty('box-shadow', '0 3px 10px rgba(76,175,80,0.5)', 'important');
+                el.style.setProperty('z-index', '999999', 'important');
             });
         } catch(e) {}
     }
@@ -631,7 +622,7 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown(f"""
-    <div style='padding:10px; color:#00695c !important; font-size:13px;'>
+    <div style='padding:10px; color:#00695c !important; font-size:12px;'>
         <p>📅 {datetime.now().strftime('%d-%m-%Y')}</p>
         <p>📦 Products: {len(PRODUCTS)}</p>
         <p>👤 Bookers: {len(db.get('bookers', []))}</p>
@@ -798,7 +789,7 @@ def render_salesmen():
                 st.rerun()
 
 # ============================================================
-# PAGE: SALARY (BOOKERS or SALESMEN)
+# PAGE: SALARY
 # ============================================================
 def render_salaries(role_type):
     if role_type == "bookers":
