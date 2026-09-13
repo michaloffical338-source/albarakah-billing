@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# Dashboard + Sidebar + Light Blue/Green Theme + Full Screen
+# Dashboard + Sidebar + Light Blue/Green Theme + Fixed Collapse
 # ============================================================
 
 import os
@@ -32,8 +32,60 @@ st.markdown("""
     [data-testid="stToolbar"] { display: none !important; }
     [data-testid="stDecoration"] { display: none !important; }
     [data-testid="stStatusWidget"] { display: none !important; }
+    [data-testid="manage-app-button"] { display: none !important; }
+    [data-testid="stAppDeployButton"] { display: none !important; }
     #MainMenu { visibility: hidden !important; }
     footer { visibility: hidden !important; }
+    .stAppDeployButton { display: none !important; }
+
+    /* Hide "Manage app" from Streamlit Cloud - multiple selectors */
+    iframe[title="streamlit_cloud_status"] {
+        display: none !important;
+    }
+    div[class*="manageApp"] {
+        display: none !important;
+    }
+    button[kind="header"] {
+        display: none !important;
+    }
+
+    /* Force sidebar collapse/expand button to be visible */
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="collapsedControl"] {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: fixed !important;
+        top: 10px !important;
+        left: 10px !important;
+        z-index: 999999 !important;
+        background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 10px !important;
+        box-shadow: 0 3px 10px rgba(76,175,80,0.5) !important;
+        padding: 6px 12px !important;
+        cursor: pointer !important;
+    }
+    [data-testid="stSidebarCollapsedControl"] button,
+    [data-testid="collapsedControl"] button {
+        background: transparent !important;
+        color: #ffffff !important;
+        border: none !important;
+        font-size: 20px !important;
+        padding: 4px 8px !important;
+    }
+    [data-testid="stSidebarCollapsedControl"]:hover,
+    [data-testid="collapsedControl"]:hover {
+        background: linear-gradient(135deg, #388e3c 0%, #00897b 100%) !important;
+        box-shadow: 0 5px 14px rgba(76,175,80,0.7) !important;
+        transform: scale(1.05) !important;
+    }
+    [data-testid="stSidebarCollapsedControl"] svg,
+    [data-testid="collapsedControl"] svg {
+        fill: #ffffff !important;
+        color: #ffffff !important;
+    }
 
     /* Full width layout */
     .block-container {
@@ -44,13 +96,13 @@ st.markdown("""
         max-width: 100% !important;
     }
 
-    /* Main background - light blue to light green gradient */
+    /* Main background */
     .stApp {
         background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%) !important;
         color: #1a1a1a !important;
     }
 
-    /* Sidebar - light green to light blue */
+    /* Sidebar */
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #c8e6c9 0%, #b2ebf2 100%) !important;
         border-right: 2px solid #a5d6a7 !important;
@@ -58,18 +110,13 @@ st.markdown("""
     section[data-testid="stSidebar"] * {
         color: #1a1a1a !important;
     }
-
-    /* Sidebar collapse / expand button */
-    [data-testid="stSidebarCollapseButton"] button,
-    [data-testid="collapsedControl"] {
+    [data-testid="stSidebarCollapseButton"] button {
         background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%) !important;
         color: #ffffff !important;
         border: none !important;
         border-radius: 8px !important;
-        box-shadow: 0 2px 6px rgba(76,175,80,0.4) !important;
     }
-    [data-testid="stSidebarCollapseButton"] button:hover,
-    [data-testid="collapsedControl"]:hover {
+    [data-testid="stSidebarCollapseButton"] button:hover {
         background: linear-gradient(135deg, #388e3c 0%, #00897b 100%) !important;
     }
 
@@ -172,25 +219,22 @@ st.markdown("""
         font-weight: 800 !important;
     }
 
-    /* Dataframe / tables */
+    /* Dataframe */
     .stDataFrame {
         background-color: #ffffff !important;
         border-radius: 10px !important;
         border: 1px solid #b2dfdb !important;
     }
 
-    /* Alerts */
     .stAlert {
         border-radius: 10px !important;
     }
 
-    /* Divider */
     hr {
         border-color: #a5d6a7 !important;
         opacity: 0.6 !important;
     }
 
-    /* Expander */
     .streamlit-expanderHeader {
         background-color: #ffffff !important;
         border-radius: 8px !important;
