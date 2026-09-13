@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# Auto-Download Version
+# Load Forms Saved - Simple Card View
 # ============================================================
 
 import os
@@ -70,7 +70,6 @@ st.markdown("""
         border-radius: 8px !important;
     }
     .stDownloadButton > button p { color: #ffffff !important; }
-    /* Hide the auto-download button (it auto-clicks itself) */
     .auto-dl-hidden div[data-testid="stDownloadButton"] {
         position: absolute !important;
         left: -9999px !important;
@@ -125,6 +124,50 @@ st.markdown("""
         padding: 15px 20px;
         margin-bottom: 15px;
         box-shadow: 0 3px 10px rgba(76,175,80,0.15);
+    }
+    /* === Simple Load Form Card === */
+    .lf-simple-card {
+        background: #ffffff;
+        border-left: 6px solid #4caf50;
+        border-radius: 12px;
+        padding: 16px 22px;
+        margin-bottom: 12px;
+        box-shadow: 0 3px 10px rgba(76,175,80,0.15);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .lf-simple-card .lf-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .lf-simple-card .lf-line1 {
+        font-size: 17px;
+        font-weight: 700;
+        color: #2e7d32;
+    }
+    .lf-simple-card .lf-line2 {
+        font-size: 13px;
+        color: #00695c;
+    }
+    .lf-simple-card .lf-boxes {
+        background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%);
+        color: #ffffff;
+        font-weight: 800;
+        font-size: 20px;
+        padding: 10px 18px;
+        border-radius: 10px;
+        text-align: center;
+        min-width: 90px;
+        box-shadow: 0 2px 6px rgba(76,175,80,0.35);
+    }
+    .lf-simple-card .lf-boxes small {
+        display: block;
+        font-size: 10px;
+        font-weight: 500;
+        opacity: 0.9;
+        letter-spacing: 0.5px;
     }
     .stAlert { border-radius: 10px !important; }
     hr { border-color: #a5d6a7 !important; opacity: 0.6 !important; }
@@ -277,10 +320,12 @@ def load_database():
                     data["bookers"] = []
                 if "salesmen" not in data:
                     data["salesmen"] = []
+                if "load_forms" not in data:
+                    data["load_forms"] = []
                 return data
         except Exception:
             pass
-    return {"next_bill_no": 1, "bills": [], "bookers": [], "salesmen": []}
+    return {"next_bill_no": 1, "bills": [], "bookers": [], "salesmen": [], "load_forms": []}
 
 def parse_date(dstr):
     try:
@@ -306,15 +351,15 @@ if "bookers" not in db:
     db["bookers"] = []
 if "salesmen" not in db:
     db["salesmen"] = []
+if "load_forms" not in db:
+    db["load_forms"] = []
 
 # ============================================================
-# AUTO-DOWNLOAD HELPER
-# Renders a hidden download button + JS to auto-click it
+# AUTO-DOWNLOAD
 # ============================================================
 def show_auto_download():
     if st.session_state.get("download_file"):
         fname, fdata = st.session_state["download_file"]
-        # Clear immediately so next rerun doesn't re-show
         st.session_state["download_file"] = None
         st.session_state["_dl_counter"] += 1
 
@@ -374,6 +419,7 @@ with st.sidebar:
         <p>👤 Bookers: {len(db.get('bookers', []))}</p>
         <p>🧑‍💼 Salesmen: {len(db.get('salesmen', []))}</p>
         <p>🧾 Total Bills: {len(db['bills'])}</p>
+        <p>📦 Saved Load Forms: {len(db.get('load_forms', []))}</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -630,21 +676,20 @@ def render_billing():
 
     st.markdown("---")
 
-    # ---------- Row 1: Add Bill | Refresh ----------
     c1, c2 = st.columns(2)
     with c1:
         st.button("➕ Add Bill", key="btn_add", on_click=add_bill_callback, use_container_width=True, type="primary")
     with c2:
         st.button("🔄 Refresh", key="btn_refresh", on_click=refresh_callback, use_container_width=True)
 
-    # ---------- Row 2: Export Bill | Refresh Load Form ----------
-    c1, c2 = st.columns(2)
+    c1, c2, c3 = st.columns(3)
     with c1:
         st.button("📄 Export Bill", key="btn_export", on_click=export_bill_callback, use_container_width=True)
     with c2:
+        st.button("📦 Export Load Form", key="btn_export_lf", on_click=export_load_form_from_billing_callback, use_container_width=True)
+    with c3:
         st.button("🗑 Refresh Load Form", key="btn_load_refresh", on_click=refresh_load_form_callback, use_container_width=True)
 
-    # Auto-download if a file is ready
     show_auto_download()
 
 # ============================================================
@@ -757,25 +802,26 @@ def render_bills_list():
         )
 
 # ============================================================
-# PAGE: LOAD FORM
+# PAGE: LOAD FORM (Simple Card View)
 # ============================================================
 def render_load_form():
-    st.markdown(f"<h1 style='color:#2e7d32 !important;'>📦 Load Form</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#00695c;font-weight:500;'>Order Booker ke hisaab se load form dekho</p>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='color:#2e7d32 !important;'>📦 Saved Load Forms</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#00695c;font-weight:500;'>Billing page se export kiye gaye load forms</p>", unsafe_allow_html=True)
     st.markdown("---")
 
-    if len(db["bills"]) == 0:
-        st.info("❌ Koi bill nahi mila. Pehle 'Billing' page pe bill banao.")
+    load_forms = db.get("load_forms", [])
+    if not load_forms:
+        st.info("❌ Abhi tak koi load form save nahi hua. Billing page pe '📦 Export Load Form' click karo.")
         return
 
-    st.markdown("### 🔎 Date Filter")
+    st.markdown("### 🔎 Filter Load Forms")
     today = date.today()
 
     c1, c2, c3 = st.columns(3)
     with c1:
         filter_mode = st.selectbox(
             "Filter Mode:",
-            ["📅 Aaj Ki Bills (Today)", "📆 Custom Date Range", "🗓️ Specific Date", "📋 All Bills"],
+            ["📅 Aaj Ke Load Forms (Today)", "📆 Custom Date Range", "🗓️ Specific Date", "📋 All Load Forms"],
             key="lf_filter_mode"
         )
     with c2:
@@ -783,75 +829,91 @@ def render_load_form():
     with c3:
         to_date = st.date_input("To Date:", value=today, key="lf_to_date")
 
-    all_bills = db["bills"]
-    filtered_bills = []
-    for b in all_bills:
-        bdate = parse_date(b["Date"])
-        if bdate is None:
+    all_booker_names = sorted(set(lf["booker"] for lf in load_forms if lf.get("booker")))
+    booker_filter = st.selectbox("Filter by Booker:", options=["All"] + all_booker_names, key="lf_booker_filter")
+
+    filtered_lfs = []
+    for lf in load_forms:
+        lf_date = parse_date(lf.get("date", ""))
+        if lf_date is None:
             continue
-        if filter_mode == "📅 Aaj Ki Bills (Today)":
-            if bdate == today:
-                filtered_bills.append(b)
+
+        if filter_mode == "📅 Aaj Ke Load Forms (Today)":
+            if lf_date != today:
+                continue
         elif filter_mode == "🗓️ Specific Date":
-            if bdate == from_date:
-                filtered_bills.append(b)
+            if lf_date != from_date:
+                continue
         elif filter_mode == "📆 Custom Date Range":
-            if from_date <= bdate <= to_date:
-                filtered_bills.append(b)
-        else:
-            filtered_bills.append(b)
+            if not (from_date <= lf_date <= to_date):
+                continue
 
-    if not filtered_bills:
-        st.warning("❌ Is date filter ke hisaab se koi bill nahi mila.")
+        if booker_filter != "All" and lf.get("booker") != booker_filter:
+            continue
+
+        filtered_lfs.append(lf)
+
+    if not filtered_lfs:
+        st.warning("❌ Is filter ke hisaab se koi load form nahi mila.")
         return
 
-    bookers = sorted(set(b["Order Booker"] for b in filtered_bills if b["Order Booker"]))
-    if not bookers:
-        st.warning("Is filter me koi Order Booker nahi mila.")
-        return
-
-    selected_booker = st.selectbox("Select Order Booker:", options=bookers, key="lf_booker")
-    booker_bills = [b for b in filtered_bills if b["Order Booker"].strip() == selected_booker]
-
-    if not booker_bills:
-        st.warning("Is booker ke liye koi bill nahi hai.")
-        return
-
-    summary = {}
-    for b in booker_bills:
-        code = b["Code"]
-        if code not in summary:
-            summary[code] = {"Code": code, "Product": b["Product"], "Boxes": 0}
-        summary[code]["Boxes"] += b["Boxes"]
-
-    df = pd.DataFrame(list(summary.values()))
-    total_boxes = int(df["Boxes"].sum())
+    total_forms = len(filtered_lfs)
+    total_boxes_all = sum(lf.get("total_boxes", 0) for lf in filtered_lfs)
 
     st.markdown(f"""
     <div class='summary-box'>
-        <b style='color:#2e7d32;font-size:16px;'>📊 Load Form Summary</b><br>
+        <b style='color:#2e7d32;font-size:16px;'>📊 Summary</b><br>
         <span style='color:#00695c;'>
-            Booker: <b>{selected_booker}</b> &nbsp;|&nbsp;
-            Products: <b>{len(summary)}</b> &nbsp;|&nbsp;
-            Total Boxes: <b>{total_boxes}</b>
+            Load Forms: <b>{total_forms}</b> &nbsp;|&nbsp;
+            Total Boxes: <b>{total_boxes_all}</b>
         </span>
     </div>
     """, unsafe_allow_html=True)
 
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    if st.button("⬇️ Download All Filtered Load Forms (Excel)", key="lf_dl_all", use_container_width=True):
+        export_all_filtered_load_forms(filtered_lfs)
+        st.rerun()
 
     st.markdown("---")
-    c1, c2 = st.columns(2)
-    with c1:
-        if st.button("📦 Export Load Form (Excel)", key="lf_export", use_container_width=True, type="primary"):
-            export_load_form_for_booker(selected_booker, booker_bills)
-            st.rerun()
-    with c2:
-        if st.button("📊 Export All Bookers", key="lf_export_all", use_container_width=True):
-            export_all_bookers(filtered_bills, filter_mode)
-            st.rerun()
+    st.markdown(f"### 📋 Load Forms ({len(filtered_lfs)})")
 
-    # Auto-download if file is ready
+    # Sort newest first
+    sorted_lfs = sorted(filtered_lfs, key=lambda x: x.get("created_at", ""), reverse=True)
+
+    for idx, lf in enumerate(sorted_lfs):
+        lf_id = lf.get("id", idx)
+        booker = lf.get("booker", "Unknown")
+        date_str = lf.get("date", "")
+        time_str = lf.get("time", "")
+        total_boxes = lf.get("total_boxes", 0)
+
+        # ---------- SIMPLE CARD (Booker + Date + Boxes) ----------
+        c1, c2 = st.columns([4, 1])
+        with c1:
+            st.markdown(f"""
+            <div class='lf-simple-card'>
+                <div class='lf-info'>
+                    <div class='lf-line1'>👤 {booker}</div>
+                    <div class='lf-line2'>📅 {date_str} &nbsp;·&nbsp; 🕐 {time_str}</div>
+                </div>
+                <div class='lf-boxes'>
+                    {total_boxes}
+                    <small>BOXES</small>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        with c2:
+            # Two small buttons in one column
+            if st.button("⬇️ Download", key=f"dl_lf_{lf_id}_{idx}", use_container_width=True):
+                booker_bills = [{"Code": it["Code"], "Product": it["Product"], "Boxes": it["Boxes"]} for it in lf.get("items", [])]
+                export_load_form_for_booker(booker, booker_bills)
+                st.rerun()
+            if st.button("🗑 Delete", key=f"del_lf_{lf_id}_{idx}", use_container_width=True):
+                db["load_forms"] = [x for x in db["load_forms"] if x.get("id") != lf_id]
+                save_database(db)
+                st.session_state["success_msg"] = f"🗑 Load Form #{lf_id} deleted"
+                st.rerun()
+
     show_auto_download()
 
 # ============================================================
@@ -1002,6 +1064,53 @@ def export_bill_callback():
     st.session_state["success_msg"] = f"✅ Bill Exported | Next Bill No: {db['next_bill_no']}"
 
 
+def export_load_form_from_billing_callback():
+    db = st.session_state.database
+    booker = st.session_state.get("order_booker", "").strip()
+
+    if not booker:
+        st.session_state["error_msg"] = "❌ Please select Order Booker first"
+        return
+
+    booker_bills = [b for b in db["bills"] if b["Order Booker"].strip() == booker]
+    if not booker_bills:
+        st.session_state["error_msg"] = f"❌ No bills found for booker: {booker}"
+        return
+
+    summary = {}
+    for b in booker_bills:
+        code = b["Code"]
+        if code not in summary:
+            summary[code] = {"Code": code, "Product": b["Product"], "Boxes": 0}
+        summary[code]["Boxes"] += b["Boxes"]
+
+    items = list(summary.values())
+    total_boxes = sum(it["Boxes"] for it in items)
+
+    if "load_forms" not in db:
+        db["load_forms"] = []
+
+    next_id = 1
+    if db["load_forms"]:
+        next_id = max(lf.get("id", 0) for lf in db["load_forms"]) + 1
+
+    lf_record = {
+        "id": next_id,
+        "date": datetime.now().strftime("%d-%m-%Y"),
+        "time": datetime.now().strftime("%H:%M"),
+        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "booker": booker,
+        "items": items,
+        "total_boxes": total_boxes,
+        "total_products": len(items)
+    }
+    db["load_forms"].append(lf_record)
+    save_database(db)
+
+    export_load_form_for_booker(booker, booker_bills)
+    st.session_state["success_msg"] = f"✅ Load Form #{next_id} saved & exported | {len(items)} products, {total_boxes} boxes"
+
+
 def export_load_form_for_booker(booker, booker_bills=None):
     db = st.session_state.database
     if booker_bills is None:
@@ -1050,47 +1159,67 @@ def export_load_form_for_booker(booker, booker_bills=None):
     output.seek(0)
 
     st.session_state["download_file"] = (f"{booker}_Load_Form.xlsx", output.getvalue())
-    st.session_state["success_msg"] = f"✅ Load Form Exported | Products: {len(summary)} | Boxes: {total_boxes}"
 
 
-def export_all_bookers(filtered_bills, filter_mode):
-    if not filtered_bills:
-        st.session_state["error_msg"] = "❌ No Bills in selected range"
+def export_all_filtered_load_forms(filtered_lfs):
+    if not filtered_lfs:
+        st.session_state["error_msg"] = "❌ No Load Forms to export"
         return
-
-    grouped = {}
-    for b in filtered_bills:
-        bk = b["Order Booker"].strip() or "Unknown"
-        code = b["Code"]
-        key = (bk, code)
-        if key not in grouped:
-            grouped[key] = {"Booker": bk, "Code": code, "Product": b["Product"], "Boxes": 0}
-        grouped[key]["Boxes"] += b["Boxes"]
-
-    rows = sorted(grouped.values(), key=lambda x: (x["Booker"], x["Product"]))
 
     output = BytesIO()
     wb = xlsxwriter.Workbook(output, {'in_memory': True})
-    ws = wb.add_worksheet("All Bookers")
-    header_fmt = wb.add_format({"bold": True, "bg_color": "#D9EAD3", "border": 1, "align": "center"})
+
+    title_fmt = wb.add_format({"bold": True, "font_size": 14, "align": "center", "border": 2, "bg_color": "#D9EAD3"})
+    header_fmt = wb.add_format({"bold": True, "bg_color": "#E8F5E9", "border": 1, "align": "center"})
     cell_fmt = wb.add_format({"border": 1})
     cell_center = wb.add_format({"border": 1, "align": "center"})
+    total_fmt = wb.add_format({"bold": True, "bg_color": "#FFF2CC", "border": 1, "align": "center"})
 
-    headers = ["Booker", "Code", "Product", "Boxes"]
-    for i, h in enumerate(headers):
-        ws.write(0, i, h, header_fmt)
-    for r, row in enumerate(rows, start=1):
-        ws.write(r, 0, row["Booker"], cell_fmt)
-        ws.write(r, 1, row["Code"], cell_center)
-        ws.write(r, 2, row["Product"], cell_fmt)
-        ws.write(r, 3, row["Boxes"], cell_center)
+    for lf in filtered_lfs:
+        booker = lf.get("booker", "Unknown")
+        date_str = lf.get("date", "")
+        time_str = lf.get("time", "")
+        sheet_name = f"{booker}_{date_str}".replace("/", "-")[:31] or f"LF_{lf.get('id')}"
+        base_name = sheet_name
+        counter = 1
+        existing = wb.sheetnames
+        while sheet_name in existing:
+            sheet_name = f"{base_name[:28]}_{counter}"
+            counter += 1
+
+        ws = wb.add_worksheet(sheet_name)
+        ws.set_column("A:A", 45)
+        ws.set_column("B:B", 10)
+        ws.set_column("C:C", 10)
+
+        ws.merge_range("A1:C1", f"{COMPANY_NAME} - Load Form", title_fmt)
+        ws.write("A3", "Booker", header_fmt)
+        ws.write("B3", booker, cell_fmt)
+        ws.write("A4", "Date", header_fmt)
+        ws.write("B4", f"{date_str} {time_str}", cell_fmt)
+
+        ws.write("A6", "Product", header_fmt)
+        ws.write("B6", "Code", header_fmt)
+        ws.write("C6", "Boxes", header_fmt)
+
+        row = 6
+        total_boxes = 0
+        for it in lf.get("items", []):
+            ws.write(row, 0, it["Product"], cell_fmt)
+            ws.write(row, 1, it["Code"], cell_center)
+            ws.write(row, 2, it["Boxes"], cell_center)
+            total_boxes += it["Boxes"]
+            row += 1
+
+        ws.write(row, 0, "TOTAL", total_fmt)
+        ws.write(row, 1, "", total_fmt)
+        ws.write(row, 2, total_boxes, total_fmt)
 
     wb.close()
     output.seek(0)
 
-    fname = f"All_Bookers_{datetime.now().strftime('%d-%m-%Y')}.xlsx"
+    fname = f"Load_Forms_{datetime.now().strftime('%d-%m-%Y_%H%M')}.xlsx"
     st.session_state["download_file"] = (fname, output.getvalue())
-    st.session_state["success_msg"] = f"✅ Exported {len(rows)} rows for {len(set(r['Booker'] for r in rows))} bookers"
 
 
 def refresh_load_form_callback():
