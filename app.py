@@ -1,11 +1,10 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# Load Forms Saved - Simple Card View
+# Full Screen + Salary Management
 # ============================================================
 
 import os
 import json
-import base64
 import pandas as pd
 from datetime import datetime, date, timedelta
 import streamlit as st
@@ -21,23 +20,74 @@ st.set_page_config(
 )
 
 # ============================================================
-# THEME CSS
+# FULL SCREEN + HEADER HIDE + MANAGE APP HIDE
 # ============================================================
 st.markdown("""
 <style>
+    /* Hide Streamlit default header completely */
+    header[data-testid="stHeader"] {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        min-height: 0 !important;
+    }
+    [data-testid="stToolbar"] { display: none !important; }
+    [data-testid="stDecoration"] { display: none !important; }
+    [data-testid="stStatusWidget"] { display: none !important; }
+    [data-testid="manage-app-button"] { display: none !important; }
+    [data-testid="stAppDeployButton"] { display: none !important; }
+    #MainMenu { visibility: hidden !important; }
+    footer { visibility: hidden !important; }
+    .stAppDeployButton { display: none !important; }
+    iframe[title="streamlit_cloud_status"] { display: none !important; }
+    div[class*="manageApp"] { display: none !important; }
+    button[kind="header"] { display: none !important; }
+
+    /* Force sidebar toggle to always be visible (top-left) */
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="collapsedControl"] {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: fixed !important;
+        top: 12px !important;
+        left: 12px !important;
+        z-index: 9999999 !important;
+        background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%) !important;
+        border-radius: 10px !important;
+        box-shadow: 0 3px 10px rgba(76,175,80,0.5) !important;
+        padding: 4px 8px !important;
+    }
+    [data-testid="stSidebarCollapsedControl"] svg,
+    [data-testid="collapsedControl"] svg {
+        fill: #ffffff !important;
+        color: #ffffff !important;
+    }
+    [data-testid="stSidebarCollapseButton"] button {
+        background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 8px !important;
+    }
+
+    /* Main background */
     .stApp {
         background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%) !important;
     }
     .block-container {
-        padding-top: 1rem !important;
+        padding-top: 1.5rem !important;
         padding-left: 2rem !important;
         padding-right: 2rem !important;
         padding-bottom: 1rem !important;
         max-width: 100% !important;
     }
+
+    /* Sidebar */
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #c8e6c9 0%, #b2ebf2 100%) !important;
     }
+
+    /* Inputs */
     .stTextInput > div > div > input,
     .stNumberInput > div > div > input,
     .stSelectbox > div > div > div,
@@ -51,6 +101,8 @@ st.markdown("""
     .stNumberInput > div > div > input:focus {
         border-color: #4caf50 !important;
     }
+
+    /* Buttons */
     .stButton > button {
         background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%) !important;
         color: #ffffff !important;
@@ -70,14 +122,16 @@ st.markdown("""
         border-radius: 8px !important;
     }
     .stDownloadButton > button p { color: #ffffff !important; }
+
     .auto-dl-hidden div[data-testid="stDownloadButton"] {
         position: absolute !important;
         left: -9999px !important;
         top: -9999px !important;
         opacity: 0 !important;
         height: 0 !important;
-        overflow: hidden !important;
     }
+
+    /* Metric cards */
     .metric-card {
         background: #ffffff;
         border: 2px solid #a5d6a7;
@@ -100,6 +154,7 @@ st.markdown("""
         margin: 10px 0 0 0 !important;
         font-weight: 800 !important;
     }
+
     .booker-row {
         background: #ffffff;
         border: 1px solid #a5d6a7;
@@ -108,6 +163,7 @@ st.markdown("""
         margin-bottom: 8px;
         box-shadow: 0 2px 6px rgba(76,175,80,0.1);
     }
+
     .hint-box {
         background: #e8f5e9;
         border-left: 4px solid #4caf50;
@@ -117,6 +173,7 @@ st.markdown("""
         font-size: 13px;
         margin-top: 4px;
     }
+
     .summary-box {
         background: #ffffff;
         border: 2px solid #4caf50;
@@ -125,7 +182,7 @@ st.markdown("""
         margin-bottom: 15px;
         box-shadow: 0 3px 10px rgba(76,175,80,0.15);
     }
-    /* === Simple Load Form Card === */
+
     .lf-simple-card {
         background: #ffffff;
         border-left: 6px solid #4caf50;
@@ -137,20 +194,9 @@ st.markdown("""
         align-items: center;
         justify-content: space-between;
     }
-    .lf-simple-card .lf-info {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-    }
-    .lf-simple-card .lf-line1 {
-        font-size: 17px;
-        font-weight: 700;
-        color: #2e7d32;
-    }
-    .lf-simple-card .lf-line2 {
-        font-size: 13px;
-        color: #00695c;
-    }
+    .lf-simple-card .lf-info { display: flex; flex-direction: column; gap: 4px; }
+    .lf-simple-card .lf-line1 { font-size: 17px; font-weight: 700; color: #2e7d32; }
+    .lf-simple-card .lf-line2 { font-size: 13px; color: #00695c; }
     .lf-simple-card .lf-boxes {
         background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%);
         color: #ffffff;
@@ -167,12 +213,82 @@ st.markdown("""
         font-size: 10px;
         font-weight: 500;
         opacity: 0.9;
-        letter-spacing: 0.5px;
     }
+
+    /* Salary card */
+    .sal-card {
+        background: #ffffff;
+        border: 2px solid #a5d6a7;
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 10px;
+        box-shadow: 0 3px 10px rgba(76,175,80,0.15);
+    }
+    .sal-name {
+        font-size: 18px;
+        font-weight: 800;
+        color: #2e7d32;
+        margin-bottom: 10px;
+    }
+    .sal-metric {
+        display: inline-block;
+        padding: 8px 14px;
+        margin-right: 8px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+    .sal-metric.base { background: #e3f2fd; color: #0d47a1; }
+    .sal-metric.adv { background: #fff3e0; color: #e65100; }
+    .sal-metric.short { background: #ffebee; color: #c62828; }
+    .sal-metric.remain { background: #e8f5e9; color: #1b5e20; }
+
     .stAlert { border-radius: 10px !important; }
     hr { border-color: #a5d6a7 !important; opacity: 0.6 !important; }
 </style>
 """, unsafe_allow_html=True)
+
+# ============================================================
+# JS: Force-hide "Manage app" and ensure sidebar toggle visible
+# ============================================================
+components.html("""
+<script>
+(function() {
+    function fix() {
+        try {
+            var doc = window.parent.document;
+            // Hide manage-app and toolbar
+            doc.querySelectorAll('[data-testid="manage-app-button"], [data-testid="stAppDeployButton"], .stAppDeployButton, iframe[title="streamlit_cloud_status"]').forEach(function(el){
+                el.style.display = 'none';
+                el.style.visibility = 'hidden';
+            });
+            doc.querySelectorAll('button, a').forEach(function(el){
+                var t = (el.textContent || '').trim();
+                if (t === 'Manage app' || t === 'Manage App') el.style.display = 'none';
+            });
+            // Ensure sidebar toggle visible
+            doc.querySelectorAll('[data-testid="stSidebarCollapsedControl"], [data-testid="collapsedControl"]').forEach(function(el){
+                el.style.setProperty('display', 'flex', 'important');
+                el.style.setProperty('visibility', 'visible', 'important');
+                el.style.setProperty('opacity', '1', 'important');
+                el.style.setProperty('position', 'fixed', 'important');
+                el.style.setProperty('top', '12px', 'important');
+                el.style.setProperty('left', '12px', 'important');
+                el.style.setProperty('z-index', '9999999', 'important');
+                el.style.setProperty('background', 'linear-gradient(135deg,#4caf50,#26a69a)', 'important');
+                el.style.setProperty('border-radius', '10px', 'important');
+                el.style.setProperty('padding', '4px 8px', 'important');
+                el.style.setProperty('box-shadow', '0 3px 10px rgba(76,175,80,0.5)', 'important');
+            });
+        } catch(e) {}
+    }
+    setTimeout(fix, 400);
+    setTimeout(fix, 1200);
+    setTimeout(fix, 2500);
+    setInterval(fix, 1500);
+})();
+</script>
+""", height=0)
 
 COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
 DATA_FILE = "billing_database.json"
@@ -322,10 +438,22 @@ def load_database():
                     data["salesmen"] = []
                 if "load_forms" not in data:
                     data["load_forms"] = []
+                if "bookers_salaries" not in data:
+                    data["bookers_salaries"] = {}
+                if "salesmen_salaries" not in data:
+                    data["salesmen_salaries"] = {}
                 return data
         except Exception:
             pass
-    return {"next_bill_no": 1, "bills": [], "bookers": [], "salesmen": [], "load_forms": []}
+    return {
+        "next_bill_no": 1,
+        "bills": [],
+        "bookers": [],
+        "salesmen": [],
+        "load_forms": [],
+        "bookers_salaries": {},
+        "salesmen_salaries": {}
+    }
 
 def parse_date(dstr):
     try:
@@ -347,12 +475,9 @@ if "page" not in st.session_state:
     st.session_state["page"] = "📊 Dashboard"
 
 db = st.session_state.database
-if "bookers" not in db:
-    db["bookers"] = []
-if "salesmen" not in db:
-    db["salesmen"] = []
-if "load_forms" not in db:
-    db["load_forms"] = []
+for k in ["bookers", "salesmen", "load_forms", "bookers_salaries", "salesmen_salaries"]:
+    if k not in db:
+        db[k] = [] if k in ["bookers", "salesmen", "load_forms"] else {}
 
 # ============================================================
 # AUTO-DOWNLOAD
@@ -380,10 +505,7 @@ def show_auto_download():
             function attempt(){
                 tries++;
                 var btns = window.parent.document.querySelectorAll('[data-testid="stDownloadButton"] button');
-                if (btns.length > 0){
-                    btns[btns.length - 1].click();
-                    return;
-                }
+                if (btns.length > 0){ btns[btns.length - 1].click(); return; }
                 if (tries < 25) setTimeout(attempt, 200);
             }
             setTimeout(attempt, 300);
@@ -405,7 +527,16 @@ with st.sidebar:
 
     page = st.radio(
         "MENU",
-        ["📊 Dashboard", "🧾 Billing", "👤 Bookers", "🧑‍💼 Salesmen", "📋 Bills List", "📦 Load Form"],
+        [
+            "📊 Dashboard",
+            "🧾 Billing",
+            "👤 Bookers",
+            "💰 Bookers Salary",
+            "🧑‍💼 Salesmen",
+            "💰 Salesmen Salary",
+            "📋 Bills List",
+            "📦 Load Form",
+        ],
         key="page_selector",
         label_visibility="collapsed"
     )
@@ -578,6 +709,167 @@ def render_salesmen():
                 save_database(db)
                 st.session_state["salesman_msg"] = f"🗑 '{salesman_name}' deleted"
                 st.rerun()
+
+# ============================================================
+# PAGE: SALARY (BOOKERS or SALESMEN)
+# ============================================================
+def render_salaries(role_type):
+    """role_type: 'bookers' or 'salesmen'"""
+    if role_type == "bookers":
+        title = "💰 Bookers Salary"
+        emoji = "👤"
+        names = db.get("bookers", [])
+        sal_key = "bookers_salaries"
+        other_page = "👤 Bookers"
+    else:
+        title = "💰 Salesmen Salary"
+        emoji = "🧑‍💼"
+        names = db.get("salesmen", [])
+        sal_key = "salesmen_salaries"
+        other_page = "🧑‍💼 Salesmen"
+
+    st.markdown(f"<h1 style='color:#2e7d32 !important;'>{title}</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#00695c;font-weight:500;'>Base Salary + Advanced + Shortage = Remaining</p>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    if sal_key not in db:
+        db[sal_key] = {}
+
+    if not names:
+        st.info(f"❌ Abhi tak koi {role_type[:-1]} add nahi hua. Pehle **{other_page}** page pe add karo.")
+        return
+
+    # Compute totals for top summary
+    total_base = 0
+    total_adv = 0
+    total_short = 0
+    for n in names:
+        sd = db[sal_key].get(n, {})
+        base = sd.get("base_salary", 0)
+        txns = sd.get("transactions", [])
+        total_base += base
+        total_adv += sum(t["amount"] for t in txns if t.get("type") == "advanced")
+        total_short += sum(t["amount"] for t in txns if t.get("type") == "shortage")
+    total_remaining = total_base - total_adv - total_short
+
+    st.markdown(f"""
+    <div class='summary-box'>
+        <b style='color:#2e7d32;font-size:16px;'>📊 Overall Summary</b><br>
+        <span style='color:#00695c;'>
+            Total Base: <b>Rs {total_base:,.0f}</b> &nbsp;|&nbsp;
+            Total Advanced: <b>Rs {total_adv:,.0f}</b> &nbsp;|&nbsp;
+            Total Shortage: <b>Rs {total_short:,.0f}</b> &nbsp;|&nbsp;
+            Total Remaining: <b>Rs {total_remaining:,.0f}</b>
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ============ EACH PERSON ============
+    for person_name in names:
+        sd = db[sal_key].get(person_name, {"base_salary": 0, "transactions": []})
+        base = sd.get("base_salary", 0)
+        txns = sd.get("transactions", [])
+        total_adv_p = sum(t["amount"] for t in txns if t.get("type") == "advanced")
+        total_short_p = sum(t["amount"] for t in txns if t.get("type") == "shortage")
+        remaining = base - total_adv_p - total_short_p
+
+        with st.expander(f"💰 {emoji} {person_name}  —  Remaining: Rs {remaining:,.0f}", expanded=False):
+            # ---- Base salary + metrics ----
+            c1, c2 = st.columns([3, 1])
+            with c1:
+                new_base = st.number_input(
+                    "Base Salary (Rs):",
+                    value=float(base),
+                    min_value=0.0,
+                    step=500.0,
+                    key=f"base_{role_type}_{person_name}"
+                )
+            with c2:
+                st.markdown("<br>", unsafe_allow_html=True)
+                if st.button("💾 Save Base", key=f"savebase_{role_type}_{person_name}", use_container_width=True):
+                    db[sal_key].setdefault(person_name, {"base_salary": 0, "transactions": []})
+                    db[sal_key][person_name]["base_salary"] = float(new_base)
+                    save_database(db)
+                    st.session_state["success_msg"] = f"✅ Base salary saved for {person_name}"
+                    st.rerun()
+
+            # ---- Metrics row ----
+            st.markdown(f"""
+            <div style='margin-top:10px;'>
+                <span class='sal-metric base'>Base: Rs {base:,.0f}</span>
+                <span class='sal-metric adv'>Advanced: Rs {total_adv_p:,.0f}</span>
+                <span class='sal-metric short'>Shortage: Rs {total_short_p:,.0f}</span>
+                <span class='sal-metric remain'>Remaining: Rs {remaining:,.0f}</span>
+            </div>
+            """, unsafe_allow_html=True)
+
+            st.markdown("---")
+            st.markdown("**➕ Add Transaction**")
+
+            # ---- Add transaction inline form ----
+            c1, c2, c3, c4, c5 = st.columns([2, 2, 2, 3, 1])
+            with c1:
+                txn_date = st.date_input("Date", value=date.today(), key=f"txn_date_{role_type}_{person_name}")
+            with c2:
+                txn_type = st.selectbox("Type", ["Advanced", "Shortage"], key=f"txn_type_{role_type}_{person_name}")
+            with c3:
+                txn_amt = st.number_input("Amount", min_value=0.0, step=100.0, key=f"txn_amt_{role_type}_{person_name}")
+            with c4:
+                txn_note = st.text_input("Note (optional)", key=f"txn_note_{role_type}_{person_name}", placeholder="Reason...")
+            with c5:
+                st.markdown("<br>", unsafe_allow_html=True)
+                if st.button("➕ Add", key=f"addtxn_{role_type}_{person_name}", use_container_width=True):
+                    if txn_amt <= 0:
+                        st.session_state["error_msg"] = "❌ Amount must be greater than 0"
+                    else:
+                        db[sal_key].setdefault(person_name, {"base_salary": base, "transactions": []})
+                        existing = db[sal_key][person_name].get("transactions", [])
+                        next_id = max([t.get("id", 0) for t in existing] + [0]) + 1
+                        new_txn = {
+                            "id": next_id,
+                            "date": txn_date.strftime("%d-%m-%Y"),
+                            "time": datetime.now().strftime("%H:%M"),
+                            "type": "advanced" if txn_type == "Advanced" else "shortage",
+                            "amount": float(txn_amt),
+                            "note": txn_note.strip(),
+                            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        }
+                        db[sal_key][person_name]["transactions"].append(new_txn)
+                        save_database(db)
+                        st.session_state["success_msg"] = f"✅ {txn_type} Rs {txn_amt:,.0f} added for {person_name}"
+                        st.rerun()
+
+            # ---- History ----
+            if txns:
+                st.markdown("**📋 History (date-wise)**")
+                sorted_txns = sorted(txns, key=lambda x: x.get("created_at", ""), reverse=True)
+                for idx, t in enumerate(sorted_txns):
+                    t_id = t.get("id")
+                    badge_color = "#e65100" if t["type"] == "advanced" else "#c62828"
+                    badge_bg = "#fff3e0" if t["type"] == "advanced" else "#ffebee"
+                    badge_text = "Advanced" if t["type"] == "advanced" else "Shortage"
+                    note_txt = f" — {t.get('note','')}" if t.get("note") else ""
+
+                    c1, c2 = st.columns([6, 1])
+                    with c1:
+                        st.markdown(f"""
+                        <div style='background:#ffffff;border:1px solid #e0e0e0;border-radius:8px;padding:10px 14px;margin-bottom:6px;'>
+                            <span style='color:#00695c;font-size:13px;'>📅 {t.get('date','')} · 🕐 {t.get('time','')}</span><br>
+                            <span style='background:{badge_bg};color:{badge_color};padding:3px 10px;border-radius:6px;font-size:12px;font-weight:700;'>{badge_text}</span>
+                            <b style='color:#2e7d32;font-size:15px;margin-left:8px;'>Rs {t['amount']:,.0f}</b>
+                            <span style='color:#666;font-size:12px;'>{note_txt}</span>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    with c2:
+                        if st.button("🗑", key=f"deltxn_{role_type}_{person_name}_{t_id}_{idx}", use_container_width=True):
+                            db[sal_key][person_name]["transactions"] = [
+                                x for x in db[sal_key][person_name]["transactions"] if x.get("id") != t_id
+                            ]
+                            save_database(db)
+                            st.session_state["success_msg"] = f"🗑 Transaction deleted"
+                            st.rerun()
+            else:
+                st.info("Koi transaction nahi. Upar se add karo.")
 
 # ============================================================
 # PAGE: BILLING
@@ -802,7 +1094,7 @@ def render_bills_list():
         )
 
 # ============================================================
-# PAGE: LOAD FORM (Simple Card View)
+# PAGE: LOAD FORM
 # ============================================================
 def render_load_form():
     st.markdown(f"<h1 style='color:#2e7d32 !important;'>📦 Saved Load Forms</h1>", unsafe_allow_html=True)
@@ -877,7 +1169,6 @@ def render_load_form():
     st.markdown("---")
     st.markdown(f"### 📋 Load Forms ({len(filtered_lfs)})")
 
-    # Sort newest first
     sorted_lfs = sorted(filtered_lfs, key=lambda x: x.get("created_at", ""), reverse=True)
 
     for idx, lf in enumerate(sorted_lfs):
@@ -887,7 +1178,6 @@ def render_load_form():
         time_str = lf.get("time", "")
         total_boxes = lf.get("total_boxes", 0)
 
-        # ---------- SIMPLE CARD (Booker + Date + Boxes) ----------
         c1, c2 = st.columns([4, 1])
         with c1:
             st.markdown(f"""
@@ -903,7 +1193,6 @@ def render_load_form():
             </div>
             """, unsafe_allow_html=True)
         with c2:
-            # Two small buttons in one column
             if st.button("⬇️ Download", key=f"dl_lf_{lf_id}_{idx}", use_container_width=True):
                 booker_bills = [{"Code": it["Code"], "Product": it["Product"], "Boxes": it["Boxes"]} for it in lf.get("items", [])]
                 export_load_form_for_booker(booker, booker_bills)
@@ -1247,8 +1536,12 @@ elif st.session_state["page"] == "🧾 Billing":
     render_billing()
 elif st.session_state["page"] == "👤 Bookers":
     render_bookers()
+elif st.session_state["page"] == "💰 Bookers Salary":
+    render_salaries("bookers")
 elif st.session_state["page"] == "🧑‍💼 Salesmen":
     render_salesmen()
+elif st.session_state["page"] == "💰 Salesmen Salary":
+    render_salaries("salesmen")
 elif st.session_state["page"] == "📋 Bills List":
     render_bills_list()
 elif st.session_state["page"] == "📦 Load Form":
