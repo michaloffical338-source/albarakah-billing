@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# BLUE THEME + Daily Expense (Petrol + Lunch)
+# BLUE THEME + Salary Paid Feature
 # ============================================================
 
 import os
@@ -105,7 +105,6 @@ components.html("""
 # ============================================================
 st.markdown("""
 <style>
-    /* FORCE ALL TEXT TO BLACK */
     html, body, .stApp, .stApp *, .stApp p, .stApp span, .stApp div,
     .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
     .stApp label, .stApp li, .stApp a, [class*="css"] *,
@@ -116,7 +115,6 @@ st.markdown("""
         color: #000000 !important;
     }
 
-    /* WHITE DATE FIELDS */
     .stDateInput,
     .stDateInput > div,
     .stDateInput > div > div,
@@ -153,7 +151,6 @@ st.markdown("""
         color: #1976d2 !important;
     }
 
-    /* BUTTON TEXT WHITE */
     .stButton > button,
     .stButton > button p,
     .stButton > button span,
@@ -185,6 +182,7 @@ st.markdown("""
     .sal-metric.adv { color: #e65100 !important; }
     .sal-metric.short { color: #c62828 !important; }
     .sal-metric.remain { color: #1b5e20 !important; }
+    .sal-metric.paid { color: #2e7d32 !important; }
 
     .hint-box { color: #1976d2 !important; }
     .summary-box { color: #000000 !important; }
@@ -197,7 +195,6 @@ st.markdown("""
     footer { visibility: hidden !important; }
     header[data-testid="stHeader"] { background: transparent !important; box-shadow: none !important; }
 
-    /* BLUE BACKGROUND */
     .stApp {
         background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important;
     }
@@ -209,7 +206,6 @@ st.markdown("""
         max-width: 100% !important;
     }
 
-    /* COMPACT LAYOUT */
     .stApp .element-container { margin-bottom: 0.35rem !important; }
     .stApp [data-testid="stVerticalBlock"] > div { gap: 0.35rem !important; }
     .stApp [data-testid="stVerticalBlockBorderWrapper"] > div { gap: 0.35rem !important; }
@@ -243,7 +239,6 @@ st.markdown("""
     .stApp p { margin-bottom: 3px !important; }
     .stApp h3 { margin-top: 6px !important; margin-bottom: 4px !important; font-size: 18px !important; }
 
-    /* SIDEBAR */
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #bbdefb 0%, #90caf9 100%) !important;
     }
@@ -267,7 +262,6 @@ st.markdown("""
         accent-color: #2196f3 !important;
     }
 
-    /* INPUTS */
     .stTextInput > div > div > input,
     .stNumberInput > div > div > input,
     .stSelectbox > div > div > div,
@@ -296,7 +290,6 @@ st.markdown("""
         opacity: 1 !important;
     }
 
-    /* BUTTONS */
     .stButton > button {
         background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%) !important;
         border: none !important;
@@ -313,7 +306,6 @@ st.markdown("""
         border-radius: 8px !important;
     }
 
-    /* DATAFRAME */
     .stDataFrame, .stDataFrame * { color: #000000 !important; }
     .stDataFrame { background-color: #ffffff !important; border-radius: 10px !important; }
 
@@ -344,7 +336,6 @@ st.markdown("""
         height: 0 !important;
     }
 
-    /* CARDS */
     .metric-card {
         background: #ffffff;
         border: 2px solid #90caf9;
@@ -465,8 +456,8 @@ st.markdown("""
     .sal-metric.adv { background: #fff3e0; }
     .sal-metric.short { background: #ffebee; }
     .sal-metric.remain { background: #e8f5e9; }
+    .sal-metric.paid { background: #c8e6c9; }
 
-    /* Petrol / Lunch row cards */
     .exp-row {
         background: #ffffff;
         border: 1px solid #90caf9;
@@ -494,6 +485,24 @@ st.markdown("""
         background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
     }
     .exp-row.lunch .exp-name { color: #e65100; }
+
+    /* Status badges for salary transactions */
+    .status-pending {
+        background: #fff3e0;
+        color: #e65100 !important;
+        padding: 3px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+    .status-paid {
+        background: #c8e6c9;
+        color: #1b5e20 !important;
+        padding: 3px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 700;
+    }
 
     .stAlert { border-radius: 10px !important; }
     hr { border-color: #90caf9 !important; opacity: 0.6 !important; }
@@ -787,9 +796,9 @@ def render_dashboard():
                 sd = db.get("bookers_salaries", {}).get(b_name, {})
                 base = sd.get("base_salary", 0)
                 txns = sd.get("transactions", [])
-                adv = sum(t["amount"] for t in txns if t.get("type") == "advanced")
-                short = sum(t["amount"] for t in txns if t.get("type") == "shortage")
-                remaining = base - adv - short
+                adv_pending = sum(t["amount"] for t in txns if t.get("type") == "advanced" and t.get("status", "pending") == "pending")
+                short_pending = sum(t["amount"] for t in txns if t.get("type") == "shortage" and t.get("status", "pending") == "pending")
+                remaining = base - adv_pending - short_pending
                 st.markdown(f"""
                 <div class='person-card'>
                     <div class='info'>
@@ -809,9 +818,9 @@ def render_dashboard():
                 sd = db.get("salesmen_salaries", {}).get(s_name, {})
                 base = sd.get("base_salary", 0)
                 txns = sd.get("transactions", [])
-                adv = sum(t["amount"] for t in txns if t.get("type") == "advanced")
-                short = sum(t["amount"] for t in txns if t.get("type") == "shortage")
-                remaining = base - adv - short
+                adv_pending = sum(t["amount"] for t in txns if t.get("type") == "advanced" and t.get("status", "pending") == "pending")
+                short_pending = sum(t["amount"] for t in txns if t.get("type") == "shortage" and t.get("status", "pending") == "pending")
+                remaining = base - adv_pending - short_pending
                 st.markdown(f"""
                 <div class='person-card'>
                     <div class='info'>
@@ -1020,7 +1029,7 @@ def render_salesmen():
                 st.rerun()
 
 # ============================================================
-# PAGE: SALARY
+# PAGE: SALARY (With Paid Feature)
 # ============================================================
 def render_salaries(role_type):
     if role_type == "bookers":
@@ -1031,7 +1040,7 @@ def render_salaries(role_type):
         sal_key = "salesmen_salaries"; other_page = "🧑‍💼 Salesmen"
 
     st.markdown(f"<h1 style='color:#1976d2 !important;'>{title}</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#0277bd;font-weight:500;'>Base Salary + Advanced + Shortage = Remaining</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#0277bd;font-weight:500;'>Base - Pending Advanced - Pending Shortage = Remaining</p>", unsafe_allow_html=True)
     st.markdown("---")
 
     if sal_key not in db: db[sal_key] = {}
@@ -1039,22 +1048,37 @@ def render_salaries(role_type):
         st.info(f"❌ Abhi tak koi {role_type[:-1]} add nahi hua. Pehle **{other_page}** page pe add karo.")
         return
 
-    total_base = total_adv = total_short = 0
+    # Overall summary
+    total_base = 0
+    total_adv_pending = 0
+    total_adv_paid = 0
+    total_short_pending = 0
+    total_short_paid = 0
     for n in names:
         sd = db[sal_key].get(n, {})
         base = sd.get("base_salary", 0)
         txns = sd.get("transactions", [])
         total_base += base
-        total_adv += sum(t["amount"] for t in txns if t.get("type") == "advanced")
-        total_short += sum(t["amount"] for t in txns if t.get("type") == "shortage")
-    total_remaining = total_base - total_adv - total_short
+        for t in txns:
+            is_pending = t.get("status", "pending") == "pending"
+            if t.get("type") == "advanced":
+                if is_pending: total_adv_pending += t["amount"]
+                else: total_adv_paid += t["amount"]
+            elif t.get("type") == "shortage":
+                if is_pending: total_short_pending += t["amount"]
+                else: total_short_paid += t["amount"]
+    total_remaining = total_base - total_adv_pending - total_short_pending
 
     st.markdown(f"""
     <div class='summary-box'>
         <b style='color:#1976d2;font-size:16px;'>📊 Overall Summary</b><br>
         <span style='color:#0277bd;'>
-            Total Base: <b>Rs {total_base:,.0f}</b> | Advanced: <b>Rs {total_adv:,.0f}</b> |
-            Shortage: <b>Rs {total_short:,.0f}</b> | Remaining: <b>Rs {total_remaining:,.0f}</b>
+            Base: <b>Rs {total_base:,.0f}</b> &nbsp;|&nbsp;
+            Adv Pending: <b>Rs {total_adv_pending:,.0f}</b> &nbsp;|&nbsp;
+            Adv Paid: <b>Rs {total_adv_paid:,.0f}</b> &nbsp;|&nbsp;
+            Short Pending: <b>Rs {total_short_pending:,.0f}</b> &nbsp;|&nbsp;
+            Short Paid: <b>Rs {total_short_paid:,.0f}</b> &nbsp;|&nbsp;
+            <b style='color:#1b5e20;'>Remaining: Rs {total_remaining:,.0f}</b>
         </span>
     </div>
     """, unsafe_allow_html=True)
@@ -1063,9 +1087,12 @@ def render_salaries(role_type):
         sd = db[sal_key].get(person_name, {"base_salary": 0, "transactions": []})
         base = sd.get("base_salary", 0)
         txns = sd.get("transactions", [])
-        total_adv_p = sum(t["amount"] for t in txns if t.get("type") == "advanced")
-        total_short_p = sum(t["amount"] for t in txns if t.get("type") == "shortage")
-        remaining = base - total_adv_p - total_short_p
+
+        adv_pending = sum(t["amount"] for t in txns if t.get("type") == "advanced" and t.get("status", "pending") == "pending")
+        adv_paid = sum(t["amount"] for t in txns if t.get("type") == "advanced" and t.get("status") == "paid")
+        short_pending = sum(t["amount"] for t in txns if t.get("type") == "shortage" and t.get("status", "pending") == "pending")
+        short_paid = sum(t["amount"] for t in txns if t.get("type") == "shortage" and t.get("status") == "paid")
+        remaining = base - adv_pending - short_pending
 
         with st.expander(f"💰 {emoji} {person_name}  —  Remaining: Rs {remaining:,.0f}", expanded=False):
             c1, c2 = st.columns([3, 1])
@@ -1084,8 +1111,10 @@ def render_salaries(role_type):
             st.markdown(f"""
             <div style='margin-top:10px;'>
                 <span class='sal-metric base'>Base: Rs {base:,.0f}</span>
-                <span class='sal-metric adv'>Advanced: Rs {total_adv_p:,.0f}</span>
-                <span class='sal-metric short'>Shortage: Rs {total_short_p:,.0f}</span>
+                <span class='sal-metric adv'>Adv Pending: Rs {adv_pending:,.0f}</span>
+                <span class='sal-metric paid'>Adv Paid: Rs {adv_paid:,.0f}</span>
+                <span class='sal-metric short'>Short Pending: Rs {short_pending:,.0f}</span>
+                <span class='sal-metric paid'>Short Paid: Rs {short_paid:,.0f}</span>
                 <span class='sal-metric remain'>Remaining: Rs {remaining:,.0f}</span>
             </div>
             """, unsafe_allow_html=True)
@@ -1112,45 +1141,78 @@ def render_salaries(role_type):
                             "time": datetime.now().strftime("%H:%M"),
                             "type": "advanced" if txn_type == "Advanced" else "shortage",
                             "amount": float(txn_amt), "note": txn_note.strip(),
+                            "status": "pending",
                             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         }
                         db[sal_key][person_name]["transactions"].append(new_txn)
                         save_database(db)
-                        st.session_state["success_msg"] = f"✅ {txn_type} Rs {txn_amt:,.0f} added for {person_name}"
+                        st.session_state["success_msg"] = f"✅ {txn_type} Rs {txn_amt:,.0f} added (Pending)"
                         st.rerun()
 
+            # ---------- History ----------
             if txns:
                 st.markdown("**📋 History (date-wise)**")
                 sorted_txns = sorted(txns, key=lambda x: x.get("created_at", ""), reverse=True)
                 for idx, t in enumerate(sorted_txns):
                     t_id = t.get("id")
-                    badge_color = "#e65100" if t["type"] == "advanced" else "#c62828"
-                    badge_bg = "#fff3e0" if t["type"] == "advanced" else "#ffebee"
-                    badge_text = "Advanced" if t["type"] == "advanced" else "Shortage"
+                    status = t.get("status", "pending")
+                    is_pending = status == "pending"
+                    is_adv = t["type"] == "advanced"
+
+                    if is_adv:
+                        badge_text = "Advanced"
+                        badge_color = "#e65100"
+                        badge_bg = "#fff3e0"
+                    else:
+                        badge_text = "Shortage"
+                        badge_color = "#c62828"
+                        badge_bg = "#ffebee"
+
+                    status_badge = f'<span class="status-pending">⏳ PENDING</span>' if is_pending else f'<span class="status-paid">✅ PAID</span>'
                     note_txt = f" — {t.get('note','')}" if t.get("note") else ""
-                    c1, c2 = st.columns([6, 1])
+
+                    c1, c2, c3 = st.columns([5, 1, 1])
                     with c1:
                         st.markdown(f"""
-                        <div style='background:#ffffff;border:1px solid #e0e0e0;border-radius:8px;padding:10px 14px;margin-bottom:6px;'>
-                            <span style='color:#0277bd;font-size:13px;'>📅 {t.get('date','')} · 🕐 {t.get('time','')}</span><br>
-                            <span style='background:{badge_bg};color:{badge_color};padding:3px 10px;border-radius:6px;font-size:12px;font-weight:700;'>{badge_text}</span>
-                            <b style='color:#1976d2;font-size:15px;margin-left:8px;'>Rs {t['amount']:,.0f}</b>
+                        <div style='background:#ffffff;border:1px solid #e0e0e0;border-radius:8px;padding:8px 12px;margin-bottom:4px;'>
+                            <span style='color:#0277bd;font-size:12px;'>📅 {t.get('date','')} · 🕐 {t.get('time','')}</span> &nbsp;
+                            <span style='background:{badge_bg};color:{badge_color};padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;'>{badge_text}</span> &nbsp;
+                            {status_badge} &nbsp;
+                            <b style='color:#1976d2;font-size:15px;'>Rs {t['amount']:,.0f}</b>
                             <span style='color:#666;font-size:12px;'>{note_txt}</span>
                         </div>
                         """, unsafe_allow_html=True)
                     with c2:
+                        if is_pending:
+                            if st.button("✅ Paid", key=f"paid_{role_type}_{person_name}_{t_id}_{idx}",
+                                         use_container_width=True, type="primary"):
+                                # Mark as paid
+                                for tx in db[sal_key][person_name]["transactions"]:
+                                    if tx.get("id") == t_id:
+                                        tx["status"] = "paid"
+                                        tx["paid_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                        break
+                                save_database(db)
+                                st.session_state["success_msg"] = f"✅ Rs {t['amount']:,.0f} PAID — amount wapas salary me add ho gaya"
+                                st.rerun()
+                        else:
+                            st.markdown("<div style='padding-top:6px;color:#1b5e20;font-weight:700;font-size:13px;text-align:center;'>✅ PAID</div>", unsafe_allow_html=True)
+                    with c3:
                         if st.button("🗑", key=f"deltxn_{role_type}_{person_name}_{t_id}_{idx}", use_container_width=True):
                             db[sal_key][person_name]["transactions"] = [
                                 x for x in db[sal_key][person_name]["transactions"] if x.get("id") != t_id
                             ]
                             save_database(db)
-                            st.session_state["success_msg"] = f"🗑 Transaction deleted"
+                            st.session_state["success_msg"] = "🗑 Transaction deleted"
                             st.rerun()
             else:
                 st.info("Koi transaction nahi. Upar se add karo.")
 
+    if st.session_state.get("success_msg"):
+        st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
+
 # ============================================================
-# PAGE: DAILY EXPENSE (Petrol + Lunch)
+# PAGE: DAILY EXPENSE
 # ============================================================
 def render_daily_expense():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>💵 Daily Expense</h1>", unsafe_allow_html=True)
@@ -1163,9 +1225,6 @@ def render_daily_expense():
     petrol_list = db.get("petrol_expenses", [])
     lunch_list = db.get("lunch_expenses", [])
 
-    # ============================================================
-    # FILTER (month wise)
-    # ============================================================
     st.markdown("### 🔎 Filter")
     today = date.today()
     c1, c2, c3 = st.columns([2, 2, 2])
@@ -1210,12 +1269,8 @@ def render_daily_expense():
     </div>
     """, unsafe_allow_html=True)
 
-    # ============================================================
-    # TWO COLUMNS — Petrol (left) | Lunch (right)
-    # ============================================================
     col_left, col_right = st.columns(2)
 
-    # ---------- PETROL ----------
     with col_left:
         st.markdown(f"### ⛽ Petrol  <span style='font-size:14px;color:#0277bd;'>(Rs {total_petrol:,.0f})</span>", unsafe_allow_html=True)
 
@@ -1277,7 +1332,6 @@ def render_daily_expense():
                             st.session_state["success_msg"] = "🗑 Petrol entry deleted"
                             st.rerun()
 
-                # Per-salesman total (filtered)
                 st.markdown("**📊 Salesman-wise Total (filtered)**")
                 per_sm = {}
                 for x in petrol_filtered:
@@ -1286,7 +1340,6 @@ def render_daily_expense():
                 for sm, amt in sorted(per_sm.items()):
                     st.markdown(f"<div style='padding:4px 8px;font-size:13px;color:#0277bd;'>🧑‍💼 <b>{sm}</b> — Rs {amt:,.0f}</div>", unsafe_allow_html=True)
 
-    # ---------- LUNCH ----------
     with col_right:
         st.markdown(f"### 🍽️ Lunch  <span style='font-size:14px;color:#e65100;'>(Rs {total_lunch:,.0f})</span>", unsafe_allow_html=True)
 
@@ -1344,7 +1397,7 @@ def render_daily_expense():
         st.error(st.session_state["error_msg"]); st.session_state["error_msg"] = None
 
 # ============================================================
-# PAGE: BILLING (No Delivery Man)
+# PAGE: BILLING
 # ============================================================
 def render_billing():
     st.markdown(f"<h2 style='color:#1976d2 !important;margin:0 0 6px 0;'>🧾 Billing</h2>", unsafe_allow_html=True)
@@ -1353,7 +1406,6 @@ def render_billing():
     with c1: st.text_input("Bill No:", value=str(db["next_bill_no"]), disabled=True, key="dash_bill_no")
     with c2: st.text_input("Date:", value=datetime.now().strftime("%d-%m-%Y"), disabled=True, key="dash_bill_date")
 
-    # Row 2: Shop / Booker / Salesman  — 3 columns (Delivery Man HATAYA)
     c1, c2, c3 = st.columns(3)
     with c1:
         shop_name = st.text_input("Shop:", key="shop_name", placeholder="Shop Name")
@@ -1374,7 +1426,6 @@ def render_billing():
         else:
             st.text_input("Salesman:", key="salesman", placeholder="Salesman")
 
-    # Row 3: Search + Product
     c1, c2 = st.columns([1, 3])
     with c1:
         search_text = st.text_input("🔍 Search:", key="search_text", placeholder="Type name...")
@@ -1404,7 +1455,6 @@ def render_billing():
         st.session_state["tp_box"] = tp_default
         st.session_state["_prev_prod"] = product_sel
 
-    # Row 4: Boxes / TP / Discount / Gross / Net — 5 columns
     c1, c2, c3, c4, c5 = st.columns(5)
     with c1: boxes = st.number_input("Boxes:", min_value=0, step=1, key="boxes")
     with c2: tp_box = st.number_input("TP/Box:", min_value=0.0, step=1.0, key="tp_box")
