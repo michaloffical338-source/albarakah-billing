@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# Dashboard + Sidebar Navigation + Black Theme
+# Dashboard + Sidebar + Light Blue/Green Theme + Full Screen
 # ============================================================
 
 import os
@@ -19,82 +19,182 @@ st.set_page_config(
 )
 
 # ============================================================
-# BLACK THEME CSS
+# LIGHT BLUE / GREEN THEME CSS
 # ============================================================
 st.markdown("""
 <style>
-    .stApp {
-        background-color: #000000 !important;
-        color: #ffffff !important;
+    /* Hide Streamlit default header & toolbar */
+    header[data-testid="stHeader"] {
+        background: transparent !important;
+        height: 0 !important;
+        min-height: 0 !important;
     }
+    [data-testid="stToolbar"] { display: none !important; }
+    [data-testid="stDecoration"] { display: none !important; }
+    [data-testid="stStatusWidget"] { display: none !important; }
+    #MainMenu { visibility: hidden !important; }
+    footer { visibility: hidden !important; }
+
+    /* Full width layout */
+    .block-container {
+        padding-top: 1.5rem !important;
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+        padding-bottom: 1rem !important;
+        max-width: 100% !important;
+    }
+
+    /* Main background - light blue to light green gradient */
+    .stApp {
+        background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%) !important;
+        color: #1a1a1a !important;
+    }
+
+    /* Sidebar - light green to light blue */
     section[data-testid="stSidebar"] {
-        background-color: #0a0a0a !important;
-        border-right: 1px solid #1f1f1f !important;
+        background: linear-gradient(180deg, #c8e6c9 0%, #b2ebf2 100%) !important;
+        border-right: 2px solid #a5d6a7 !important;
     }
     section[data-testid="stSidebar"] * {
-        color: #ffffff !important;
+        color: #1a1a1a !important;
     }
+
+    /* Sidebar collapse / expand button */
+    [data-testid="stSidebarCollapseButton"] button,
+    [data-testid="collapsedControl"] {
+        background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 6px rgba(76,175,80,0.4) !important;
+    }
+    [data-testid="stSidebarCollapseButton"] button:hover,
+    [data-testid="collapsedControl"]:hover {
+        background: linear-gradient(135deg, #388e3c 0%, #00897b 100%) !important;
+    }
+
+    /* Text colors */
     h1, h2, h3, h4, h5, h6, p, span, label, div {
-        color: #ffffff !important;
+        color: #1a1a1a !important;
     }
+
+    /* Inputs */
     .stTextInput > div > div > input,
     .stNumberInput > div > div > input,
     .stSelectbox > div > div > div {
-        background-color: #1a1a1a !important;
-        color: #ffffff !important;
-        border: 1px solid #2a2a2a !important;
+        background-color: #ffffff !important;
+        color: #1a1a1a !important;
+        border: 2px solid #b2dfdb !important;
+        border-radius: 8px !important;
     }
+    .stTextInput > div > div > input:focus,
+    .stNumberInput > div > div > input:focus {
+        border-color: #4caf50 !important;
+    }
+
+    /* Buttons */
     .stButton > button {
-        background-color: #1a1a1a !important;
+        background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%) !important;
         color: #ffffff !important;
-        border: 1px solid #333333 !important;
+        border: none !important;
         font-weight: bold !important;
+        border-radius: 8px !important;
+        padding: 8px 16px !important;
+        box-shadow: 0 2px 6px rgba(76,175,80,0.25) !important;
     }
     .stButton > button:hover {
-        background-color: #2a2a2a !important;
-        border-color: #00ff88 !important;
+        background: linear-gradient(135deg, #388e3c 0%, #00897b 100%) !important;
+        box-shadow: 0 4px 12px rgba(76,175,80,0.45) !important;
     }
-    .stDataFrame, .stTable {
-        background-color: #0a0a0a !important;
-    }
-    .stRadio > div {
-        background-color: transparent !important;
-    }
-    .stRadio label {
+    .stButton > button p {
         color: #ffffff !important;
+    }
+    .stDownloadButton > button {
+        background: linear-gradient(135deg, #0288d1 0%, #26a69a 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        font-weight: bold !important;
+        border-radius: 8px !important;
+    }
+    .stDownloadButton > button p {
+        color: #ffffff !important;
+    }
+
+    /* Radio nav */
+    .stRadio > div { background-color: transparent !important; }
+    .stRadio label {
+        color: #1a1a1a !important;
         font-size: 15px !important;
         padding: 8px 10px !important;
-        border-radius: 6px !important;
+        border-radius: 8px !important;
         cursor: pointer !important;
-    }
-    .stRadio label:hover {
-        background-color: #1a1a1a !important;
+        font-weight: 500 !important;
     }
     div[role="radiogroup"] > label {
-        background-color: #0f0f0f !important;
-        margin-bottom: 6px !important;
-        border: 1px solid #1f1f1f !important;
+        background-color: #ffffff !important;
+        border: 1px solid #b2dfdb !important;
+        border-radius: 10px !important;
+        margin-bottom: 8px !important;
+        transition: all 0.2s ease !important;
     }
+    div[role="radiogroup"] > label:hover {
+        background-color: #e0f2f1 !important;
+        border-color: #4caf50 !important;
+        transform: translateX(3px) !important;
+    }
+
+    /* Metric cards */
     .metric-card {
-        background-color: #0f0f0f;
-        border: 1px solid #1f1f1f;
-        border-radius: 10px;
-        padding: 20px;
+        background: #ffffff;
+        border: 2px solid #a5d6a7;
+        border-radius: 14px;
+        padding: 22px;
         text-align: center;
+        box-shadow: 0 3px 10px rgba(76,175,80,0.15);
+        transition: all 0.3s ease;
+    }
+    .metric-card:hover {
+        box-shadow: 0 6px 18px rgba(76,175,80,0.3);
+        transform: translateY(-3px);
     }
     .metric-card h3 {
-        color: #888888 !important;
-        font-size: 14px !important;
+        color: #00796b !important;
+        font-size: 13px !important;
         margin: 0 !important;
-        font-weight: normal !important;
+        font-weight: 700 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     .metric-card h1 {
-        color: #00ff88 !important;
-        font-size: 32px !important;
-        margin: 8px 0 0 0 !important;
+        color: #2e7d32 !important;
+        font-size: 34px !important;
+        margin: 10px 0 0 0 !important;
+        font-weight: 800 !important;
     }
+
+    /* Dataframe / tables */
+    .stDataFrame {
+        background-color: #ffffff !important;
+        border-radius: 10px !important;
+        border: 1px solid #b2dfdb !important;
+    }
+
+    /* Alerts */
+    .stAlert {
+        border-radius: 10px !important;
+    }
+
+    /* Divider */
     hr {
-        border-color: #1f1f1f !important;
+        border-color: #a5d6a7 !important;
+        opacity: 0.6 !important;
+    }
+
+    /* Expander */
+    .streamlit-expanderHeader {
+        background-color: #ffffff !important;
+        border-radius: 8px !important;
+        color: #1a1a1a !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -264,8 +364,8 @@ db = st.session_state.database
 with st.sidebar:
     st.markdown("""
     <div style='text-align:center; padding: 15px 0;'>
-        <h2 style='color:#00ff88 !important; margin:0;'>🧾 AL-BARAKAH</h2>
-        <p style='color:#888 !important; font-size:12px; margin:0;'>ENTERPRISES</p>
+        <h2 style='color:#2e7d32 !important; margin:0;'>🧾 AL-BARAKAH</h2>
+        <p style='color:#00695c !important; font-size:12px; margin:0; font-weight:600;'>ENTERPRISES</p>
     </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -280,7 +380,7 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown(f"""
-    <div style='padding:10px; color:#666 !important; font-size:12px;'>
+    <div style='padding:10px; color:#00695c !important; font-size:12px;'>
         <p>📅 {datetime.now().strftime('%d-%m-%Y')}</p>
         <p>📦 Products: {len(PRODUCTS)}</p>
         <p>🧾 Total Bills: {len(db['bills'])}</p>
@@ -291,13 +391,12 @@ with st.sidebar:
 # PAGE: DASHBOARD
 # ============================================================
 def render_dashboard():
-    st.markdown(f"<h1 style='color:#00ff88 !important;'>📊 Dashboard</h1>", unsafe_allow_html=True)
-    st.markdown(f"<p style='color:#888;'>Welcome to {COMPANY_NAME} — Overview & Statistics</p>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='color:#2e7d32 !important;'>📊 Dashboard</h1>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color:#00695c;font-weight:500;'>Welcome to {COMPANY_NAME} — Overview & Statistics</p>", unsafe_allow_html=True)
     st.markdown("---")
 
     bills = db["bills"]
 
-    # Metrics
     total_bills = len(bills)
     total_boxes = sum(b["Boxes"] for b in bills) if bills else 0
     total_gross = sum(b["Gross"] for b in bills) if bills else 0
@@ -355,7 +454,6 @@ def render_dashboard():
 
     st.markdown("<br><br>", unsafe_allow_html=True)
 
-    # Recent Bills
     st.markdown("### 🕐 Recent Bills (Last 5)")
     if bills:
         recent = bills[-5:][::-1]
@@ -366,7 +464,6 @@ def render_dashboard():
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Top Products
     if bills:
         st.markdown("### 🏆 Top Products (By Boxes)")
         prod_summary = {}
@@ -385,7 +482,7 @@ def render_dashboard():
 # PAGE: BILLING
 # ============================================================
 def render_billing():
-    st.markdown(f"<h1 style='color:#00ff88 !important;'>🧾 Billing</h1>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='color:#2e7d32 !important;'>🧾 Billing</h1>", unsafe_allow_html=True)
     st.markdown("---")
 
     c1, c2 = st.columns(2)
@@ -448,7 +545,6 @@ def render_billing():
     with c2:
         st.text_input("Net:", value=f"{net:.2f}", disabled=True, key="net_disp")
 
-    # Messages
     if st.session_state.get("success_msg"):
         st.success(st.session_state["success_msg"])
         st.session_state["success_msg"] = None
@@ -487,8 +583,8 @@ def render_billing():
 # PAGE: BILLS LIST
 # ============================================================
 def render_bills_list():
-    st.markdown(f"<h1 style='color:#00ff88 !important;'>📋 Bills List</h1>", unsafe_allow_html=True)
-    st.markdown(f"<p style='color:#888;'>Total {len(db['bills'])} bills in database</p>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='color:#2e7d32 !important;'>📋 Bills List</h1>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color:#00695c;font-weight:500;'>Total {len(db['bills'])} bills in database</p>", unsafe_allow_html=True)
     st.markdown("---")
 
     if len(db["bills"]) == 0:
@@ -523,8 +619,8 @@ def render_bills_list():
 # PAGE: LOAD FORM
 # ============================================================
 def render_load_form():
-    st.markdown(f"<h1 style='color:#00ff88 !important;'>📦 Load Form</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#888;'>Order Booker ke hisaab se load form dekho</p>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='color:#2e7d32 !important;'>📦 Load Form</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#00695c;font-weight:500;'>Order Booker ke hisaab se load form dekho</p>", unsafe_allow_html=True)
     st.markdown("---")
 
     bookers = sorted(set(b["Order Booker"] for b in db["bills"] if b["Order Booker"]))
@@ -557,7 +653,6 @@ def render_load_form():
 
     st.markdown("---")
     if st.button("📦 Export Load Form (Excel)", key="lf_export", use_container_width=True, type="primary"):
-        st.session_state["lf_export_booker"] = selected_booker
         export_load_form_for_booker(selected_booker)
 
 # ============================================================
