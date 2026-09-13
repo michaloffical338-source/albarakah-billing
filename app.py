@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# Full Screen + Salary Management
+# Full Screen + Bigger Sidebar + Salary Management
 # ============================================================
 
 import os
@@ -20,11 +20,11 @@ st.set_page_config(
 )
 
 # ============================================================
-# FULL SCREEN + HEADER HIDE + MANAGE APP HIDE
+# FULL SCREEN + HEADER HIDE + MANAGE APP HIDE + BIG SIDEBAR
 # ============================================================
 st.markdown("""
 <style>
-    /* Hide Streamlit default header completely */
+    /* ==== Hide Streamlit default header completely ==== */
     header[data-testid="stHeader"] {
         display: none !important;
         visibility: hidden !important;
@@ -34,16 +34,45 @@ st.markdown("""
     [data-testid="stToolbar"] { display: none !important; }
     [data-testid="stDecoration"] { display: none !important; }
     [data-testid="stStatusWidget"] { display: none !important; }
-    [data-testid="manage-app-button"] { display: none !important; }
-    [data-testid="stAppDeployButton"] { display: none !important; }
     #MainMenu { visibility: hidden !important; }
     footer { visibility: hidden !important; }
-    .stAppDeployButton { display: none !important; }
-    iframe[title="streamlit_cloud_status"] { display: none !important; }
-    div[class*="manageApp"] { display: none !important; }
-    button[kind="header"] { display: none !important; }
 
-    /* Force sidebar toggle to always be visible (top-left) */
+    /* ==== KILL "Manage app" button completely ==== */
+    [data-testid="manage-app-button"],
+    [data-testid="stAppDeployButton"],
+    [data-testid="stCloudAppManageButton"],
+    .stAppDeployButton,
+    iframe[title="streamlit_cloud_status"],
+    div[class*="manageApp"],
+    div[class*="ManageApp"],
+    div[class*="manage-app"],
+    button[class*="manageApp"],
+    button[class*="ManageApp"],
+    a[class*="manageApp"],
+    a[class*="ManageApp"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+    }
+
+    /* Fallback: cover bottom-right corner with same background */
+    .stApp::after {
+        content: "" !important;
+        position: fixed !important;
+        bottom: 0 !important;
+        right: 0 !important;
+        width: 260px !important;
+        height: 65px !important;
+        background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%) !important;
+        z-index: 2147483647 !important;
+        pointer-events: none !important;
+    }
+
+    /* ==== Force sidebar toggle visible (top-left) ==== */
     [data-testid="stSidebarCollapsedControl"],
     [data-testid="collapsedControl"] {
         display: flex !important;
@@ -56,7 +85,7 @@ st.markdown("""
         background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%) !important;
         border-radius: 10px !important;
         box-shadow: 0 3px 10px rgba(76,175,80,0.5) !important;
-        padding: 4px 8px !important;
+        padding: 6px 10px !important;
     }
     [data-testid="stSidebarCollapsedControl"] svg,
     [data-testid="collapsedControl"] svg {
@@ -70,7 +99,7 @@ st.markdown("""
         border-radius: 8px !important;
     }
 
-    /* Main background */
+    /* ==== Main background ==== */
     .stApp {
         background: linear-gradient(135deg, #e0f7fa 0%, #e8f5e9 100%) !important;
     }
@@ -82,12 +111,46 @@ st.markdown("""
         max-width: 100% !important;
     }
 
-    /* Sidebar */
+    /* ==== Sidebar background ==== */
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #c8e6c9 0%, #b2ebf2 100%) !important;
     }
 
-    /* Inputs */
+    /* ==== BIGGER, MORE VISIBLE SIDEBAR RADIO OPTIONS ==== */
+    section[data-testid="stSidebar"] .stRadio label p,
+    section[data-testid="stSidebar"] .stRadio label span,
+    section[data-testid="stSidebar"] .stRadio label {
+        font-size: 17px !important;
+        font-weight: 600 !important;
+        color: #0d3b1e !important;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label {
+        background-color: #ffffff !important;
+        border: 2px solid #81c784 !important;
+        border-radius: 12px !important;
+        margin-bottom: 10px !important;
+        padding: 12px 14px !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 2px 6px rgba(76,175,80,0.15) !important;
+        cursor: pointer !important;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover {
+        background-color: #e8f5e9 !important;
+        border-color: #4caf50 !important;
+        transform: translateX(4px) !important;
+        box-shadow: 0 4px 10px rgba(76,175,80,0.3) !important;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label[data-checked="true"],
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) {
+        background: linear-gradient(135deg, #a5d6a7 0%, #80deea 100%) !important;
+        border-color: #2e7d32 !important;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] input[type="radio"] {
+        width: 20px !important;
+        height: 20px !important;
+    }
+
+    /* ==== Inputs ==== */
     .stTextInput > div > div > input,
     .stNumberInput > div > div > input,
     .stSelectbox > div > div > div,
@@ -102,7 +165,7 @@ st.markdown("""
         border-color: #4caf50 !important;
     }
 
-    /* Buttons */
+    /* ==== Buttons ==== */
     .stButton > button {
         background: linear-gradient(135deg, #4caf50 0%, #26a69a 100%) !important;
         color: #ffffff !important;
@@ -131,7 +194,7 @@ st.markdown("""
         height: 0 !important;
     }
 
-    /* Metric cards */
+    /* ==== Cards ==== */
     .metric-card {
         background: #ffffff;
         border: 2px solid #a5d6a7;
@@ -215,25 +278,12 @@ st.markdown("""
         opacity: 0.9;
     }
 
-    /* Salary card */
-    .sal-card {
-        background: #ffffff;
-        border: 2px solid #a5d6a7;
-        border-radius: 12px;
-        padding: 18px;
-        margin-bottom: 10px;
-        box-shadow: 0 3px 10px rgba(76,175,80,0.15);
-    }
-    .sal-name {
-        font-size: 18px;
-        font-weight: 800;
-        color: #2e7d32;
-        margin-bottom: 10px;
-    }
+    /* ==== Salary metric pills ==== */
     .sal-metric {
         display: inline-block;
         padding: 8px 14px;
         margin-right: 8px;
+        margin-bottom: 6px;
         border-radius: 8px;
         font-size: 13px;
         font-weight: 600;
@@ -249,24 +299,52 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# JS: Force-hide "Manage app" and ensure sidebar toggle visible
+# JS: Aggressive removal of "Manage app" + sidebar toggle fix
 # ============================================================
 components.html("""
 <script>
 (function() {
-    function fix() {
+    function nuke_manage_app() {
         try {
             var doc = window.parent.document;
-            // Hide manage-app and toolbar
-            doc.querySelectorAll('[data-testid="manage-app-button"], [data-testid="stAppDeployButton"], .stAppDeployButton, iframe[title="streamlit_cloud_status"]').forEach(function(el){
-                el.style.display = 'none';
-                el.style.visibility = 'hidden';
+            var sel = [
+                '[data-testid="manage-app-button"]',
+                '[data-testid="stAppDeployButton"]',
+                '[data-testid="stCloudAppManageButton"]',
+                '.stAppDeployButton',
+                'iframe[title="streamlit_cloud_status"]',
+                'div[class*="manageApp"]',
+                'div[class*="ManageApp"]',
+                'div[class*="manage-app"]',
+                'button[class*="manageApp"]',
+                'button[class*="ManageApp"]',
+                'a[class*="manageApp"]',
+                'a[class*="ManageApp"]'
+            ];
+            sel.forEach(function(s){
+                doc.querySelectorAll(s).forEach(function(el){
+                    el.style.setProperty('display','none','important');
+                    el.style.setProperty('visibility','hidden','important');
+                    el.style.setProperty('opacity','0','important');
+                    el.style.setProperty('pointer-events','none','important');
+                });
             });
-            doc.querySelectorAll('button, a').forEach(function(el){
-                var t = (el.textContent || '').trim();
-                if (t === 'Manage app' || t === 'Manage App') el.style.display = 'none';
+            doc.querySelectorAll('button, a, div, span').forEach(function(el){
+                try {
+                    var t = (el.textContent || '').trim();
+                    if (t === 'Manage app' || t === 'Manage App') {
+                        var target = el.closest('button') || el.closest('a') || el;
+                        target.style.setProperty('display','none','important');
+                        target.style.setProperty('visibility','hidden','important');
+                    }
+                } catch(e){}
             });
-            // Ensure sidebar toggle visible
+        } catch(e) {}
+    }
+
+    function fix_sidebar_toggle() {
+        try {
+            var doc = window.parent.document;
             doc.querySelectorAll('[data-testid="stSidebarCollapsedControl"], [data-testid="collapsedControl"]').forEach(function(el){
                 el.style.setProperty('display', 'flex', 'important');
                 el.style.setProperty('visibility', 'visible', 'important');
@@ -277,15 +355,24 @@ components.html("""
                 el.style.setProperty('z-index', '9999999', 'important');
                 el.style.setProperty('background', 'linear-gradient(135deg,#4caf50,#26a69a)', 'important');
                 el.style.setProperty('border-radius', '10px', 'important');
-                el.style.setProperty('padding', '4px 8px', 'important');
+                el.style.setProperty('padding', '6px 10px', 'important');
                 el.style.setProperty('box-shadow', '0 3px 10px rgba(76,175,80,0.5)', 'important');
             });
         } catch(e) {}
     }
-    setTimeout(fix, 400);
-    setTimeout(fix, 1200);
-    setTimeout(fix, 2500);
-    setInterval(fix, 1500);
+
+    function tick() { nuke_manage_app(); fix_sidebar_toggle(); }
+
+    setTimeout(tick, 200);
+    setTimeout(tick, 600);
+    setTimeout(tick, 1200);
+    setTimeout(tick, 2500);
+    setInterval(tick, 800);
+
+    try {
+        var obs = new MutationObserver(function(){ tick(); });
+        obs.observe(window.parent.document.body, { childList: true, subtree: true });
+    } catch(e) {}
 })();
 </script>
 """, height=0)
@@ -544,7 +631,7 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown(f"""
-    <div style='padding:10px; color:#00695c !important; font-size:12px;'>
+    <div style='padding:10px; color:#00695c !important; font-size:13px;'>
         <p>📅 {datetime.now().strftime('%d-%m-%Y')}</p>
         <p>📦 Products: {len(PRODUCTS)}</p>
         <p>👤 Bookers: {len(db.get('bookers', []))}</p>
@@ -714,7 +801,6 @@ def render_salesmen():
 # PAGE: SALARY (BOOKERS or SALESMEN)
 # ============================================================
 def render_salaries(role_type):
-    """role_type: 'bookers' or 'salesmen'"""
     if role_type == "bookers":
         title = "💰 Bookers Salary"
         emoji = "👤"
@@ -739,7 +825,6 @@ def render_salaries(role_type):
         st.info(f"❌ Abhi tak koi {role_type[:-1]} add nahi hua. Pehle **{other_page}** page pe add karo.")
         return
 
-    # Compute totals for top summary
     total_base = 0
     total_adv = 0
     total_short = 0
@@ -764,7 +849,6 @@ def render_salaries(role_type):
     </div>
     """, unsafe_allow_html=True)
 
-    # ============ EACH PERSON ============
     for person_name in names:
         sd = db[sal_key].get(person_name, {"base_salary": 0, "transactions": []})
         base = sd.get("base_salary", 0)
@@ -774,7 +858,6 @@ def render_salaries(role_type):
         remaining = base - total_adv_p - total_short_p
 
         with st.expander(f"💰 {emoji} {person_name}  —  Remaining: Rs {remaining:,.0f}", expanded=False):
-            # ---- Base salary + metrics ----
             c1, c2 = st.columns([3, 1])
             with c1:
                 new_base = st.number_input(
@@ -793,7 +876,6 @@ def render_salaries(role_type):
                     st.session_state["success_msg"] = f"✅ Base salary saved for {person_name}"
                     st.rerun()
 
-            # ---- Metrics row ----
             st.markdown(f"""
             <div style='margin-top:10px;'>
                 <span class='sal-metric base'>Base: Rs {base:,.0f}</span>
@@ -806,7 +888,6 @@ def render_salaries(role_type):
             st.markdown("---")
             st.markdown("**➕ Add Transaction**")
 
-            # ---- Add transaction inline form ----
             c1, c2, c3, c4, c5 = st.columns([2, 2, 2, 3, 1])
             with c1:
                 txn_date = st.date_input("Date", value=date.today(), key=f"txn_date_{role_type}_{person_name}")
@@ -839,7 +920,6 @@ def render_salaries(role_type):
                         st.session_state["success_msg"] = f"✅ {txn_type} Rs {txn_amt:,.0f} added for {person_name}"
                         st.rerun()
 
-            # ---- History ----
             if txns:
                 st.markdown("**📋 History (date-wise)**")
                 sorted_txns = sorted(txns, key=lambda x: x.get("created_at", ""), reverse=True)
