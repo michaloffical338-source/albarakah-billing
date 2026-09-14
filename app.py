@@ -312,6 +312,8 @@ def build_lamp_html(light_on):
   }
 
   /* ========= LOGIN FORM (inside beam) ========= */
+  /* Authentication is rendered by native Streamlit widgets. */
+  .form-wrap { display:none !important; }
   .form-wrap {
     position: absolute;
     top: 340px; left: 50%;
@@ -1162,7 +1164,7 @@ if "auth_error" not in st.session_state:
     st.session_state["auth_error"] = ""
 
 # ============================================================
-# HIDE EVERYTHING DURING AUTH
+# RELIABLE AUTH UI — NATIVE STREAMLIT CONTROLS
 # ============================================================
 if not st.session_state.get("logged_in_user"):
     st.markdown("""
@@ -1172,120 +1174,207 @@ if not st.session_state.get("logged_in_user"):
         [data-testid="stToolbar"],
         [data-testid="stDecoration"],
         [data-testid="stStatusWidget"],
-        #MainMenu,
-        footer,
-        .stAppDeployButton,
-        [data-testid="manage-app-button"] {
-            display: none !important;
-            visibility: hidden !important;
-        }
+        #MainMenu, footer, .stAppDeployButton,
+        [data-testid="manage-app-button"] { display:none !important; }
+
         html, body, .stApp {
-            background: #000000 !important;
+            background:#11110f !important;
+            overflow:hidden !important;
         }
         .block-container {
-            padding: 0 !important;
-            max-width: 100% !important;
-            margin: 0 !important;
+            padding:0 !important;
+            max-width:100% !important;
+            margin:0 !important;
         }
-        iframe {
-            border: none !important;
+        iframe { border:none !important; }
+
+        /* Premium authentication card behind the real Streamlit fields */
+        .auth-card {
+            position:fixed;
+            top:350px;
+            left:50%;
+            transform:translateX(-50%);
+            width:400px;
+            min-height:245px;
+            border:1px solid rgba(255,195,90,.30);
+            border-radius:20px;
+            background:linear-gradient(145deg,rgba(38,35,30,.96),rgba(20,19,17,.97));
+            box-shadow:0 20px 70px rgba(0,0,0,.72),0 0 70px rgba(255,183,65,.13),inset 0 1px 0 rgba(255,225,165,.12);
+            backdrop-filter:blur(18px);
+            z-index:50;
+        }
+        .auth-title {
+            position:fixed; top:368px; left:50%; transform:translateX(-50%);
+            width:360px; text-align:center; z-index:70; pointer-events:none;
+            color:#ffd36a; font-weight:800; letter-spacing:4px; font-size:20px;
+            text-shadow:0 0 20px rgba(255,198,90,.38);
+        }
+        .auth-subtitle {
+            position:fixed; top:397px; left:50%; transform:translateX(-50%);
+            width:360px; text-align:center; z-index:70; pointer-events:none;
+            color:#a88b61; font-size:9px; font-weight:700; letter-spacing:5px;
+        }
+
+        /* Real Streamlit widgets are positioned over the card. */
+        div[data-testid="stRadio"] {
+            position:fixed !important;
+            top:424px !important;
+            left:50% !important;
+            transform:translateX(-50%) !important;
+            width:340px !important;
+            z-index:100 !important;
+            background:rgba(7,7,6,.68) !important;
+            border:1px solid rgba(255,196,88,.16) !important;
+            border-radius:11px !important;
+            padding:4px 10px !important;
+        }
+        div[data-testid="stRadio"] label,
+        div[data-testid="stRadio"] p,
+        div[data-testid="stRadio"] span { color:#d5b777 !important; }
+        div[data-testid="stRadio"] label { font-size:12px !important; font-weight:700 !important; }
+
+        div[data-testid="stTextInput"]:has(input[aria-label="USERNAME"]) {
+            position:fixed !important; top:478px !important; left:50% !important;
+            transform:translateX(-50%) !important; width:340px !important; z-index:100 !important;
+        }
+        div[data-testid="stTextInput"]:has(input[aria-label="PASSWORD"]) {
+            position:fixed !important; top:550px !important; left:50% !important;
+            transform:translateX(-50%) !important; width:340px !important; z-index:100 !important;
+        }
+        div[data-testid="stTextInput"]:has(input[aria-label="CONFIRM PASSWORD"]) {
+            position:fixed !important; top:622px !important; left:50% !important;
+            transform:translateX(-50%) !important; width:340px !important; z-index:100 !important;
+        }
+        div[data-testid="stTextInput"] label,
+        div[data-testid="stTextInput"] label p { color:#a98c61 !important; font-size:9px !important; font-weight:800 !important; letter-spacing:2px !important; }
+        div[data-testid="stTextInput"] input {
+            background:rgba(7,7,7,.78) !important;
+            color:#fff8e8 !important;
+            -webkit-text-fill-color:#fff8e8 !important;
+            border:1px solid rgba(255,198,90,.20) !important;
+            border-radius:10px !important;
+            height:43px !important;
+        }
+        div[data-testid="stTextInput"] input:focus {
+            border-color:rgba(255,203,105,.65) !important;
+            box-shadow:0 0 0 2px rgba(255,190,70,.10),0 0 20px rgba(255,185,60,.12) !important;
+        }
+
+        /* Invisible real Streamlit button placed directly over the lamp bead/cord. */
+        div[data-testid="stButton"]:has(button p) {
+            position:fixed !important;
+            top:318px !important;
+            left:calc(50% + 12px) !important;
+            width:58px !important;
+            height:62px !important;
+            z-index:200 !important;
+            margin:0 !important;
+        }
+        div[data-testid="stButton"]:has(button p) button {
+            width:58px !important; height:62px !important;
+            min-height:62px !important;
+            opacity:0 !important; cursor:pointer !important;
+            padding:0 !important; border:0 !important;
+        }
+
+        .auth-error {
+            position:fixed; top:665px; left:50%; transform:translateX(-50%);
+            width:380px; text-align:center; z-index:300;
+            color:#ff9a8f; font-size:12px; font-weight:700;
+            background:rgba(90,20,15,.78); border:1px solid rgba(255,100,80,.22);
+            border-radius:9px; padding:8px 12px;
+        }
+        .auth-hint {
+            position:fixed; top:700px; left:50%; transform:translateX(-50%);
+            width:420px; text-align:center; z-index:60; pointer-events:none;
+            color:#a88b61; font-size:10px; letter-spacing:2px;
+        }
+
+        @media(max-width:600px){
+            .auth-card{width:calc(100vw - 32px);}
+            div[data-testid="stRadio"],
+            div[data-testid="stTextInput"]:has(input[aria-label="USERNAME"]),
+            div[data-testid="stTextInput"]:has(input[aria-label="PASSWORD"]),
+            div[data-testid="stTextInput"]:has(input[aria-label="CONFIRM PASSWORD"]){width:calc(100vw - 70px) !important;}
         }
     </style>
     """, unsafe_allow_html=True)
 
-    # Render lamp (full screen)
+    # Visual lamp only. Authentication is handled by real Streamlit widgets,
+    # so clicking the cord can never get disconnected from Python state.
     components.html(build_lamp_html(st.session_state["light_on"]), height=900, scrolling=False)
 
-    # Hidden form + trigger buttons
-    with st.container():
-        st.markdown('<div id="hidden_lamp_inputs" style="position:fixed;left:-99999px;top:-99999px;height:0;width:0;overflow:hidden;">', unsafe_allow_html=True)
-        st.text_input("__LU__", key="lamp_user", label_visibility="visible")
-        st.text_input("__LP__", key="lamp_pass", label_visibility="visible")
-        st.text_input("__LP2__", key="lamp_pass2", label_visibility="visible")
-        st.text_input("__LM__", key="lamp_mode", label_visibility="visible")
-        turn_on = st.button("__LAMP_TURN_ON__", key="lamp_turn_on")
-        submit = st.button("__LAMP_SUBMIT__", key="lamp_submit")
-        st.markdown('</div>', unsafe_allow_html=True)
+    # Decorative card/title appear only after the lamp is lit.
+    if st.session_state["light_on"]:
+        st.markdown('<div class="auth-card"></div><div class="auth-title">AL-BARAKAH</div><div class="auth-subtitle">ENTERPRISES</div>', unsafe_allow_html=True)
 
-    # Show current error if any
-    if st.session_state.get("auth_error"):
-        st.markdown(f"""
-        <div style="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);
-                    background:rgba(200,40,40,0.9);color:#fff;padding:10px 22px;
-                    border-radius:10px;font-weight:700;font-size:14px;z-index:2147483647;
-                    box-shadow:0 6px 20px rgba(0,0,0,0.6);">
-            ⚠️ {st.session_state["auth_error"]}
-        </div>
-        """, unsafe_allow_html=True)
-        # clear after showing
-        st.session_state["auth_error"] = ""
+        mode = st.radio("MODE", ["LOGIN", "SIGNUP"], horizontal=True, key="auth_mode", label_visibility="collapsed")
+        st.text_input("USERNAME", key="auth_username", placeholder="Enter username", label_visibility="visible")
+        st.text_input("PASSWORD", key="auth_password", type="password", placeholder="Enter password", label_visibility="visible")
+        if mode == "SIGNUP":
+            st.text_input("CONFIRM PASSWORD", key="auth_password2", type="password", placeholder="Repeat password", label_visibility="visible")
 
-    if turn_on:
-        st.session_state["light_on"] = True
-        st.rerun()
+        st.markdown('<div class="auth-hint">PULL THE CORD TO CONTINUE</div>', unsafe_allow_html=True)
 
-    if submit:
-        users = load_users()
-        uname_raw = st.session_state.get("lamp_user", "").strip().lower()
-        uname = sanitize_username(uname_raw)
-        pass_v = st.session_state.get("lamp_pass", "")
-        pass2_v = st.session_state.get("lamp_pass2", "")
-        mode = st.session_state.get("lamp_mode", "login")
+    # A real Streamlit button is placed over the visible pull-cord bead.
+    st.markdown('<div class="cord-hit-area">', unsafe_allow_html=True)
+    pull_cord = st.button("PULL", key="pull_cord", use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-        if mode == "login":
-            if uname == "" or pass_v == "":
-                st.session_state["auth_error"] = "Please fill all fields"
-            elif uname not in users:
-                st.session_state["auth_error"] = "Username not found. Please signup."
-                st.session_state["light_on"] = True
-            elif users[uname].get("password_hash") != hash_password(pass_v):
-                st.session_state["auth_error"] = "Incorrect password"
-                st.session_state["light_on"] = True
-            else:
-                st.session_state["logged_in_user"] = uname
-                st.session_state["display_name"] = users[uname].get("display_name", uname)
-                st.session_state["page"] = "📊 Dashboard"
-                # IMPORTANT: Do not modify lamp widget keys after they are instantiated.
-                # Streamlit raises an exception if widget-backed session_state values are
-                # changed later in the same run. The auth UI disappears automatically
-                # because logged_in_user is now set, so clearing these fields is unnecessary.
-                st.session_state["light_on"] = False
-                st.rerun()
-
-        else:  # signup
-            if uname == "" or pass_v == "" or pass2_v == "":
-                st.session_state["auth_error"] = "Please fill all fields"
-            elif len(uname) < 3:
-                st.session_state["auth_error"] = "Username min 3 chars"
-            elif len(uname) > 20:
-                st.session_state["auth_error"] = "Username max 20 chars"
-            elif len(pass_v) < 4:
-                st.session_state["auth_error"] = "Password min 4 chars"
-            elif pass_v != pass2_v:
-                st.session_state["auth_error"] = "Passwords do not match"
-            elif uname in users:
-                st.session_state["auth_error"] = f"Username '{uname}' already taken"
-            else:
-                users[uname] = {
-                    "username": uname,
-                    "display_name": uname_raw,
-                    "password_hash": hash_password(pass_v),
-                    "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                }
-                save_users(users)
-                with open(user_data_file(uname), "w", encoding="utf-8") as f:
-                    json.dump(default_blank_db(), f, indent=4, ensure_ascii=False)
-                st.session_state["logged_in_user"] = uname
-                st.session_state["display_name"] = uname_raw
-                st.session_state["page"] = "📊 Dashboard"
-                # Same reason as login above: widget values disappear with the auth screen.
-                # Do not mutate widget-backed keys in this run.
-                st.session_state["light_on"] = False
-                st.rerun()
-
-        if st.session_state.get("auth_error"):
+    if pull_cord:
+        if not st.session_state["light_on"]:
             st.session_state["light_on"] = True
-        st.rerun()
+            st.session_state["auth_error"] = ""
+            st.rerun()
+        else:
+            users = load_users()
+            uname_raw = st.session_state.get("auth_username", "").strip()
+            uname = sanitize_username(uname_raw)
+            pass_v = st.session_state.get("auth_password", "")
+            pass2_v = st.session_state.get("auth_password2", "")
+
+            if not uname or not pass_v:
+                st.session_state["auth_error"] = "Please fill all required fields."
+            elif mode == "LOGIN":
+                if uname not in users:
+                    st.session_state["auth_error"] = "Username not found. Please signup."
+                elif users[uname].get("password_hash") != hash_password(pass_v):
+                    st.session_state["auth_error"] = "Incorrect password."
+                else:
+                    st.session_state["logged_in_user"] = uname
+                    st.session_state["display_name"] = users[uname].get("display_name", uname)
+                    st.session_state["page"] = "📊 Dashboard"
+                    st.session_state["light_on"] = False
+                    st.rerun()
+            else:
+                if len(uname) < 3:
+                    st.session_state["auth_error"] = "Username must be at least 3 characters."
+                elif len(uname) > 20:
+                    st.session_state["auth_error"] = "Username must be 20 characters or less."
+                elif len(pass_v) < 4:
+                    st.session_state["auth_error"] = "Password must be at least 4 characters."
+                elif pass_v != pass2_v:
+                    st.session_state["auth_error"] = "Passwords do not match."
+                elif uname in users:
+                    st.session_state["auth_error"] = f"Username '{uname}' already taken."
+                else:
+                    users[uname] = {
+                        "username": uname,
+                        "display_name": uname_raw,
+                        "password_hash": hash_password(pass_v),
+                        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    }
+                    save_users(users)
+                    with open(user_data_file(uname), "w", encoding="utf-8") as f:
+                        json.dump(default_blank_db(), f, indent=4, ensure_ascii=False)
+                    st.session_state["logged_in_user"] = uname
+                    st.session_state["display_name"] = uname_raw
+                    st.session_state["page"] = "📊 Dashboard"
+                    st.session_state["light_on"] = False
+                    st.rerun()
+
+            if st.session_state.get("auth_error"):
+                st.markdown(f'<div class="auth-error">⚠️ {st.session_state["auth_error"]}</div>', unsafe_allow_html=True)
 
     st.stop()
 
