@@ -1169,163 +1169,82 @@ if "auth_error" not in st.session_state:
 if not st.session_state.get("logged_in_user"):
     st.markdown("""
     <style>
-        section[data-testid="stSidebar"],
-        header[data-testid="stHeader"],
-        [data-testid="stToolbar"],
-        [data-testid="stDecoration"],
-        [data-testid="stStatusWidget"],
-        #MainMenu, footer, .stAppDeployButton,
-        [data-testid="manage-app-button"] { display:none !important; }
+        section[data-testid="stSidebar"], header[data-testid="stHeader"],
+        [data-testid="stToolbar"], [data-testid="stDecoration"],
+        [data-testid="stStatusWidget"], #MainMenu, footer,
+        .stAppDeployButton, [data-testid="manage-app-button"] { display:none !important; }
+        html, body, .stApp { background:#0b0b0c !important; overflow-x:hidden !important; overflow-y:auto !important; }
+        .block-container { padding:0 !important; max-width:100% !important; margin:0 !important; }
+        iframe { border:none !important; position:relative !important; z-index:1 !important; pointer-events:none !important; }
 
-        html, body, .stApp {
-            background:#11110f !important;
-            overflow:hidden !important;
-        }
-        .block-container {
-            padding:0 !important;
-            max-width:100% !important;
-            margin:0 !important;
-        }
-        iframe { border:none !important; pointer-events:none !important; position:relative !important; z-index:1 !important; }
-
-        /* Premium authentication card behind the real Streamlit fields */
         .auth-card {
-            pointer-events:none !important;
-            position:fixed;
-            top:350px;
-            left:50%;
-            transform:translateX(-50%);
-            width:400px;
-            min-height:245px;
-            border:1px solid rgba(255,195,90,.30);
-            border-radius:20px;
-            background:linear-gradient(145deg,rgba(38,35,30,.96),rgba(20,19,17,.97));
-            box-shadow:0 20px 70px rgba(0,0,0,.72),0 0 70px rgba(255,183,65,.13),inset 0 1px 0 rgba(255,225,165,.12);
-            backdrop-filter:blur(18px);
-            z-index:50;
+            position:fixed; top:395px; left:50%; transform:translateX(-50%);
+            width:440px; height:350px; border-radius:22px;
+            background:linear-gradient(145deg,rgba(28,29,31,.97),rgba(15,16,18,.985));
+            border:1px solid rgba(214,167,82,.34);
+            box-shadow:0 30px 90px rgba(0,0,0,.72),0 0 90px rgba(205,154,58,.10),inset 0 1px 0 rgba(255,255,255,.07);
+            z-index:20; pointer-events:none; backdrop-filter:blur(18px);
         }
-        .auth-title {
-            position:fixed; top:368px; left:50%; transform:translateX(-50%);
-            width:360px; text-align:center; z-index:70; pointer-events:none;
-            color:#ffd36a; font-weight:800; letter-spacing:4px; font-size:20px;
-            text-shadow:0 0 20px rgba(255,198,90,.38);
-        }
-        .auth-subtitle {
-            position:fixed; top:397px; left:50%; transform:translateX(-50%);
-            width:360px; text-align:center; z-index:70; pointer-events:none;
-            color:#a88b61; font-size:9px; font-weight:700; letter-spacing:5px;
-        }
+        .auth-card::before { content:''; position:absolute; left:28px; right:28px; top:0; height:1px; background:linear-gradient(90deg,transparent,rgba(238,194,105,.65),transparent); }
+        .auth-title { position:fixed; top:420px; left:50%; transform:translateX(-50%); width:400px; text-align:center; z-index:40; pointer-events:none; color:#e8bf68; font-size:22px; font-weight:800; letter-spacing:5px; text-shadow:0 0 24px rgba(226,178,83,.25); }
+        .auth-subtitle { position:fixed; top:449px; left:50%; transform:translateX(-50%); width:400px; text-align:center; z-index:40; pointer-events:none; color:#81745e; font-size:8px; font-weight:700; letter-spacing:5px; }
+        .auth-line { position:fixed; top:466px; left:50%; transform:translateX(-50%); width:330px; height:1px; z-index:40; pointer-events:none; background:linear-gradient(90deg,transparent,rgba(214,167,82,.30),transparent); }
 
-        /* Real Streamlit widgets are positioned over the card. */
-        div[data-testid="stRadio"] {
-            position:fixed !important;
-            top:424px !important;
-            left:50% !important;
-            transform:translateX(-50%) !important;
-            width:340px !important;
-            z-index:100 !important;
-            background:rgba(7,7,6,.68) !important;
-            border:1px solid rgba(255,196,88,.16) !important;
-            border-radius:11px !important;
-            padding:4px 10px !important;
-        }
-        div[data-testid="stRadio"] label,
-        div[data-testid="stRadio"] p,
-        div[data-testid="stRadio"] span { color:#d5b777 !important; }
-        div[data-testid="stRadio"] label { font-size:12px !important; font-weight:700 !important; }
+        div[data-testid="stRadio"] { position:fixed !important; top:478px !important; left:50% !important; transform:translateX(-50%) !important; width:330px !important; z-index:100 !important; padding:3px !important; border:1px solid rgba(255,255,255,.07) !important; border-radius:10px !important; background:#0d0e10 !important; }
+        div[data-testid="stRadio"] > label { display:none !important; }
+        div[data-testid="stRadio"] [role="radiogroup"] { gap:3px !important; }
+        div[data-testid="stRadio"] [role="radio"] { flex:1 !important; justify-content:center !important; padding:8px 0 !important; border-radius:7px !important; color:#77736b !important; font-size:11px !important; font-weight:800 !important; letter-spacing:1.5px !important; }
+        div[data-testid="stRadio"] [role="radio"][aria-checked="true"] { background:linear-gradient(135deg,#3a2d19,#2b2114) !important; color:#f0c86d !important; box-shadow:inset 0 0 0 1px rgba(221,174,84,.28),0 3px 12px rgba(0,0,0,.35) !important; }
+        div[data-testid="stRadio"] [role="radio"] > div:first-child { display:none !important; }
 
-        div[data-testid="stTextInput"]:has(input[aria-label="USERNAME"]) {
-            position:fixed !important; top:478px !important; left:50% !important;
-            transform:translateX(-50%) !important; width:340px !important; z-index:100 !important;
-        }
-        div[data-testid="stTextInput"]:has(input[aria-label="PASSWORD"]) {
-            position:fixed !important; top:550px !important; left:50% !important;
-            transform:translateX(-50%) !important; width:340px !important; z-index:100 !important;
-        }
-        div[data-testid="stTextInput"]:has(input[aria-label="CONFIRM PASSWORD"]) {
-            position:fixed !important; top:622px !important; left:50% !important;
-            transform:translateX(-50%) !important; width:340px !important; z-index:100 !important;
-        }
-        div[data-testid="stTextInput"] label,
-        div[data-testid="stTextInput"] label p { color:#a98c61 !important; font-size:9px !important; font-weight:800 !important; letter-spacing:2px !important; }
-        div[data-testid="stTextInput"] input {
-            background:rgba(7,7,7,.78) !important;
-            color:#fff8e8 !important;
-            -webkit-text-fill-color:#fff8e8 !important;
-            border:1px solid rgba(255,198,90,.20) !important;
-            border-radius:10px !important;
-            height:43px !important;
-        }
-        div[data-testid="stTextInput"] input:focus {
-            border-color:rgba(255,203,105,.65) !important;
-            box-shadow:0 0 0 2px rgba(255,190,70,.10),0 0 20px rgba(255,185,60,.12) !important;
-        }
+        div[data-testid="stTextInput"] { position:fixed !important; left:50% !important; transform:translateX(-50%) !important; width:330px !important; z-index:100 !important; }
+        div[data-testid="stTextInput"]:has(input[aria-label="USERNAME"]) { top:535px !important; }
+        div[data-testid="stTextInput"]:has(input[aria-label="PASSWORD"]) { top:602px !important; }
+        div[data-testid="stTextInput"]:has(input[aria-label="CONFIRM PASSWORD"]) { top:669px !important; }
+        div[data-testid="stTextInput"] label, div[data-testid="stTextInput"] label p { color:#9c8a69 !important; font-size:9px !important; font-weight:800 !important; letter-spacing:2px !important; margin-bottom:5px !important; }
+        div[data-testid="stTextInput"] input { height:42px !important; border-radius:9px !important; background:#0b0c0e !important; color:#f6f1e7 !important; -webkit-text-fill-color:#f6f1e7 !important; border:1px solid rgba(255,255,255,.09) !important; box-shadow:inset 0 1px 0 rgba(255,255,255,.025) !important; }
+        div[data-testid="stTextInput"] input:focus { border-color:rgba(221,174,84,.65) !important; box-shadow:0 0 0 2px rgba(221,174,84,.08),0 0 20px rgba(221,174,84,.08) !important; }
+        div[data-testid="stTextInput"] input::placeholder { color:#55565a !important; }
 
-        /* Reliable invisible Streamlit click target over the pull bead. */
-        div[data-testid="stButton"] {
-            position:fixed !important;
-            top:350px !important;
-            left:calc(50% + 5px) !important;
-            width:95px !important;
-            height:105px !important;
-            z-index:2147483647 !important;
-            margin:0 !important;
-            padding:0 !important;
-        }
-        div[data-testid="stButton"] button {
-            width:95px !important; height:105px !important;
-            min-height:105px !important;
-            opacity:0 !important; cursor:pointer !important;
-            padding:0 !important; border:0 !important;
-            background:transparent !important;
-        }
+        /* Authentication action button */
+        div[data-testid="stButton"] { position:fixed !important; top:718px !important; left:50% !important; transform:translateX(-50%) !important; width:330px !important; z-index:120 !important; }
+        div[data-testid="stButton"] button { height:43px !important; border-radius:9px !important; border:1px solid rgba(225,180,88,.42) !important; background:linear-gradient(135deg,#c99b45,#e0b85f) !important; color:#17130d !important; font-weight:900 !important; letter-spacing:1.5px !important; box-shadow:0 8px 24px rgba(202,157,67,.16) !important; }
+        div[data-testid="stButton"] button:hover { border-color:#f1cc78 !important; filter:brightness(1.06) !important; }
 
-        .auth-error {
-            position:fixed; top:665px; left:50%; transform:translateX(-50%);
-            width:380px; text-align:center; z-index:300;
-            color:#ff9a8f; font-size:12px; font-weight:700;
-            background:rgba(90,20,15,.78); border:1px solid rgba(255,100,80,.22);
-            border-radius:9px; padding:8px 12px;
-        }
-        div[data-testid="stRadio"],
-        div[data-testid="stTextInput"] {
-            position:relative !important;
-            z-index:1000 !important;
-        }
+        /* Invisible PULL target over the pendant bead */
+        div[data-testid="stButton"]:has(button[aria-label="PULL"]) { top:335px !important; left:calc(50% + 12px) !important; width:72px !important; height:78px !important; z-index:150 !important; }
+        div[data-testid="stButton"]:has(button[aria-label="PULL"]) button { width:72px !important; height:78px !important; min-height:78px !important; opacity:0 !important; background:transparent !important; border:0 !important; }
 
-        .auth-hint {
-            position:fixed; top:700px; left:50%; transform:translateX(-50%);
-            width:420px; text-align:center; z-index:60; pointer-events:none;
-            color:#a88b61; font-size:10px; letter-spacing:2px;
-        }
-
+        .auth-hint { position:fixed; top:772px; left:50%; transform:translateX(-50%); width:400px; text-align:center; z-index:40; pointer-events:none; color:#66615a; font-size:9px; letter-spacing:2px; }
+        .auth-error { position:fixed; top:775px; left:50%; transform:translateX(-50%); width:390px; text-align:center; z-index:200; color:#ffaaa0; font-size:11px; font-weight:700; background:rgba(71,24,20,.94); border:1px solid rgba(255,100,80,.20); border-radius:8px; padding:8px 12px; }
         @media(max-width:600px){
-            .auth-card{width:calc(100vw - 32px);}
-            div[data-testid="stRadio"],
-            div[data-testid="stTextInput"]:has(input[aria-label="USERNAME"]),
-            div[data-testid="stTextInput"]:has(input[aria-label="PASSWORD"]),
-            div[data-testid="stTextInput"]:has(input[aria-label="CONFIRM PASSWORD"]){width:calc(100vw - 70px) !important;}
+            .auth-card { width:calc(100vw - 28px); top:385px; }
+            .auth-title,.auth-subtitle,.auth-line { width:calc(100vw - 55px); }
+            div[data-testid="stRadio"], div[data-testid="stTextInput"], div[data-testid="stButton"] { width:calc(100vw - 80px) !important; }
         }
     </style>
     """, unsafe_allow_html=True)
 
-    # Visual lamp only. Authentication is handled by real Streamlit widgets,
-    # so clicking the cord can never get disconnected from Python state.
-    components.html(build_lamp_html(st.session_state["light_on"]), height=900, scrolling=False)
+    components.html(build_lamp_html(st.session_state["light_on"]), height=800, scrolling=False)
 
-    # Decorative card/title appear only after the lamp is lit.
     if st.session_state["light_on"]:
-        st.markdown('<div class="auth-card"></div><div class="auth-title">AL-BARAKAH</div><div class="auth-subtitle">ENTERPRISES</div>', unsafe_allow_html=True)
-
+        st.markdown('''<div class="auth-card"></div>
+            <div class="auth-title">AL-BARAKAH</div>
+            <div class="auth-subtitle">ENTERPRISES • SECURE ACCESS</div>
+            <div class="auth-line"></div>''', unsafe_allow_html=True)
         mode = st.radio("MODE", ["LOGIN", "SIGNUP"], horizontal=True, key="auth_mode", label_visibility="collapsed")
-        st.text_input("USERNAME", key="auth_username", placeholder="Enter username", label_visibility="visible")
-        st.text_input("PASSWORD", key="auth_password", type="password", placeholder="Enter password", label_visibility="visible")
+        st.text_input("USERNAME", key="auth_username", placeholder="Enter your username")
+        st.text_input("PASSWORD", key="auth_password", type="password", placeholder="Enter your password")
         if mode == "SIGNUP":
-            st.text_input("CONFIRM PASSWORD", key="auth_password2", type="password", placeholder="Repeat password", label_visibility="visible")
+            st.text_input("CONFIRM PASSWORD", key="auth_password2", type="password", placeholder="Repeat your password")
+        action_label = "CREATE ACCOUNT" if mode == "SIGNUP" else "SIGN IN"
+        auth_action = st.button(action_label, key="auth_action", use_container_width=True)
+        st.markdown('<div class="auth-hint">SECURE BUSINESS MANAGEMENT • AL-BARAKAH ENTERPRISES</div>', unsafe_allow_html=True)
+    else:
+        mode = "LOGIN"
+        auth_action = False
 
-        st.markdown('<div class="auth-hint">PULL THE CORD TO CONTINUE</div>', unsafe_allow_html=True)
-
-    # A real Streamlit button is placed over the visible pull-cord bead.
+    # Native Streamlit pull target for the pendant.
     st.markdown('<div class="cord-hit-area">', unsafe_allow_html=True)
     pull_cord = st.button("PULL", key="pull_cord", use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
@@ -1336,54 +1255,62 @@ if not st.session_state.get("logged_in_user"):
             st.session_state["auth_error"] = ""
             st.rerun()
         else:
-            users = load_users()
-            uname_raw = st.session_state.get("auth_username", "").strip()
-            uname = sanitize_username(uname_raw)
-            pass_v = st.session_state.get("auth_password", "")
-            pass2_v = st.session_state.get("auth_password2", "")
+            # Cord is only for the lamp. Authentication uses the clean action button.
+            st.session_state["light_on"] = False
+            st.session_state["auth_error"] = ""
+            st.rerun()
 
-            if not uname or not pass_v:
-                st.session_state["auth_error"] = "Please fill all required fields."
-            elif mode == "LOGIN":
-                if uname not in users:
-                    st.session_state["auth_error"] = "Username not found. Please signup."
-                elif users[uname].get("password_hash") != hash_password(pass_v):
-                    st.session_state["auth_error"] = "Incorrect password."
-                else:
-                    st.session_state["logged_in_user"] = uname
-                    st.session_state["display_name"] = users[uname].get("display_name", uname)
-                    st.session_state["page"] = "📊 Dashboard"
-                    st.session_state["light_on"] = False
-                    st.rerun()
+    if st.session_state["light_on"] and auth_action:
+        users = load_users()
+        uname_raw = st.session_state.get("auth_username", "").strip()
+        uname = sanitize_username(uname_raw)
+        pass_v = st.session_state.get("auth_password", "")
+        pass2_v = st.session_state.get("auth_password2", "")
+
+        if not uname or not pass_v:
+            st.session_state["auth_error"] = "Please enter your username and password."
+        elif mode == "LOGIN":
+            if uname not in users:
+                st.session_state["auth_error"] = "Username not found. Please create an account first."
+            elif users[uname].get("password_hash") != hash_password(pass_v):
+                st.session_state["auth_error"] = "Incorrect password. Please try again."
             else:
-                if len(uname) < 3:
-                    st.session_state["auth_error"] = "Username must be at least 3 characters."
-                elif len(uname) > 20:
-                    st.session_state["auth_error"] = "Username must be 20 characters or less."
-                elif len(pass_v) < 4:
-                    st.session_state["auth_error"] = "Password must be at least 4 characters."
-                elif pass_v != pass2_v:
-                    st.session_state["auth_error"] = "Passwords do not match."
-                elif uname in users:
-                    st.session_state["auth_error"] = f"Username '{uname}' already taken."
-                else:
-                    users[uname] = {
-                        "username": uname,
-                        "display_name": uname_raw,
-                        "password_hash": hash_password(pass_v),
-                        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    }
-                    save_users(users)
-                    with open(user_data_file(uname), "w", encoding="utf-8") as f:
-                        json.dump(default_blank_db(), f, indent=4, ensure_ascii=False)
-                    st.session_state["logged_in_user"] = uname
-                    st.session_state["display_name"] = uname_raw
-                    st.session_state["page"] = "📊 Dashboard"
-                    st.session_state["light_on"] = False
-                    st.rerun()
+                st.session_state["logged_in_user"] = uname
+                st.session_state["display_name"] = users[uname].get("display_name", uname)
+                st.session_state["page"] = "📊 Dashboard"
+                st.session_state["light_on"] = False
+                st.session_state["auth_error"] = ""
+                st.rerun()
+        else:
+            if len(uname) < 3:
+                st.session_state["auth_error"] = "Username must be at least 3 characters."
+            elif len(uname) > 20:
+                st.session_state["auth_error"] = "Username must be 20 characters or less."
+            elif len(pass_v) < 4:
+                st.session_state["auth_error"] = "Password must be at least 4 characters."
+            elif pass_v != pass2_v:
+                st.session_state["auth_error"] = "Passwords do not match."
+            elif uname in users:
+                st.session_state["auth_error"] = f"Username '{uname}' is already registered."
+            else:
+                users[uname] = {
+                    "username": uname,
+                    "display_name": uname_raw,
+                    "password_hash": hash_password(pass_v),
+                    "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                }
+                save_users(users)
+                with open(user_data_file(uname), "w", encoding="utf-8") as f:
+                    json.dump(default_blank_db(), f, indent=4, ensure_ascii=False)
+                st.session_state["logged_in_user"] = uname
+                st.session_state["display_name"] = uname_raw
+                st.session_state["page"] = "📊 Dashboard"
+                st.session_state["light_on"] = False
+                st.session_state["auth_error"] = ""
+                st.rerun()
 
-            if st.session_state.get("auth_error"):
-                st.markdown(f'<div class="auth-error">⚠️ {st.session_state["auth_error"]}</div>', unsafe_allow_html=True)
+    if st.session_state.get("auth_error") and st.session_state.get("light_on"):
+        st.markdown(f'<div class="auth-error">{st.session_state["auth_error"]}</div>', unsafe_allow_html=True)
 
     st.stop()
 
