@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# + Multi-Active Discount Packages (4 packages × 3 tiers)
+# + Excel-Style Bills List & Load Form Grouping
 # ============================================================
 
 import os
@@ -349,9 +349,7 @@ st.markdown("""
         box-shadow: 0 4px 14px rgba(46,125,50,0.25);
         background: #f1f8e9;
     }
-    .disc-title {
-        font-size: 15px; font-weight: 800; color: #1976d2; margin-bottom: 4px;
-    }
+    .disc-title { font-size: 15px; font-weight: 800; color: #1976d2; margin-bottom: 4px; }
     .disc-title-active { color: #2e7d32 !important; }
     .disc-badge-active {
         background: #c8e6c9; color: #1b5e20 !important;
@@ -492,7 +490,7 @@ PRODUCTS = sorted([
 PRODUCT_NAMES = [p["name"] for p in PRODUCTS]
 
 # ============================================================
-# DEFAULT DISCOUNT PACKAGES (4 packages × 3 tiers, ALL ACTIVE BY DEFAULT)
+# DEFAULT DISCOUNT PACKAGES
 # ============================================================
 def default_discount_packages():
     return [
@@ -540,7 +538,6 @@ def load_database():
                 if "discount_packages" not in data or not data["discount_packages"]:
                     data["discount_packages"] = default_discount_packages()
                 else:
-                    # migrate: ensure tier3 fields exist
                     for p in data["discount_packages"]:
                         if "tier3_amount" not in p: p["tier3_amount"] = 0.0
                         if "tier3_pct" not in p: p["tier3_pct"] = 0.0
@@ -595,22 +592,13 @@ def get_price(code, base_price):
     return float(base_price)
 
 def get_all_active_packages():
-    """Return list of ALL active packages."""
     return [p for p in db.get("discount_packages", []) if p.get("active")]
 
 def get_package_discount_pct(bill_total):
-    """
-    Check ALL active packages. Return BEST (highest %) applicable discount.
-    Returns: (pct, package_name, tier_label)
-    """
     active_pkgs = get_all_active_packages()
     if not active_pkgs:
         return 0.0, None, None
-
-    best_pct = 0.0
-    best_name = None
-    best_tier = None
-
+    best_pct = 0.0; best_name = None; best_tier = None
     for pkg in active_pkgs:
         pkg_name = pkg.get("name", "Package")
         tiers = [
@@ -618,15 +606,12 @@ def get_package_discount_pct(bill_total):
             (float(pkg.get("tier2_amount", 0) or 0), float(pkg.get("tier2_pct", 0) or 0), "Tier2"),
             (float(pkg.get("tier1_amount", 0) or 0), float(pkg.get("tier1_pct", 0) or 0), "Tier1"),
         ]
-        # sort descending by amount so highest threshold is checked first
         tiers.sort(key=lambda x: x[0], reverse=True)
         for amt, pct, label in tiers:
             if amt > 0 and bill_total > amt and pct > best_pct:
-                best_pct = pct
-                best_name = pkg_name
+                best_pct = pct; best_name = pkg_name
                 best_tier = f"{label} (> {amt:,.0f})"
-                break  # highest tier of this package wins, move to next package
-
+                break
     if best_pct > 0:
         return best_pct, best_name, best_tier
     return 0.0, (active_pkgs[0].get("name") if active_pkgs else None), None
@@ -660,6 +645,100 @@ def show_auto_download():
         """, height=0)
 
 # ============================================================
+# EXPORT SINGLE GROUP BILL (used by Bills List group cards)
+# ============================================================
+def export_single_group_bill(shop, date_str, booker, salesman, items, bill_no):
+    bill_total_net = sum(float(it.get("Net", 0)) for it in items)
+    pkg_pct, pkg_name, tier_label = get_package_discount_pct(bill_total_net)
+
+    output = BytesIO()
+    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+    worksheet = workbook.add_worksheet("Bill")
+    worksheet.set_paper(9); worksheet.set_portrait(); worksheet.fit_to_pages(1, 1)
+    worksheet.set_column("A:A", 42.86); worksheet.set_column("B:B", 12.71)
+    worksheet.set_column("C:C", 10.71); worksheet.set_column("D:D", 10.71)
+    worksheet.set_column("E:E", 11.71); worksheet.set_column("F:F", 11.14)
+    worksheet.set_column("G:G", 11.14); worksheet.set_column("H:H", 12.14)
+    worksheet.set_column("I:I", 13.14); worksheet.set_column("J:J", 13.14)
+
+    title = workbook.add_format({"bold":True, "font_size":18, "align":"center", "border":2})
+    header = workbook.add_format({"bold":True, "font_size":11, "bg_color":"#BBDEFB", "align":"center", "border":2, "text_wrap": True})
+    cell_left = workbook.add_format({"font_size":12, "border":1, "align":"left"})
+    cell_center = workbook.add_format({"font_size":12, "border":1, "align":"center"})
+    total = workbook.add_format({"bold":True, "font_size":12, "bg_color":"#FFF2CC", "align":"center", "border":2})
+    disc_hl = workbook.add_format({"font_size":12, "border":1, "align":"center", "bg_color":"#E8F5E9", "bold": True})
+    pkg_info = workbook.add_format({"font_size":10, "italic": True, "align":"left", "font_color":"#1b5e20"})
+
+    worksheet.merge_range("A1:J1", COMPANY_NAME, title)
+    worksheet.write("A3","Shop Name",header); worksheet.write("B3", shop, cell_center)
+    worksheet.write("D3","Booker",header); worksheet.write("E3", booker, cell_center)
+    worksheet.write("G3","Bill No",header); worksheet.write("H3", bill_no, cell_center)
+    worksheet.write("I3","Date",header); worksheet.write("J3", date_str, cell_center)
+
+    if pkg_pct > 0:
+        worksheet.merge_range("A4:J4", f"🎁 Best Discount Applied: {pkg_name} | {tier_label} | {pkg_pct}% on each product", pkg_info)
+    else:
+        worksheet.merge_range("A4:J4", "💡 Koi discount apply nahi hua", pkg_info)
+
+    start_row = 6
+    headers = ["Product", "Code", "Boxes", "TP/Box", "Gross", "Disc %", "Net", "Pkg Disc %", "After Disc Net", "Saved"]
+    for col, h in enumerate(headers):
+        worksheet.write(start_row, col, h, header)
+    row = start_row + 1
+
+    gross_total = 0; total_boxes = 0; net_total = 0; after_disc_total = 0; saved_total = 0
+    for it in items:
+        b_net = float(it.get("Net", 0))
+        b_gross = float(it.get("Gross", 0))
+        b_boxes = int(it.get("Boxes", 0))
+        after_net = b_net - (b_net * pkg_pct / 100)
+        saved = b_net - after_net
+
+        worksheet.write(row, 0, it.get("Product",""), cell_left)
+        worksheet.write(row, 1, it.get("Code",""), cell_center)
+        worksheet.write(row, 2, b_boxes, cell_center)
+        worksheet.write(row, 3, it.get("TP/Box", 0), cell_center)
+        worksheet.write(row, 4, b_gross, cell_center)
+        worksheet.write(row, 5, it.get("Discount %", 0), cell_center)
+        worksheet.write(row, 6, b_net, cell_center)
+        if pkg_pct > 0:
+            worksheet.write(row, 7, pkg_pct, disc_hl)
+            worksheet.write(row, 8, after_net, disc_hl)
+            worksheet.write(row, 9, saved, disc_hl)
+        else:
+            worksheet.write(row, 7, 0, cell_center)
+            worksheet.write(row, 8, b_net, cell_center)
+            worksheet.write(row, 9, 0, cell_center)
+
+        gross_total += b_gross; total_boxes += b_boxes
+        net_total += b_net; after_disc_total += after_net; saved_total += saved
+        row += 1
+
+    worksheet.write(row, 1, "TOTAL", total)
+    worksheet.write(row, 2, total_boxes, total)
+    worksheet.write(row, 4, gross_total, total)
+    worksheet.write(row, 6, net_total, total)
+    worksheet.write(row, 7, "", total)
+    worksheet.write(row, 8, after_disc_total, total)
+    worksheet.write(row, 9, saved_total, total)
+
+    row += 2
+    worksheet.merge_range(row, 0, row, 6, "NET AMOUNT (After Package Discount)", header)
+    worksheet.merge_range(row, 7, row, 9, f"Rs {after_disc_total:,.0f}", total)
+    row += 1
+    if pkg_pct > 0:
+        worksheet.merge_range(row, 0, row, 6, "TOTAL SAVED BY DISCOUNT", header)
+        worksheet.merge_range(row, 7, row, 9, f"Rs {saved_total:,.0f}", total)
+
+    workbook.close(); output.seek(0)
+    fname = f"{shop}_{date_str.replace('-','')}.xlsx".replace("/","-").replace(" ","_").replace(":","")
+    st.session_state["download_file"] = (fname, output.getvalue())
+    if pkg_pct > 0:
+        st.session_state["success_msg"] = f"✅ Excel ready | {shop} | {pkg_pct}% discount applied"
+    else:
+        st.session_state["success_msg"] = f"✅ Excel ready | {shop}"
+
+# ============================================================
 # SIDEBAR
 # ============================================================
 with st.sidebar:
@@ -688,12 +767,10 @@ with st.sidebar:
 
     st.markdown("---")
     active_pkgs = get_all_active_packages()
-    active_names = ", ".join([p.get("name", "Package") for p in active_pkgs]) if active_pkgs else "Koi nahi"
     st.markdown(f"""
     <div style='padding:10px; color:#0277bd !important; font-size:12px;'>
         <p>📅 {datetime.now().strftime('%d-%m-%Y')}</p>
         <p>🎁 Active Packages: <b>{len(active_pkgs)}</b></p>
-        <p style='font-size:10px;'>{active_names}</p>
         <p>📦 Products: {len(PRODUCTS)}</p>
         <p>👤 Bookers: {len(db.get('bookers', []))}</p>
         <p>🧑‍💼 Salesmen: {len(db.get('salesmen', []))}</p>
@@ -732,9 +809,9 @@ def render_dashboard():
                 sd = db.get("bookers_salaries", {}).get(b_name, {})
                 base = sd.get("base_salary", 0)
                 txns = sd.get("transactions", [])
-                adv_pending = sum(t["amount"] for t in txns if t.get("type") == "advanced" and t.get("status", "pending") == "pending")
-                short_pending = sum(t["amount"] for t in txns if t.get("type") == "shortage" and t.get("status", "pending") == "pending")
-                remaining = base - adv_pending - short_pending
+                adv_p = sum(t["amount"] for t in txns if t.get("type") == "advanced" and t.get("status", "pending") == "pending")
+                short_p = sum(t["amount"] for t in txns if t.get("type") == "shortage" and t.get("status", "pending") == "pending")
+                remaining = base - adv_p - short_p
                 st.markdown(f"""
                 <div class='person-card'>
                     <div class='info'>
@@ -754,9 +831,9 @@ def render_dashboard():
                 sd = db.get("salesmen_salaries", {}).get(s_name, {})
                 base = sd.get("base_salary", 0)
                 txns = sd.get("transactions", [])
-                adv_pending = sum(t["amount"] for t in txns if t.get("type") == "advanced" and t.get("status", "pending") == "pending")
-                short_pending = sum(t["amount"] for t in txns if t.get("type") == "shortage" and t.get("status", "pending") == "pending")
-                remaining = base - adv_pending - short_pending
+                adv_p = sum(t["amount"] for t in txns if t.get("type") == "advanced" and t.get("status", "pending") == "pending")
+                short_p = sum(t["amount"] for t in txns if t.get("type") == "shortage" and t.get("status", "pending") == "pending")
+                remaining = base - adv_p - short_p
                 st.markdown(f"""
                 <div class='person-card'>
                     <div class='info'>
@@ -768,7 +845,7 @@ def render_dashboard():
                 """, unsafe_allow_html=True)
 
 # ============================================================
-# PAGE: DISCOUNT (4 packages × 3 tiers, all can be active)
+# PAGE: DISCOUNT
 # ============================================================
 def render_discount():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🎁 Discount Packages</h1>", unsafe_allow_html=True)
@@ -809,7 +886,6 @@ def render_discount():
 
         st.markdown(f"<div class='{card_class}'>", unsafe_allow_html=True)
 
-        # ---- Header row: checkbox + name ----
         c1, c2 = st.columns([1, 5])
         with c1:
             new_active = st.checkbox("Active", value=is_active, key=f"active_{pid}")
@@ -834,7 +910,6 @@ def render_discount():
             unsafe_allow_html=True
         )
 
-        # ---- 3 Tiers compact ----
         t1, t2, t3 = st.columns(3)
         with t1:
             st.markdown("<div style='font-size:11px;font-weight:700;color:#1976d2;'>Tier 1</div>", unsafe_allow_html=True)
@@ -870,7 +945,6 @@ def render_discount():
                                       min_value=0.0, max_value=100.0, step=0.5, key=f"t3p_{pid}", label_visibility="collapsed")
                 st.caption("Disc %")
 
-        # ---- Save ----
         sc1, sc2 = st.columns([1, 5])
         with sc1:
             if st.button("💾 Save", key=f"savepkg_{pid}", use_container_width=True, type="primary"):
@@ -1526,11 +1600,11 @@ def render_billing():
     show_auto_download()
 
 # ============================================================
-# PAGE: BILLS LIST
+# PAGE: BILLS LIST (Excel Style Grouped Cards)
 # ============================================================
 def render_bills_list():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📋 Bills List</h1>", unsafe_allow_html=True)
-    st.markdown(f"<p style='color:#0277bd;font-weight:500;'>Total {len(db['bills'])} bills in database</p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color:#0277bd;font-weight:500;'>Saved bills — Shop + Date + Booker wise (Excel style)</p>", unsafe_allow_html=True)
     st.markdown("---")
 
     if len(db["bills"]) == 0:
@@ -1553,10 +1627,11 @@ def render_bills_list():
         shops_list = sorted(set(b["Shop"] for b in db["bills"] if b["Shop"]))
         shop_filter = st.selectbox("Filter by Shop:", options=["All"] + shops_list, key="shop_filter")
 
-    bills_with_idx = list(enumerate(db["bills"]))
-    filtered_records = []
-    for orig_idx, b in bills_with_idx:
-        bdate = parse_date(b.get("Date", ""))
+    groups = {}
+    for orig_idx, b in enumerate(db["bills"]):
+        bdate_str = b.get("Date", "")
+        bdate = parse_date(bdate_str)
+
         if filter_mode == "📅 Aaj Ki Bills (Today)":
             if bdate != today: continue
         elif filter_mode == "🗓️ Specific Date":
@@ -1574,145 +1649,111 @@ def render_bills_list():
         if shop_filter != "All" and b.get("Shop", "") != shop_filter:
             continue
 
-        row = dict(b)
-        row["_orig_idx"] = orig_idx
-        filtered_records.append(row)
+        key = (b.get("Shop",""), b.get("Date",""), b.get("Order Booker",""))
+        if key not in groups:
+            groups[key] = {
+                "shop": b.get("Shop",""),
+                "date": b.get("Date",""),
+                "booker": b.get("Order Booker",""),
+                "salesman": b.get("Salesman",""),
+                "items": [],
+                "orig_indices": [],
+                "bill_no": b.get("Bill No",""),
+            }
+        groups[key]["items"].append({
+            "Code": b.get("Code"),
+            "Product": b.get("Product"),
+            "Boxes": b.get("Boxes"),
+            "TP/Box": b.get("TP/Box"),
+            "Discount %": b.get("Discount %"),
+            "Gross": b.get("Gross"),
+            "Net": b.get("Net"),
+        })
+        groups[key]["orig_indices"].append(orig_idx)
 
-    if filtered_records:
-        total_boxes = sum(int(r.get("Boxes",0)) for r in filtered_records)
-        total_gross = sum(float(r.get("Gross",0)) for r in filtered_records)
-        total_net = sum(float(r.get("Net",0)) for r in filtered_records)
-        unique_shops = len(set(r.get("Shop","") for r in filtered_records if r.get("Shop")))
-        st.markdown(f"""
-        <div class='summary-box'>
-            <b style='color:#1976d2;font-size:16px;'>📊 Summary</b><br>
-            <span style='color:#0277bd;'>
-                Bills: <b>{len(filtered_records)}</b> | Boxes: <b>{total_boxes}</b> |
-                Shops: <b>{unique_shops}</b> |
-                Gross: <b>Rs {total_gross:,.0f}</b> | Net: <b>Rs {total_net:,.0f}</b>
-            </span>
-        </div>
-        """, unsafe_allow_html=True)
-
-    if not filtered_records:
+    if not groups:
         st.warning("❌ Is filter ke hisaab se koi bill nahi mila.")
         return
 
-    st.markdown(f"### 📋 Bills ({len(filtered_records)})")
-    st.caption("👇 Jis bill ko select karna hai uske **Select** checkbox pe ✅ lagao.")
+    all_items = []
+    for g in groups.values():
+        all_items.extend(g["items"])
+    total_boxes = sum(int(r.get("Boxes",0)) for r in all_items)
+    total_gross = sum(float(r.get("Gross",0)) for r in all_items)
+    total_net = sum(float(r.get("Net",0)) for r in all_items)
+    unique_shops = len(set(g["shop"] for g in groups.values() if g["shop"]))
 
-    display_data = []
-    for r in filtered_records:
-        display_data.append({
-            "Select": False,
-            "Bill No": r.get("Bill No"),
-            "Date": r.get("Date"),
-            "Shop": r.get("Shop"),
-            "Order Booker": r.get("Order Booker"),
-            "Salesman": r.get("Salesman"),
-            "Code": r.get("Code"),
-            "Product": r.get("Product"),
-            "Boxes": r.get("Boxes"),
-            "TP/Box": r.get("TP/Box"),
-            "Discount %": r.get("Discount %"),
-            "Gross": r.get("Gross"),
-            "Net": r.get("Net"),
-        })
+    st.markdown(f"""
+    <div class='summary-box'>
+        <b style='color:#1976d2;font-size:16px;'>📊 Summary</b><br>
+        <span style='color:#0277bd;'>
+            Bills: <b>{len(groups)}</b> | Boxes: <b>{total_boxes}</b> |
+            Shops: <b>{unique_shops}</b> |
+            Gross: <b>Rs {total_gross:,.0f}</b> | Net: <b>Rs {total_net:,.0f}</b>
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
 
-    display_df = pd.DataFrame(display_data)
+    st.markdown(f"### 📋 Bills ({len(groups)})")
+    st.caption("👇 Har card = ek saved bill (Shop + Date + Booker). Expand karo, Excel download karo ya delete karo.")
 
-    edited_df = st.data_editor(
-        display_df,
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "Select": st.column_config.CheckboxColumn("✅ Select", default=False, width="small"),
-        },
-        disabled=[c for c in display_df.columns if c != "Select"],
-        key="bills_editor",
-        num_rows="fixed",
-    )
+    sorted_keys = sorted(groups.keys(), key=lambda k: (parse_date(k[1]) or date.min, k[0]), reverse=True)
 
-    selected_mask = edited_df["Select"] == True
-    selected_rows = edited_df[selected_mask]
+    for idx, key in enumerate(sorted_keys):
+        g = groups[key]
+        shop = g["shop"] or "-"
+        date_str = g["date"] or "-"
+        booker = g["booker"] or "-"
+        salesman = g["salesman"] or "-"
+        bill_no = g["bill_no"]
+        items = g["items"]
+        total_b = sum(int(it.get("Boxes",0)) for it in items)
+        total_n = sum(float(it.get("Net",0)) for it in items)
 
-    def find_orig_idx(row_dict):
-        for r in filtered_records:
-            if (r.get("Bill No") == row_dict.get("Bill No") and
-                r.get("Product") == row_dict.get("Product") and
-                r.get("Date") == row_dict.get("Date") and
-                r.get("Shop") == row_dict.get("Shop") and
-                r.get("Boxes") == row_dict.get("Boxes")):
-                return r.get("_orig_idx")
-        return None
+        wkey = f"{shop}_{date_str}_{booker}_{bill_no}_{idx}".replace(" ","_").replace("/","_").replace(":","")
 
-    orig_indices_to_delete = []
-    for _, row in selected_rows.iterrows():
-        oi = find_orig_idx(row.to_dict())
-        if oi is not None:
-            orig_indices_to_delete.append(oi)
+        c1, c2, c3 = st.columns([4, 1, 1])
+        with c1:
+            st.markdown(f"""
+            <div class='lf-simple-card'>
+                <div class='lf-info'>
+                    <div class='lf-line1'>🏪 {shop}</div>
+                    <div class='lf-line2'>📅 {date_str} &nbsp;·&nbsp; 👤 {booker} &nbsp;·&nbsp; 🧑‍💼 {salesman}</div>
+                </div>
+                <div class='lf-boxes'>{total_b}<small>BOXES</small></div>
+            </div>
+            """, unsafe_allow_html=True)
+        with c2:
+            if st.button("⬇️ Excel", key=f"dl_bill_{wkey}", use_container_width=True, type="primary"):
+                export_single_group_bill(shop, date_str, booker, salesman, items, bill_no)
+                st.rerun()
+        with c3:
+            if st.button("🗑 Delete", key=f"del_bill_{wkey}", use_container_width=True):
+                st.session_state["confirm_delete_group"] = g["orig_indices"]
+                st.session_state["_confirm_group_label"] = f"{shop} | {date_str} | {booker}"
 
-    st.markdown("---")
-    n_sel = len(selected_rows)
-    c1, c2, c3 = st.columns([1, 1, 2])
+        with st.expander(f"📦 {len(items)} product(s) — Net Total Rs {total_n:,.0f}", expanded=False):
+            df = pd.DataFrame(items)
+            st.dataframe(df, use_container_width=True, hide_index=True)
 
-    with c1:
-        download_clicked = st.button(f"⬇️ Download Selected ({n_sel})",
-                                     key="btn_download_selected",
-                                     use_container_width=True,
-                                     type="primary",
-                                     disabled=(n_sel == 0))
-    with c2:
-        delete_clicked = st.button(f"🗑 Delete Selected ({n_sel})",
-                                   key="btn_delete_selected",
-                                   use_container_width=True,
-                                   disabled=(n_sel == 0))
-    with c3:
-        if n_sel > 0:
-            st.markdown(f"<div style='padding-top:6px;color:#0277bd;'>✅ <b>{n_sel}</b> bill(s) selected</div>", unsafe_allow_html=True)
-
-    if download_clicked and n_sel > 0:
-        df_export = selected_rows.drop(columns=["Select"]).reset_index(drop=True)
-        output = BytesIO()
-        wb = xlsxwriter.Workbook(output, {'in_memory': True})
-        ws = wb.add_worksheet("Selected Bills")
-        header_fmt = wb.add_format({"bold": True, "bg_color": "#BBDEFB", "border": 1, "align": "center"})
-        cell_fmt = wb.add_format({"border": 1})
-        for i, col in enumerate(df_export.columns):
-            ws.write(0, i, col, header_fmt)
-        for r, (_, row) in enumerate(df_export.iterrows(), start=1):
-            for c, col in enumerate(df_export.columns):
-                ws.write(r, c, row[col], cell_fmt)
-        wb.close(); output.seek(0)
-
-        st.session_state["download_file"] = (
-            f"selected_bills_{datetime.now().strftime('%d-%m-%Y_%H%M')}.xlsx",
-            output.getvalue()
-        )
-        st.session_state["success_msg"] = f"✅ {n_sel} bill(s) downloaded"
-        st.rerun()
-
-    if delete_clicked and n_sel > 0:
-        st.session_state["confirm_delete"] = True
-        st.session_state["_to_delete_idx"] = orig_indices_to_delete
-
-    if st.session_state.get("confirm_delete"):
-        st.warning(f"⚠️ Kya aap waqai **{n_sel}** selected bill(s) delete karna chahte hain? Ye undo nahi hoga.")
+    if st.session_state.get("confirm_delete_group"):
+        label = st.session_state.get("_confirm_group_label", "this bill group")
+        st.warning(f"⚠️ Kya aap **{label}** ka bill delete karna chahte hain? Ye undo nahi hoga.")
         cc1, cc2 = st.columns(2)
         with cc1:
-            if st.button("✅ Haan, Delete Kar Do", key="confirm_del_yes", use_container_width=True, type="primary"):
-                idxs = set(st.session_state.get("_to_delete_idx", []))
+            if st.button("✅ Haan, Delete Kar Do", key="confirm_group_yes", use_container_width=True, type="primary"):
+                idxs = set(st.session_state.get("confirm_delete_group", []))
                 if idxs:
                     db["bills"] = [b for i, b in enumerate(db["bills"]) if i not in idxs]
                     save_database(db)
-                    st.session_state["success_msg"] = f"🗑 {len(idxs)} bill(s) deleted"
-                st.session_state["confirm_delete"] = False
-                st.session_state["_to_delete_idx"] = []
+                    st.session_state["success_msg"] = f"🗑 {len(idxs)} bill line(s) deleted"
+                st.session_state["confirm_delete_group"] = None
+                st.session_state["_confirm_group_label"] = ""
                 st.rerun()
         with cc2:
-            if st.button("❌ Cancel", key="confirm_del_no", use_container_width=True):
-                st.session_state["confirm_delete"] = False
-                st.session_state["_to_delete_idx"] = []
+            if st.button("❌ Cancel", key="confirm_group_no", use_container_width=True):
+                st.session_state["confirm_delete_group"] = None
+                st.session_state["_confirm_group_label"] = ""
                 st.rerun()
 
     if st.session_state.get("success_msg"):
@@ -1721,11 +1762,11 @@ def render_bills_list():
     show_auto_download()
 
 # ============================================================
-# PAGE: LOAD FORM
+# PAGE: LOAD FORM (Excel Style)
 # ============================================================
 def render_load_form():
-    st.markdown(f"<h1 style='color:#1976d2 !important;'>📦 Saved Load Forms</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#0277bd;font-weight:500;'>Billing page se export kiye gaye load forms</p>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='color:#1976d2 !important;'>📦 Load Forms</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#0277bd;font-weight:500;'>Saved load forms — Booker + Date wise</p>", unsafe_allow_html=True)
     st.markdown("---")
 
     load_forms = db.get("load_forms", [])
@@ -1787,26 +1828,58 @@ def render_load_form():
         booker = lf.get("booker", "Unknown")
         date_str = lf.get("date", ""); time_str = lf.get("time", "")
         total_boxes = lf.get("total_boxes", 0)
-        c1, c2 = st.columns([4, 1])
+        items = lf.get("items", [])
+
+        bill_items = []
+        for it in items:
+            code = it.get("Code", "")
+            base_price = 0.0
+            for p in PRODUCTS:
+                if str(p["code"]) == str(code):
+                    base_price = get_price(p["code"], p["price"])
+                    break
+            boxes = int(it.get("Boxes", 0))
+            gross = boxes * base_price
+            bill_items.append({
+                "Code": code, "Product": it.get("Product",""),
+                "Boxes": boxes, "TP/Box": base_price,
+                "Discount %": 0, "Gross": gross, "Net": gross,
+            })
+
+        wkey = f"lf_{lf_id}_{idx}"
+
+        c1, c2, c3 = st.columns([4, 1, 1])
         with c1:
             st.markdown(f"""
             <div class='lf-simple-card'>
                 <div class='lf-info'>
                     <div class='lf-line1'>👤 {booker}</div>
-                    <div class='lf-line2'>📅 {date_str} · 🕐 {time_str}</div>
+                    <div class='lf-line2'>📅 {date_str} &nbsp;·&nbsp; 🕐 {time_str} &nbsp;·&nbsp; 📦 {len(items)} products</div>
                 </div>
                 <div class='lf-boxes'>{total_boxes}<small>BOXES</small></div>
             </div>
             """, unsafe_allow_html=True)
         with c2:
-            if st.button("⬇️ Download", key=f"dl_lf_{lf_id}_{idx}", use_container_width=True):
-                booker_bills = [{"Code": it["Code"], "Product": it["Product"], "Boxes": it["Boxes"]} for it in lf.get("items", [])]
-                export_load_form_for_booker(booker, booker_bills); st.rerun()
-            if st.button("🗑 Delete", key=f"del_lf_{lf_id}_{idx}", use_container_width=True):
+            if st.button("⬇️ Excel", key=f"dl_lf_{wkey}", use_container_width=True, type="primary"):
+                export_single_group_bill(booker + " Load", date_str, booker, "", bill_items, lf_id)
+                st.rerun()
+        with c3:
+            if st.button("🗑 Delete", key=f"del_lf_{wkey}", use_container_width=True):
                 db["load_forms"] = [x for x in db["load_forms"] if x.get("id") != lf_id]
                 save_database(db)
-                st.session_state["success_msg"] = f"🗑 Load Form #{lf_id} deleted"
+                st.session_state["success_msg"] = f"🗑 Load Form deleted"
                 st.rerun()
+
+        with st.expander(f"📦 {len(items)} product(s) — Total {total_boxes} boxes", expanded=False):
+            if bill_items:
+                df = pd.DataFrame([{
+                    "Code": it["Code"], "Product": it["Product"],
+                    "Boxes": it["Boxes"], "TP/Box": it["TP/Box"], "Net": it["Net"]
+                } for it in bill_items])
+                st.dataframe(df, use_container_width=True, hide_index=True)
+
+    if st.session_state.get("success_msg"):
+        st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
 
     show_auto_download()
 
@@ -1890,7 +1963,6 @@ def export_bill_callback():
     pkg_info = workbook.add_format({"font_size":10, "italic": True, "align":"left", "font_color":"#1b5e20"})
 
     worksheet.merge_range("A1:J1", COMPANY_NAME, title)
-
     worksheet.write("A3","Shop Name",header); worksheet.write("B3", shop, cell_center)
     worksheet.write("D3","Booker",header); worksheet.write("E3", st.session_state.get("order_booker", ""), cell_center)
     worksheet.write("G3","Bill No",header)
@@ -1901,10 +1973,7 @@ def export_bill_callback():
     if pkg_pct > 0:
         worksheet.merge_range("A4:J4", f"🎁 Best Discount Applied: {pkg_name} | {tier_label} | {pkg_pct}% on each product", pkg_info)
     else:
-        if pkg_name:
-            worksheet.merge_range("A4:J4", f"🎁 {pkg_name} active hai lekin koi tier apply nahi hua (Total Net: Rs {bill_total_net:,.0f})", pkg_info)
-        else:
-            worksheet.merge_range("A4:J4", "💡 Koi discount package active nahi", pkg_info)
+        worksheet.merge_range("A4:J4", "💡 Koi discount apply nahi hua", pkg_info)
 
     start_row = 6
     headers = ["Product", "Code", "Boxes", "TP/Box", "Gross", "Disc %", "Net", "Pkg Disc %", "After Disc Net", "Saved"]
