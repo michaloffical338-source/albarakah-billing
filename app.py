@@ -1,10 +1,11 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# + Eye Button (Full Bill View) in Bills List & Load Form
+# + Multi-User Login System (Signup/Login + Per-User Data)
 # ============================================================
 
 import os
 import json
+import hashlib
 import pandas as pd
 from datetime import datetime, date, timedelta
 import streamlit as st
@@ -20,88 +21,71 @@ st.set_page_config(
 )
 
 # ============================================================
-# SIDEBAR TOGGLE + MANAGE APP KILLER
+# AUTH HELPERS
 # ============================================================
-components.html("""
-<script>
-(function(){
-    function killManageApp() {
-        try {
-            var doc = window.parent.document;
-            var sel = [
-                '[data-testid="manage-app-button"]',
-                '[data-testid="stAppDeployButton"]',
-                '[data-testid="stCloudAppManageButton"]',
-                '.stAppDeployButton',
-                'iframe[title="streamlit_cloud_status"]',
-                'div[class*="manageApp"]',
-                'div[class*="ManageApp"]',
-                'button[class*="manageApp"]',
-                'button[class*="ManageApp"]'
-            ];
-            sel.forEach(function(s){
-                doc.querySelectorAll(s).forEach(function(el){
-                    el.style.setProperty('display','none','important');
-                    el.style.setProperty('visibility','hidden','important');
-                    el.style.setProperty('opacity','0','important');
-                });
-            });
-            doc.querySelectorAll('button, a').forEach(function(el){
-                try {
-                    var t = (el.textContent || '').trim();
-                    if (t === 'Manage app' || t === 'Manage App') {
-                        el.style.setProperty('display','none','important');
-                    }
-                } catch(e){}
-            });
-        } catch(e) {}
+USERS_FILE = "users.json"
+PASSWORD_SALT = "albarakah_2026_secret_salt"
+
+def hash_password(password):
+    return hashlib.sha256((PASSWORD_SALT + password).encode()).hexdigest()
+
+def load_users():
+    if os.path.exists(USERS_FILE):
+        try:
+            with open(USERS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
+
+def save_users(users):
+    with open(USERS_FILE, "w", encoding="utf-8") as f:
+        json.dump(users, f, indent=4, ensure_ascii=False)
+
+def sanitize_username(u):
+    s = "".join(ch for ch in u if ch.isalnum() or ch in "_-.")
+    return s.lower()
+
+def user_data_file(username):
+    return f"billing_database_{username}.json"
+
+def default_blank_db():
+    return {
+        "next_bill_no": 1, "bills": [], "bookers": [], "salesmen": [],
+        "load_forms": [], "bookers_salaries": {}, "salesmen_salaries": {},
+        "product_prices": {}, "petrol_expenses": [], "lunch_expenses": [],
+        "discount_packages": default_discount_packages()
     }
 
-    function attachToggle() {
-        try {
-            var doc = window.parent.document;
-            var old = doc.getElementById('custom-sidebar-toggle');
-            if (old) old.parentNode.removeChild(old);
-            var btn = doc.createElement('button');
-            btn.id = 'custom-sidebar-toggle';
-            btn.title = 'Sidebar Open/Close';
-            btn.innerHTML = '\\u2630';
-            var s = {
-                'position':'fixed','top':'14px','left':'14px','z-index':'2147483647',
-                'background':'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
-                'color':'#fff','border':'none','border-radius':'10px','padding':'8px 14px',
-                'font-size':'20px','font-weight':'bold','cursor':'pointer',
-                'box-shadow':'0 3px 10px rgba(33,150,243,0.5)'
-            };
-            for (var k in s) btn.style.setProperty(k, s[k], 'important');
-            btn.onclick = function() {
-                var targets = [
-                    '[data-testid="stSidebarCollapseButton"] button',
-                    '[data-testid="stSidebarCollapsedControl"] button',
-                    '[data-testid="collapsedControl"] button',
-                    '[data-testid="stExpandSidebarButton"] button',
-                    'button[kind="headerNoPadding"]'
-                ];
-                for (var i = 0; i < targets.length; i++) {
-                    var el = doc.querySelector(targets[i]);
-                    if (el) { el.click(); return; }
-                }
-            };
-            if (doc.body) doc.body.appendChild(btn);
-        } catch(e) {}
-    }
-
-    function tick() { killManageApp(); attachToggle(); }
-    setTimeout(tick, 300);
-    setTimeout(tick, 1000);
-    setTimeout(tick, 2000);
-    setInterval(tick, 1500);
-})();
-</script>
-""", height=0)
+# ============================================================
+# DEFAULT DISCOUNT PACKAGES
+# ============================================================
+def default_discount_packages():
+    return [
+        {"id": 1, "name": "Package 1",
+         "tier1_amount": 1200.0, "tier1_pct": 1.0,
+         "tier2_amount": 2100.0, "tier2_pct": 2.0,
+         "tier3_amount": 3100.0, "tier3_pct": 3.0,
+         "active": True},
+        {"id": 2, "name": "Package 2",
+         "tier1_amount": 1200.0, "tier1_pct": 1.0,
+         "tier2_amount": 2100.0, "tier2_pct": 2.0,
+         "tier3_amount": 3100.0, "tier3_pct": 3.0,
+         "active": True},
+        {"id": 3, "name": "Package 3",
+         "tier1_amount": 1200.0, "tier1_pct": 1.0,
+         "tier2_amount": 2100.0, "tier2_pct": 2.0,
+         "tier3_amount": 3100.0, "tier3_pct": 3.0,
+         "active": True},
+        {"id": 4, "name": "Package 4",
+         "tier1_amount": 1200.0, "tier1_pct": 1.0,
+         "tier2_amount": 2100.0, "tier2_pct": 2.0,
+         "tier3_amount": 3100.0, "tier3_pct": 3.0,
+         "active": True},
+    ]
 
 # ============================================================
-# THEME CSS
+# GLOBAL CSS (applies to login screen too)
 # ============================================================
 st.markdown("""
 <style>
@@ -223,6 +207,10 @@ st.markdown("""
     .stTextInput > div > div > input:focus, .stNumberInput > div > div > input:focus { border-color: #2196f3 !important; }
     .stTextInput input::placeholder, .stNumberInput input::placeholder {
         color: #888888 !important; -webkit-text-fill-color: #888888 !important; opacity: 1 !important;
+    }
+    input[type="password"] {
+        background-color: #ffffff !important; color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
     }
 
     .stButton > button {
@@ -357,7 +345,6 @@ st.markdown("""
         border-radius: 6px; margin-left: 8px;
     }
 
-    /* Full bill view box */
     .full-bill-box {
         background: #ffffff;
         border: 3px solid #2196f3;
@@ -373,13 +360,121 @@ st.markdown("""
         font-size: 13px; color: #0277bd; margin-bottom: 12px;
     }
 
+    /* Login screen */
+    .auth-title {
+        text-align: center;
+        font-size: 36px;
+        font-weight: 900;
+        color: #1976d2;
+        margin-bottom: 6px;
+        margin-top: 20px;
+    }
+    .auth-subtitle {
+        text-align: center;
+        font-size: 14px;
+        color: #0277bd;
+        margin-bottom: 24px;
+        font-weight: 600;
+    }
+    .auth-card {
+        background: #ffffff;
+        border: 3px solid #90caf9;
+        border-radius: 16px;
+        padding: 28px 32px;
+        box-shadow: 0 8px 24px rgba(33,150,243,0.2);
+        margin: 0 auto;
+    }
+
     .stAlert { border-radius: 10px !important; }
     hr { border-color: #90caf9 !important; opacity: 0.6 !important; }
 </style>
 """, unsafe_allow_html=True)
 
+# ============================================================
+# SIDEBAR TOGGLE (only after login)
+# ============================================================
+components.html("""
+<script>
+(function(){
+    function killManageApp() {
+        try {
+            var doc = window.parent.document;
+            var sel = [
+                '[data-testid="manage-app-button"]',
+                '[data-testid="stAppDeployButton"]',
+                '[data-testid="stCloudAppManageButton"]',
+                '.stAppDeployButton',
+                'iframe[title="streamlit_cloud_status"]',
+                'div[class*="manageApp"]',
+                'div[class*="ManageApp"]',
+                'button[class*="manageApp"]',
+                'button[class*="ManageApp"]'
+            ];
+            sel.forEach(function(s){
+                doc.querySelectorAll(s).forEach(function(el){
+                    el.style.setProperty('display','none','important');
+                    el.style.setProperty('visibility','hidden','important');
+                    el.style.setProperty('opacity','0','important');
+                });
+            });
+            doc.querySelectorAll('button, a').forEach(function(el){
+                try {
+                    var t = (el.textContent || '').trim();
+                    if (t === 'Manage app' || t === 'Manage App') {
+                        el.style.setProperty('display','none','important');
+                    }
+                } catch(e){}
+            });
+        } catch(e) {}
+    }
+
+    function attachToggle() {
+        try {
+            var doc = window.parent.document;
+            // Only show toggle if sidebar exists (logged in)
+            if (!doc.querySelector('section[data-testid="stSidebar"]')) return;
+
+            var old = doc.getElementById('custom-sidebar-toggle');
+            if (old) old.parentNode.removeChild(old);
+            var btn = doc.createElement('button');
+            btn.id = 'custom-sidebar-toggle';
+            btn.title = 'Sidebar Open/Close';
+            btn.innerHTML = '\\u2630';
+            var s = {
+                'position':'fixed','top':'14px','left':'14px','z-index':'2147483647',
+                'background':'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
+                'color':'#fff','border':'none','border-radius':'10px','padding':'8px 14px',
+                'font-size':'20px','font-weight':'bold','cursor':'pointer',
+                'box-shadow':'0 3px 10px rgba(33,150,243,0.5)'
+            };
+            for (var k in s) btn.style.setProperty(k, s[k], 'important');
+            btn.onclick = function() {
+                var targets = [
+                    '[data-testid="stSidebarCollapseButton"] button',
+                    '[data-testid="stSidebarCollapsedControl"] button',
+                    '[data-testid="collapsedControl"] button',
+                    '[data-testid="stExpandSidebarButton"] button',
+                    'button[kind="headerNoPadding"]'
+                ];
+                for (var i = 0; i < targets.length; i++) {
+                    var el = doc.querySelector(targets[i]);
+                    if (el) { el.click(); return; }
+                }
+            };
+            if (doc.body) doc.body.appendChild(btn);
+        } catch(e) {}
+    }
+
+    function tick() { killManageApp(); attachToggle(); }
+    setTimeout(tick, 300);
+    setTimeout(tick, 1000);
+    setTimeout(tick, 2000);
+    setInterval(tick, 1500);
+})();
+</script>
+""", height=0)
+
 COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
-DATA_FILE = "billing_database.json"
 
 # ============================================================
 # PRODUCT LIST
@@ -473,7 +568,7 @@ PRODUCTS = sorted([
     {"code":"87","name":"KIMS – CHOKOZO STRAWBERRY","price":129},
     {"code":"88","name":"KIMS – CHOKOZO CHOCOLATE CREAM","price":129},
     {"code":"89","name":"KIMS – CHOKOZO MILK MAZA","price":129},
-    {"code":"90","name":"KIMS – SIR STRAWBERRY","price":328},
+    {"code":"90","name":"KIMS – SIP STRAWBERRY","price":328},
     {"code":"91","name":"KIMS – CHAMPION DELICIOUS MILK CHOCOLATE JAR","price":269},
     {"code":"92","name":"KIMS – CHOCO DELIGHT CREAMY CHOCOLATE","price":219},
     {"code":"93","name":"KIMS – NUT KHUT CHOCOLATE","price":135},
@@ -506,46 +601,103 @@ PRODUCTS = sorted([
 PRODUCT_NAMES = [p["name"] for p in PRODUCTS]
 
 # ============================================================
-# DEFAULT DISCOUNT PACKAGES
+# AUTH SCREEN (Login + Signup)
 # ============================================================
-def default_discount_packages():
-    return [
-        {"id": 1, "name": "Package 1",
-         "tier1_amount": 1200.0, "tier1_pct": 1.0,
-         "tier2_amount": 2100.0, "tier2_pct": 2.0,
-         "tier3_amount": 3100.0, "tier3_pct": 3.0,
-         "active": True},
-        {"id": 2, "name": "Package 2",
-         "tier1_amount": 1200.0, "tier1_pct": 1.0,
-         "tier2_amount": 2100.0, "tier2_pct": 2.0,
-         "tier3_amount": 3100.0, "tier3_pct": 3.0,
-         "active": True},
-        {"id": 3, "name": "Package 3",
-         "tier1_amount": 1200.0, "tier1_pct": 1.0,
-         "tier2_amount": 2100.0, "tier2_pct": 2.0,
-         "tier3_amount": 3100.0, "tier3_pct": 3.0,
-         "active": True},
-        {"id": 4, "name": "Package 4",
-         "tier1_amount": 1200.0, "tier1_pct": 1.0,
-         "tier2_amount": 2100.0, "tier2_pct": 2.0,
-         "tier3_amount": 3100.0, "tier3_pct": 3.0,
-         "active": True},
-    ]
+def render_auth_page():
+    st.markdown(f"<div class='auth-title'>🧾 {COMPANY_NAME}</div>", unsafe_allow_html=True)
+    st.markdown("<div class='auth-subtitle'>Billing Software 2026 — Login ya Signup Karo</div>", unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([1, 1.2, 1])
+    with col2:
+        st.markdown("<div class='auth-card'>", unsafe_allow_html=True)
+        tab1, tab2 = st.tabs(["🔐 Login", "📝 Signup"])
+
+        # ---------------- LOGIN TAB ----------------
+        with tab1:
+            st.markdown("### 🔐 Login")
+            st.caption("Apna username aur password daalo")
+            login_user = st.text_input("Username:", key="login_username", placeholder="username")
+            login_pass = st.text_input("Password:", key="login_password", type="password", placeholder="password")
+            login_btn = st.button("🔓 Login Karo", key="btn_login", use_container_width=True, type="primary")
+
+            if login_btn:
+                users = load_users()
+                uname = login_user.strip().lower()
+                if uname == "" or login_pass == "":
+                    st.error("❌ Username aur password dono daalo")
+                elif uname not in users:
+                    st.error("❌ Ye username exist nahi karta. Pehle Signup karo.")
+                elif users[uname].get("password_hash") != hash_password(login_pass):
+                    st.error("❌ Password galat hai")
+                else:
+                    st.session_state["logged_in_user"] = uname
+                    st.session_state["display_name"] = users[uname].get("display_name", uname)
+                    st.session_state["page"] = "📊 Dashboard"
+                    st.success(f"✅ Welcome {uname}!")
+                    st.rerun()
+
+        # ---------------- SIGNUP TAB ----------------
+        with tab2:
+            st.markdown("### 📝 Signup")
+            st.caption("Naya account banao — apna data apna hi rahega")
+            su_user = st.text_input("Naya Username:", key="su_username", placeholder="sirf letters/numbers (3-20)")
+            su_pass = st.text_input("Naya Password:", key="su_password", type="password", placeholder="min 4 characters")
+            su_pass2 = st.text_input("Confirm Password:", key="su_password2", type="password", placeholder="same password")
+            su_btn = st.button("✅ Signup Karo", key="btn_signup", use_container_width=True)
+
+            if su_btn:
+                users = load_users()
+                uname = su_user.strip().lower()
+                uname_safe = sanitize_username(uname)
+
+                if uname_safe == "":
+                    st.error("❌ Username khali hai ya invalid characters hain")
+                elif len(uname_safe) < 3:
+                    st.error("❌ Username kam se kam 3 characters ka ho")
+                elif len(uname_safe) > 20:
+                    st.error("❌ Username 20 characters se zyada nahi ho sakta")
+                elif len(su_pass) < 4:
+                    st.error("❌ Password kam se kam 4 characters ka ho")
+                elif su_pass != su_pass2:
+                    st.error("❌ Dono passwords match nahi kar rahe")
+                elif uname_safe in users:
+                    st.error(f"❌ Username '{uname_safe}' pehle se exist karta hai. Doosra try karo.")
+                else:
+                    users[uname_safe] = {
+                        "username": uname_safe,
+                        "display_name": uname,
+                        "password_hash": hash_password(su_pass),
+                        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    }
+                    save_users(users)
+
+                    # Create blank data file for this user
+                    blank = default_blank_db()
+                    with open(user_data_file(uname_safe), "w", encoding="utf-8") as f:
+                        json.dump(blank, f, indent=4, ensure_ascii=False)
+
+                    st.success(f"✅ Account ban gaya! Ab 'Login' tab se login karo — username: **{uname_safe}**")
+                    st.info("💡 Yaad rakho: aapka data sirf aapko dikhega.")
+
+        st.markdown("</div>", unsafe_allow_html=True)
 
 # ============================================================
-# DATABASE
+# CHECK LOGIN
 # ============================================================
-def save_database(db):
-    try:
-        with open(DATA_FILE, "w", encoding="utf-8") as f:
-            json.dump(db, f, indent=4, ensure_ascii=False)
-    except Exception as e:
-        st.warning(f"⚠️ Save warning: {e}")
+if "logged_in_user" not in st.session_state or not st.session_state["logged_in_user"]:
+    render_auth_page()
+    st.stop()
 
-def load_database():
-    if os.path.exists(DATA_FILE):
+# ============================================================
+# LOAD USER DATA (after login)
+# ============================================================
+CURRENT_USER = st.session_state["logged_in_user"]
+
+def load_database(username):
+    fpath = user_data_file(username)
+    if os.path.exists(fpath):
         try:
-            with open(DATA_FILE, "r", encoding="utf-8") as f:
+            with open(fpath, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 for k in ["bookers", "salesmen", "load_forms", "petrol_expenses", "lunch_expenses"]:
                     if k not in data: data[k] = []
@@ -557,15 +709,20 @@ def load_database():
                     for p in data["discount_packages"]:
                         if "tier3_amount" not in p: p["tier3_amount"] = 0.0
                         if "tier3_pct" not in p: p["tier3_pct"] = 0.0
+                if "bills" not in data: data["bills"] = []
+                if "next_bill_no" not in data: data["next_bill_no"] = 1
                 return data
         except Exception:
             pass
-    return {
-        "next_bill_no": 1, "bills": [], "bookers": [], "salesmen": [],
-        "load_forms": [], "bookers_salaries": {}, "salesmen_salaries": {},
-        "product_prices": {}, "petrol_expenses": [], "lunch_expenses": [],
-        "discount_packages": default_discount_packages()
-    }
+    return default_blank_db()
+
+def save_database(db):
+    try:
+        fpath = user_data_file(CURRENT_USER)
+        with open(fpath, "w", encoding="utf-8") as f:
+            json.dump(db, f, indent=4, ensure_ascii=False)
+    except Exception as e:
+        st.warning(f"⚠️ Save warning: {e}")
 
 def parse_date(dstr):
     try:
@@ -574,7 +731,13 @@ def parse_date(dstr):
         return None
 
 if "database" not in st.session_state:
-    st.session_state.database = load_database()
+    st.session_state.database = load_database(CURRENT_USER)
+
+# Also refresh if user changed
+if st.session_state.get("_db_user") != CURRENT_USER:
+    st.session_state.database = load_database(CURRENT_USER)
+    st.session_state["_db_user"] = CURRENT_USER
+
 if "_prev_prod" not in st.session_state:
     st.session_state["_prev_prod"] = None
 if "last_bill_no" not in st.session_state:
@@ -762,10 +925,17 @@ def export_single_group_bill(shop, date_str, booker, salesman, items, bill_no):
 # SIDEBAR
 # ============================================================
 with st.sidebar:
-    st.markdown("""
+    display_name = st.session_state.get("display_name", CURRENT_USER)
+    st.markdown(f"""
     <div style='text-align:center; padding: 15px 0;'>
         <h2 style='color:#1976d2 !important; margin:0;'>🧾 AL-BARAKAH</h2>
         <p style='color:#0277bd !important; font-size:12px; margin:0; font-weight:600;'>ENTERPRISES</p>
+    </div>
+    """, unsafe_allow_html=True)
+    st.markdown(f"""
+    <div style='background:#ffffff;border:1px solid #90caf9;border-radius:8px;padding:8px 12px;margin-bottom:8px;text-align:center;'>
+        <div style='font-size:11px;color:#0277bd;'>Logged in as</div>
+        <div style='font-size:15px;font-weight:800;color:#1976d2;'>👤 {display_name}</div>
     </div>
     """, unsafe_allow_html=True)
     st.markdown("---")
@@ -788,7 +958,7 @@ with st.sidebar:
     st.markdown("---")
     active_pkgs = get_all_active_packages()
     st.markdown(f"""
-    <div style='padding:10px; color:#0277bd !important; font-size:12px;'>
+    <div style='padding:6px 10px; color:#0277bd !important; font-size:12px;'>
         <p>📅 {datetime.now().strftime('%d-%m-%Y')}</p>
         <p>🎁 Active Packages: <b>{len(active_pkgs)}</b></p>
         <p>📦 Products: {len(PRODUCTS)}</p>
@@ -797,6 +967,15 @@ with st.sidebar:
         <p>🧾 Total Bills: {len(db['bills'])}</p>
     </div>
     """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    if st.button("🚪 Logout", key="btn_logout", use_container_width=True):
+        st.session_state["logged_in_user"] = None
+        st.session_state["display_name"] = None
+        st.session_state["database"] = None
+        st.session_state["_db_user"] = None
+        st.session_state["page"] = "📊 Dashboard"
+        st.rerun()
 
 # ============================================================
 # PAGE: DASHBOARD
@@ -1620,7 +1799,7 @@ def render_billing():
     show_auto_download()
 
 # ============================================================
-# PAGE: BILLS LIST (with Eye button)
+# PAGE: BILLS LIST
 # ============================================================
 def render_bills_list():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📋 Bills List</h1>", unsafe_allow_html=True)
@@ -1762,7 +1941,6 @@ def render_bills_list():
                 st.session_state["confirm_delete_group"] = g["orig_indices"]
                 st.session_state["_confirm_group_label"] = f"{shop} | {date_str} | {booker}"
 
-        # ---- Full Bill View (Eye clicked) ----
         if is_viewing:
             st.markdown(f"""
             <div class='full-bill-box'>
@@ -1776,7 +1954,6 @@ def render_bills_list():
             df_items = pd.DataFrame(items)
             st.dataframe(df_items, use_container_width=True, hide_index=True)
 
-            # Big totals
             pkg_pct_preview, pkg_name_preview, _tier = get_package_discount_pct(total_n)
             after_disc = total_n - (total_n * pkg_pct_preview / 100)
             saved = total_n - after_disc
@@ -1834,7 +2011,7 @@ def render_bills_list():
     show_auto_download()
 
 # ============================================================
-# PAGE: LOAD FORM (with Eye button)
+# PAGE: LOAD FORM
 # ============================================================
 def render_load_form():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📦 Load Forms</h1>", unsafe_allow_html=True)
@@ -1953,7 +2130,6 @@ def render_load_form():
                 st.session_state["view_lf_key"] = None
                 st.rerun()
 
-        # ---- Full Load Form View (Eye clicked) ----
         if is_viewing:
             st.markdown(f"""
             <div class='full-bill-box'>
