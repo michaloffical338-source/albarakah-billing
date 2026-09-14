@@ -79,429 +79,495 @@ def build_lamp_html(light_on):
 <html>
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
+
   html, body {
     width: 100%;
     height: 100vh;
-    background: #000;
+    background: #0b0d10;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     overflow: hidden;
     user-select: none;
   }
+
   .scene {
     position: relative;
     width: 100%;
     height: 100vh;
-    background: radial-gradient(ellipse at 50% 0%, #0a0805 0%, #000 60%);
+    min-height: 720px;
+    background:
+      radial-gradient(ellipse at 50% 5%, rgba(38, 42, 48, 0.72) 0%, rgba(22, 25, 29, 0.72) 24%, rgba(11, 13, 16, 0.98) 65%),
+      linear-gradient(180deg, #171a1f 0%, #0e1013 52%, #090b0e 100%);
     overflow: hidden;
-  }
-  .scene.lit {
-    background: radial-gradient(ellipse at 50% 15%, #1f1408 0%, #0a0604 40%, #000 75%);
-    transition: background 1.2s ease;
+    transition: background 1s ease;
   }
 
-  /* ========= CEILING ========= */
+  .scene::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 50% 18%, rgba(255,255,255,0.055), transparent 30%),
+      linear-gradient(90deg, rgba(255,255,255,0.018), transparent 22%, transparent 78%, rgba(255,255,255,0.018));
+    z-index: 0;
+  }
+
+  .scene.lit {
+    background:
+      radial-gradient(ellipse at 50% 17%, rgba(94, 65, 30, 0.55) 0%, rgba(43, 31, 19, 0.48) 22%, rgba(18, 16, 14, 0.92) 55%, #0a0c0f 100%),
+      linear-gradient(180deg, #1b1d20 0%, #111214 55%, #0a0c0f 100%);
+  }
+
+  /* ========= CEILING MOUNT ========= */
   .ceiling {
     position: absolute;
     top: 0; left: 50%;
     transform: translateX(-50%);
-    width: 56px; height: 10px;
-    background: linear-gradient(180deg, #1a1a1a 0%, #050505 100%);
-    border-radius: 0 0 6px 6px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.9);
+    width: 76px; height: 14px;
+    background: linear-gradient(180deg, #4b5057 0%, #22262b 38%, #0b0d10 100%);
+    border-radius: 0 0 9px 9px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.12);
     z-index: 5;
   }
-  .ceiling::after {
+
+  .ceiling::before {
     content: '';
     position: absolute;
     top: 0; left: 50%;
     transform: translateX(-50%);
-    width: 22px; height: 3px;
-    background: #2a2a2a;
-    border-radius: 2px;
+    width: 32px; height: 4px;
+    background: #747980;
+    border-radius: 3px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.7);
   }
 
   /* ========= WIRE ========= */
   .wire {
     position: absolute;
-    top: 8px; left: 50%;
+    top: 12px; left: 50%;
     transform: translateX(-50%);
-    width: 3px; height: 130px;
-    background: linear-gradient(90deg, #3a3a3a 0%, #6b6b6b 50%, #1a1a1a 100%);
-    box-shadow: 0 0 4px rgba(0,0,0,0.8);
+    width: 3px; height: 124px;
+    background: linear-gradient(90deg, #1b1e22 0%, #9da2a8 50%, #25282c 100%);
+    box-shadow: 0 0 5px rgba(0,0,0,0.85), inset 0 0 1px rgba(255,255,255,0.35);
     z-index: 4;
   }
 
-  /* ========= LAMP ASSEMBLY ========= */
+  /* ========= PREMIUM LAMP ========= */
   .lamp {
     position: absolute;
-    top: 130px; left: 50%;
+    top: 128px; left: 50%;
     transform: translateX(-50%);
-    width: 220px; height: 130px;
+    width: 250px; height: 150px;
     z-index: 6;
   }
+
+  .lamp::before {
+    content: '';
+    position: absolute;
+    top: -8px; left: 50%;
+    transform: translateX(-50%);
+    width: 54px; height: 13px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #9a7041, #3a2818 70%, #17100a);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,220,160,0.28);
+    z-index: 5;
+  }
+
   .lamp-shade {
     position: absolute;
-    top: 0; left: 0;
-    width: 220px; height: 100px;
-    border-radius: 110px 110px 20px 20px / 100px 100px 22px 22px;
+    top: 0; left: 15px;
+    width: 220px; height: 104px;
+    border-radius: 112px 112px 22px 22px / 100px 100px 24px 24px;
     background:
-      radial-gradient(ellipse at 50% -10%, #4a3826 0%, #2b1d10 30%, #0f0a05 85%),
-      linear-gradient(180deg, #2a1d10 0%, #0a0603 100%);
+      radial-gradient(ellipse at 50% 3%, #6d4b29 0%, #3d2a19 23%, #21160d 52%, #0d0905 88%),
+      linear-gradient(180deg, #4b3420 0%, #120c07 100%);
+    border: 1px solid rgba(170,120,65,0.24);
     box-shadow:
-      inset 0 -18px 30px rgba(0,0,0,0.95),
-      inset 0 4px 12px rgba(120, 80, 40, 0.25),
-      0 6px 22px rgba(0,0,0,0.85);
-    transition: box-shadow 0.9s ease;
+      inset 0 5px 14px rgba(196,145,80,0.22),
+      inset 0 -20px 34px rgba(0,0,0,0.95),
+      0 8px 28px rgba(0,0,0,0.78);
+    transition: box-shadow 0.9s ease, filter 0.9s ease;
     z-index: 3;
   }
+
   .lamp-shade::before {
     content: '';
     position: absolute;
-    top: 6px; left: 50%;
+    top: 7px; left: 50%;
     transform: translateX(-50%);
-    width: 90%; height: 30px;
+    width: 82%; height: 26px;
     border-radius: 50%;
-    background: radial-gradient(ellipse, rgba(160,110,60,0.25) 0%, transparent 70%);
+    background: radial-gradient(ellipse, rgba(255,205,125,0.24) 0%, transparent 72%);
     pointer-events: none;
   }
+
   .lamp-shade::after {
     content: '';
     position: absolute;
-    bottom: 0; left: 0;
-    width: 100%; height: 22px;
-    border-radius: 0 0 22px 22px / 0 0 22px 22px;
-    background: linear-gradient(180deg, transparent 0%, #050301 100%);
-  }
-  .scene.lit .lamp-shade {
-    box-shadow:
-      inset 0 -18px 30px rgba(0,0,0,0.95),
-      inset 0 4px 12px rgba(160, 110, 60, 0.45),
-      0 6px 22px rgba(0,0,0,0.85),
-      0 0 60px 12px rgba(255, 200, 80, 0.18);
+    bottom: -1px; left: 0;
+    width: 100%; height: 25px;
+    border-radius: 0 0 22px 22px;
+    background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.78) 100%);
+    border-top: 1px solid rgba(205,154,88,0.16);
   }
 
-  /* Bulb (visible under shade) */
+  .scene.lit .lamp-shade {
+    filter: brightness(1.13);
+    box-shadow:
+      inset 0 5px 14px rgba(255,210,135,0.34),
+      inset 0 -20px 34px rgba(0,0,0,0.9),
+      0 8px 28px rgba(0,0,0,0.72),
+      0 0 72px 18px rgba(255,194,82,0.23);
+  }
+
+  /* ========= BULB ========= */
   .bulb {
     position: absolute;
-    top: 78px; left: 50%;
+    top: 80px; left: 50%;
     transform: translateX(-50%);
-    width: 46px; height: 42px;
-    border-radius: 50% 50% 42% 42% / 55% 55% 45% 45%;
-    background: radial-gradient(circle at 50% 35%, #2a2a2a 0%, #0a0a0a 75%);
-    transition: all 0.9s cubic-bezier(0.2, 0.9, 0.3, 1);
+    width: 50px; height: 45px;
+    border-radius: 50% 50% 44% 44% / 56% 56% 44% 44%;
+    background: radial-gradient(circle at 50% 35%, #383b3f 0%, #17191c 60%, #070809 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: all 0.7s cubic-bezier(0.2, 0.9, 0.3, 1);
     z-index: 5;
-    box-shadow: inset 0 -6px 12px rgba(0,0,0,0.9);
+    box-shadow: inset 0 -7px 13px rgba(0,0,0,0.9), 0 4px 8px rgba(0,0,0,0.5);
   }
+
   .scene.lit .bulb {
-    background: radial-gradient(circle at 50% 35%, #ffffff 0%, #fff8e1 25%, #ffd54f 55%, #ff9800 100%);
+    background: radial-gradient(circle at 50% 34%, #ffffff 0%, #fff9df 22%, #ffd96a 53%, #ff9e1a 100%);
+    border-color: rgba(255,245,205,0.8);
     box-shadow:
-      0 0 22px 8px rgba(255, 235, 160, 0.95),
-      0 0 55px 22px rgba(255, 200, 80, 0.6),
-      0 0 110px 45px rgba(255, 170, 40, 0.3),
-      inset 0 0 10px rgba(255, 255, 220, 0.9);
+      0 0 24px 9px rgba(255,239,174,0.98),
+      0 0 58px 24px rgba(255,202,84,0.72),
+      0 0 120px 50px rgba(255,169,42,0.38),
+      inset 0 0 12px rgba(255,255,230,0.98);
   }
 
   /* ========= LIGHT BEAM ========= */
   .beam {
     position: absolute;
-    top: 220px; left: 50%;
+    top: 210px; left: 50%;
     transform: translateX(-50%);
-    width: 900px; height: 780px;
+    width: min(980px, 90vw); height: 760px;
     background: radial-gradient(
       ellipse at 50% 0%,
-      rgba(255, 235, 160, 0.55) 0%,
-      rgba(255, 220, 130, 0.30) 18%,
-      rgba(255, 200, 80, 0.14) 40%,
-      rgba(255, 180, 60, 0.04) 65%,
-      transparent 82%
+      rgba(255,244,198,0.58) 0%,
+      rgba(255,226,146,0.34) 18%,
+      rgba(255,202,91,0.16) 42%,
+      rgba(255,180,55,0.055) 66%,
+      transparent 84%
     );
     opacity: 0;
-    transition: opacity 1.2s ease;
+    transition: opacity 1.05s ease;
     pointer-events: none;
     filter: blur(8px);
     z-index: 1;
   }
+
   .scene.lit .beam { opacity: 1; }
 
-  /* Dust particles */
+  /* ========= FLOOR / AMBIENT GLOW ========= */
+  .ambient-glow {
+    position: absolute;
+    left: 50%; bottom: -150px;
+    transform: translateX(-50%);
+    width: min(850px, 85vw); height: 420px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(255,191,78,0.11) 0%, rgba(255,175,55,0.035) 38%, transparent 72%);
+    opacity: 0;
+    transition: opacity 1.3s ease;
+    filter: blur(18px);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .scene.lit .ambient-glow { opacity: 1; }
+
+  /* ========= DUST ========= */
   .dust {
     position: absolute;
-    top: 240px; left: 50%;
+    top: 235px; left: 50%;
     transform: translateX(-50%);
-    width: 700px; height: 700px;
+    width: 760px; height: 690px;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 1.5s ease 0.3s;
+    transition: opacity 1.2s ease 0.2s;
     z-index: 2;
   }
   .scene.lit .dust { opacity: 1; }
   .dust span {
     position: absolute;
     width: 2px; height: 2px;
-    background: radial-gradient(circle, #fff8e1 0%, #ffd54f 60%, transparent 100%);
+    background: radial-gradient(circle, #fff8e1 0%, #ffd86a 60%, transparent 100%);
     border-radius: 50%;
-    box-shadow: 0 0 4px #ffd54f;
+    box-shadow: 0 0 5px #ffd05a;
     animation: drift linear infinite;
   }
   @keyframes drift {
     0%   { transform: translateY(0) translateX(0); opacity: 0; }
-    20%  { opacity: 0.9; }
-    80%  { opacity: 0.9; }
+    20%  { opacity: 0.85; }
+    80%  { opacity: 0.85; }
     100% { transform: translateY(220px) translateX(40px); opacity: 0; }
   }
 
   /* ========= PULL CORD ========= */
   .cord {
     position: absolute;
-    top: 130px; left: 50%;
-    transform: translateX(48px);
-    width: 2px;
-    height: 220px;
+    top: 126px; left: 50%;
+    transform: translateX(57px);
+    width: 26px; height: 250px;
     cursor: pointer;
-    z-index: 10;
-    transition: transform 0.4s ease;
+    z-index: 20;
     transform-origin: top center;
+    touch-action: manipulation;
   }
+
   .cord::before {
     content: '';
     position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: linear-gradient(180deg, #4a4a4a 0%, #b8b8b8 40%, #2a2a2a 100%);
-    box-shadow: 1px 0 2px rgba(0,0,0,0.6);
+    top: 0; left: 12px;
+    width: 2px; height: 222px;
+    background: linear-gradient(180deg, #292d32 0%, #b7bdc3 38%, #60666d 66%, #171a1d 100%);
+    box-shadow: 1px 0 2px rgba(0,0,0,0.7), 0 0 4px rgba(255,255,255,0.08);
   }
+
+  .cord::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 7px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #e8c98f 0%, #8c6132 45%, #2d1a0b 100%);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.7), 0 0 12px rgba(255,194,93,0.18);
+  }
+
   .cord .bead {
     position: absolute;
-    bottom: -14px; left: 50%;
+    bottom: 0; left: 50%;
     transform: translateX(-50%);
-    width: 18px; height: 22px;
+    width: 22px; height: 28px;
     border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
-    background:
-      radial-gradient(circle at 35% 30%, #d4a35e 0%, #8a5a2a 40%, #3a2210 100%);
+    background: radial-gradient(circle at 34% 28%, #f0ca82 0%, #a56c31 38%, #5a3516 70%, #241408 100%);
+    border: 1px solid rgba(244,205,140,0.24);
     box-shadow:
-      0 3px 8px rgba(0,0,0,0.85),
-      0 0 14px 2px rgba(255, 190, 90, 0.35),
-      inset 0 -2px 4px rgba(0,0,0,0.5);
-    transition: all 0.3s ease;
+      0 4px 10px rgba(0,0,0,0.88),
+      0 0 16px 2px rgba(255,190,85,0.34),
+      inset 0 -3px 5px rgba(0,0,0,0.5),
+      inset 1px 1px 2px rgba(255,235,185,0.3);
+    transition: all 0.25s ease;
   }
+
   .cord .bead::after {
     content: '';
     position: absolute;
-    top: 5px; left: 5px;
-    width: 5px; height: 5px;
+    top: 6px; left: 6px;
+    width: 6px; height: 6px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,240,200,0.9) 0%, transparent 70%);
-  }
-  .cord:hover .bead {
-    box-shadow:
-      0 3px 8px rgba(0,0,0,0.85),
-      0 0 24px 6px rgba(255, 200, 100, 0.9),
-      inset 0 -2px 4px rgba(0,0,0,0.5);
-    transform: translateX(-50%) scale(1.15);
-  }
-  .cord.pulled {
-    animation: pullCord 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  @keyframes pullCord {
-    0%   { transform: translateX(48px) scaleY(1); }
-    40%  { transform: translateX(48px) scaleY(1.55); }
-    70%  { transform: translateX(48px) scaleY(0.92); }
-    100% { transform: translateX(48px) scaleY(1); }
+    background: radial-gradient(circle, rgba(255,248,220,0.95) 0%, transparent 72%);
   }
 
-  /* ========= LOGIN FORM (inside beam) ========= */
-  /* Authentication is rendered by native Streamlit widgets. */
-  .form-wrap { display:none !important; }
+  .cord:hover .bead,
+  .cord:focus .bead {
+    transform: translateX(-50%) scale(1.16);
+    box-shadow:
+      0 4px 10px rgba(0,0,0,0.88),
+      0 0 28px 7px rgba(255,202,100,0.9),
+      inset 0 -3px 5px rgba(0,0,0,0.5);
+  }
+
+  .cord:active .bead { transform: translateX(-50%) scale(0.94); }
+
+  .cord.pulled { animation: pullCord 0.58s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  @keyframes pullCord {
+    0%   { transform: translateX(57px) scaleY(1); }
+    38%  { transform: translateX(57px) scaleY(1.5); }
+    68%  { transform: translateX(57px) scaleY(0.91); }
+    100% { transform: translateX(57px) scaleY(1); }
+  }
+
+  /* ========= LOGIN GLASS CARD ========= */
   .form-wrap {
     position: absolute;
-    top: 340px; left: 50%;
-    transform: translateX(-50%);
-    width: 380px;
+    top: 348px; left: 50%;
+    transform: translateX(-50%) translateY(-16px) scale(0.98);
+    width: min(400px, calc(100vw - 38px));
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.9s ease 0.4s, transform 0.9s ease 0.4s;
+    transition: opacity 0.75s ease 0.28s, transform 0.75s cubic-bezier(0.2,0.9,0.3,1) 0.28s;
     z-index: 8;
-    transform: translateX(-50%) translateY(-15px);
   }
+
   .scene.lit .form-wrap {
     opacity: 1;
     pointer-events: auto;
-    transform: translateX(-50%) translateY(0);
+    transform: translateX(-50%) translateY(0) scale(1);
   }
+
   .glass {
-    background: rgba(15, 12, 8, 0.65);
-    border: 1px solid rgba(255, 200, 100, 0.28);
-    border-radius: 18px;
-    padding: 26px 28px 22px;
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    background: linear-gradient(145deg, rgba(30,31,33,0.82), rgba(15,16,18,0.72));
+    border: 1px solid rgba(255,203,113,0.25);
+    border-radius: 20px;
+    padding: 28px 30px 24px;
+    backdrop-filter: blur(18px) saturate(115%);
+    -webkit-backdrop-filter: blur(18px) saturate(115%);
     box-shadow:
-      0 12px 40px rgba(0,0,0,0.6),
-      inset 0 1px 0 rgba(255, 220, 150, 0.15),
-      0 0 60px rgba(255, 190, 80, 0.08);
+      0 20px 60px rgba(0,0,0,0.58),
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 -1px 0 rgba(255,192,82,0.06),
+      0 0 70px rgba(255,188,75,0.08);
   }
-  .brand {
-    text-align: center;
-    margin-bottom: 16px;
-  }
+
+  .brand { text-align: center; margin-bottom: 17px; }
   .brand h1 {
-    color: #ffd54f;
-    font-size: 20px;
-    font-weight: 800;
-    letter-spacing: 3px;
-    text-shadow: 0 0 18px rgba(255, 200, 80, 0.5);
-    margin-bottom: 2px;
+    color: #f4c96f;
+    font-size: 21px;
+    font-weight: 850;
+    letter-spacing: 4px;
+    text-shadow: 0 0 20px rgba(255,199,92,0.38);
+    margin-bottom: 3px;
   }
   .brand p {
-    color: #a8845a;
+    color: #a98a5e;
     font-size: 10px;
-    letter-spacing: 4px;
-    font-weight: 600;
+    letter-spacing: 5px;
+    font-weight: 700;
   }
 
   .tabs {
     display: flex;
-    background: rgba(0,0,0,0.5);
-    border-radius: 10px;
-    padding: 3px;
-    margin-bottom: 16px;
-    border: 1px solid rgba(255, 200, 100, 0.12);
+    background: rgba(0,0,0,0.34);
+    border-radius: 11px;
+    padding: 4px;
+    margin-bottom: 17px;
+    border: 1px solid rgba(255,203,113,0.11);
   }
   .tab {
     flex: 1;
     text-align: center;
-    padding: 8px 0;
-    color: #8a7a5a;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 1px;
+    padding: 9px 0;
+    color: #83745e;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.25s ease;
     border: none;
     background: transparent;
     font-family: inherit;
   }
+  .tab:hover { color: #d0b17a; }
   .tab.active {
-    background: linear-gradient(135deg, rgba(255,200,80,0.18) 0%, rgba(255,150,40,0.10) 100%);
-    color: #ffd54f;
-    box-shadow: 0 2px 8px rgba(255,180,50,0.2), inset 0 0 0 1px rgba(255,200,100,0.25);
+    background: linear-gradient(135deg, rgba(255,205,105,0.18), rgba(255,154,45,0.09));
+    color: #f5cc72;
+    box-shadow: 0 2px 10px rgba(255,180,50,0.13), inset 0 0 0 1px rgba(255,210,120,0.22);
   }
 
-  .f-field {
-    margin-bottom: 12px;
-    position: relative;
-  }
+  .f-field { margin-bottom: 13px; position: relative; }
   .f-field label {
     display: block;
-    color: #a8845a;
+    color: #a98b62;
     font-size: 10px;
     letter-spacing: 2px;
-    font-weight: 700;
-    margin-bottom: 5px;
+    font-weight: 750;
+    margin-bottom: 6px;
     padding-left: 4px;
   }
   .f-field input {
     width: 100%;
-    padding: 11px 14px;
-    background: rgba(0,0,0,0.55);
-    border: 1px solid rgba(255, 200, 100, 0.15);
-    border-radius: 10px;
-    color: #fff8e1;
+    padding: 12px 14px;
+    background: rgba(5,6,8,0.58);
+    border: 1px solid rgba(255,205,113,0.17);
+    border-radius: 11px;
+    color: #fff9e8;
     font-size: 14px;
     font-family: inherit;
     outline: none;
-    transition: all 0.3s ease;
-    caret-color: #ffd54f;
+    transition: all 0.25s ease;
+    caret-color: #f4c96f;
   }
-  .f-field input::placeholder {
-    color: #6a5a3a;
-    font-style: italic;
-  }
+  .f-field input::placeholder { color: #675a46; font-style: italic; }
+  .f-field input:hover { border-color: rgba(255,205,113,0.28); }
   .f-field input:focus {
-    border-color: rgba(255, 200, 100, 0.55);
-    background: rgba(0,0,0,0.7);
-    box-shadow: 0 0 0 3px rgba(255, 200, 100, 0.1), 0 0 20px rgba(255, 180, 50, 0.15);
+    border-color: rgba(255,205,113,0.58);
+    background: rgba(4,5,7,0.76);
+    box-shadow: 0 0 0 3px rgba(255,200,100,0.08), 0 0 24px rgba(255,180,50,0.13);
   }
   .f-field.hidden { display: none; }
 
   .hint-msg {
     text-align: center;
-    color: #a8845a;
+    color: #a98a5e;
     font-size: 11px;
     margin-top: 14px;
     letter-spacing: 1px;
     line-height: 1.6;
   }
-  .hint-msg b { color: #ffd54f; }
+  .hint-msg b { color: #f4c96f; }
 
-  /* Error state shake */
-  .glass.shake {
-    animation: shake 0.45s ease;
-  }
+  .glass.shake { animation: shake 0.45s ease; }
   @keyframes shake {
     0%,100% { transform: translateX(0); }
-    20%     { transform: translateX(-8px); }
-    40%     { transform: translateX(8px); }
-    60%     { transform: translateX(-6px); }
-    80%     { transform: translateX(6px); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
   }
 
-  /* ========= HINT AT BOTTOM ========= */
   .bottom-hint {
     position: absolute;
-    bottom: 40px; left: 50%;
+    bottom: 38px; left: 50%;
     transform: translateX(-50%);
-    color: #666;
-    font-size: 12px;
-    letter-spacing: 5px;
+    color: #8a8f96;
+    font-size: 11px;
+    letter-spacing: 4px;
     text-transform: uppercase;
-    font-weight: 300;
+    font-weight: 500;
     animation: pulse 2.8s ease-in-out infinite;
-    transition: all 0.6s ease;
+    transition: all 0.5s ease;
     z-index: 9;
     text-align: center;
     white-space: nowrap;
   }
   .scene.lit .bottom-hint {
-    color: #a8845a;
+    color: #a98a5e;
     animation: none;
-    letter-spacing: 3px;
-    font-size: 11px;
+    letter-spacing: 2.5px;
+    font-size: 10px;
   }
-  @keyframes pulse {
-    0%,100% { opacity: 0.35; }
-    50%     { opacity: 0.95; }
+  @keyframes pulse { 0%,100% { opacity: 0.42; } 50% { opacity: 1; } }
+
+  @media (max-width: 600px) {
+    .lamp { top: 105px; transform: translateX(-50%) scale(0.82); transform-origin: top center; }
+    .wire { height: 102px; }
+    .cord { top: 103px; transform: translateX(49px) scale(0.82); transform-origin: top left; }
+    .form-wrap { top: 310px; width: calc(100vw - 28px); }
+    .glass { padding: 23px 21px 20px; }
+    .bottom-hint { bottom: 22px; font-size: 9px; letter-spacing: 2px; }
   }
 </style>
 </head>
 <body>
 <div class="scene __INITIAL_CLASS__" id="scene">
-
-  <!-- Ceiling mount -->
   <div class="ceiling"></div>
-
-  <!-- Wire -->
   <div class="wire"></div>
 
-  <!-- Lamp assembly -->
   <div class="lamp">
     <div class="lamp-shade"></div>
     <div class="bulb"></div>
   </div>
 
-  <!-- Light beam -->
   <div class="beam"></div>
-
-  <!-- Dust particles -->
+  <div class="ambient-glow"></div>
   <div class="dust" id="dust"></div>
 
-  <!-- Pull cord -->
-  <div class="cord" id="cord"><div class="bead"></div></div>
+  <div class="cord" id="cord" tabindex="0" role="button" aria-label="Pull lamp cord">
+    <div class="bead"></div>
+  </div>
 
-  <!-- Login form -->
   <div class="form-wrap">
     <div class="glass" id="glass">
       <div class="brand">
@@ -524,15 +590,11 @@ def build_lamp_html(light_on):
         <label>CONFIRM PASSWORD</label>
         <input type="password" id="fPass2" placeholder="repeat password" autocomplete="off">
       </div>
-      <div class="hint-msg" id="hintMsg">
-        Pull the cord <b>again</b> to sign in
-      </div>
+      <div class="hint-msg" id="hintMsg">Pull the cord <b>again</b> to sign in</div>
     </div>
   </div>
 
-  <!-- Bottom hint -->
   <div class="bottom-hint" id="bottomHint">▼ PULL THE CORD ▼</div>
-
 </div>
 
 <script>
@@ -552,11 +614,11 @@ def build_lamp_html(light_on):
 
   /* ---- Dust particles ---- */
   var dust = document.getElementById('dust');
-  for (var i = 0; i < 22; i++) {
+  for (var i = 0; i < 30; i++) {
     var s = document.createElement('span');
-    s.style.left = (10 + Math.random() * 80) + '%';
-    s.style.top = (Math.random() * 60) + '%';
-    s.style.animationDuration = (5 + Math.random() * 6) + 's';
+    s.style.left = (8 + Math.random() * 84) + '%';
+    s.style.top = (Math.random() * 62) + '%';
+    s.style.animationDuration = (5 + Math.random() * 7) + 's';
     s.style.animationDelay = (Math.random() * 5) + 's';
     var sz = 1 + Math.random() * 2;
     s.style.width = sz + 'px';
@@ -580,22 +642,27 @@ def build_lamp_html(light_on):
     });
   });
 
-  /* ---- Native value setter for React inputs ---- */
+  /* ---- React/Streamlit native value setter ---- */
   function setNativeValue(element, value) {
-    var proto = Object.getPrototypeOf(element);
-    var setter = Object.getOwnPropertyDescriptor(proto, 'value').set;
-    setter.call(element, value);
-    element.dispatchEvent(new Event('input', { bubbles: true }));
-    element.dispatchEvent(new Event('change', { bubbles: true }));
+    try {
+      var proto = Object.getPrototypeOf(element);
+      var desc = Object.getOwnPropertyDescriptor(proto, 'value');
+      if (desc && desc.set) desc.set.call(element, value);
+      else element.value = value;
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+      element.dispatchEvent(new Event('change', { bubbles: true }));
+    } catch(e) {
+      try { element.value = value; } catch(ignore) {}
+    }
   }
 
-  /* ---- Find streamlit hidden input by label marker ---- */
+  /* ---- Find Streamlit input by marker ---- */
   function findStreamlitInput(marker) {
     try {
       var pd = window.parent.document;
       var labels = pd.querySelectorAll('label');
       for (var i = 0; i < labels.length; i++) {
-        if (labels[i].textContent.indexOf(marker) !== -1) {
+        if ((labels[i].textContent || '').indexOf(marker) !== -1) {
           var wrap = labels[i].closest('[data-testid="stTextInput"]');
           if (wrap) return wrap.querySelector('input');
         }
@@ -604,13 +671,14 @@ def build_lamp_html(light_on):
     return null;
   }
 
-  /* ---- Click streamlit hidden button by text ---- */
+  /* ---- Find/click Streamlit button safely ---- */
   function clickStreamlitButton(marker) {
     try {
       var pd = window.parent.document;
       var btns = pd.querySelectorAll('button');
       for (var i = 0; i < btns.length; i++) {
-        if ((btns[i].textContent || '').indexOf(marker) !== -1) {
+        var text = (btns[i].textContent || '').trim();
+        if (text === marker || text.indexOf(marker) !== -1) {
           btns[i].click();
           return true;
         }
@@ -619,68 +687,92 @@ def build_lamp_html(light_on):
     return false;
   }
 
-  /* ---- Cord click ---- */
-  cord.addEventListener('click', function(){
+  /* ---- Pull cord ---- */
+  function pullCord(){
     if (pulled) return;
     pulled = true;
+    cord.classList.remove('pulled');
+    void cord.offsetWidth;
     cord.classList.add('pulled');
-    setTimeout(function(){ cord.classList.remove('pulled'); pulled = false; }, 650);
+    setTimeout(function(){
+      cord.classList.remove('pulled');
+      pulled = false;
+    }, 650);
 
     var isLit = scene.classList.contains('lit');
 
     if (!isLit) {
-      /* Turn ON: click the "TURN_ON" streamlit button */
+      /* IMPORTANT: light the lamp immediately in the iframe.
+         Streamlit rerun is only used to persist the state. */
+      scene.classList.add('lit');
+      bottomHint.textContent = 'ENTER DETAILS • PULL CORD TO CONTINUE';
+      hintMsg.innerHTML = 'Pull the cord <b>again</b> to sign in';
+
+      setTimeout(function(){
+        try { fUser.focus(); } catch(e) {}
+      }, 650);
+
+      /* Persist light_on=True in Streamlit. */
       setTimeout(function(){
         clickStreamlitButton('__LAMP_TURN_ON__');
-      }, 350);
-    } else {
-      /* Turn OFF: check form values first */
-      var user = (fUser.value || '').trim();
-      var pass = fPass.value || '';
-      var pass2 = fPass2.value || '';
+      }, 120);
+      return;
+    }
 
-      if (user === '' || pass === '') {
-        /* shake */
-        glass.classList.add('shake');
-        setTimeout(function(){ glass.classList.remove('shake'); }, 500);
-        hintMsg.innerHTML = '<span style="color:#ff7b7b;">Please fill all fields</span>';
-        setTimeout(function(){
-          hintMsg.innerHTML = mode === 'signup'
-            ? 'Pull the cord <b>again</b> to create account'
-            : 'Pull the cord <b>again</b> to sign in';
-        }, 2200);
-        return;
-      }
+    /* Second pull = submit/login, same original workflow. */
+    var user = (fUser.value || '').trim();
+    var pass = fPass.value || '';
+    var pass2 = fPass2.value || '';
 
-      if (mode === 'signup' && pass !== pass2) {
-        glass.classList.add('shake');
-        setTimeout(function(){ glass.classList.remove('shake'); }, 500);
-        hintMsg.innerHTML = '<span style="color:#ff7b7b;">Passwords do not match</span>';
-        setTimeout(function(){
-          hintMsg.innerHTML = 'Pull the cord <b>again</b> to create account';
-        }, 2200);
-        return;
-      }
-
-      /* Set hidden streamlit inputs and click submit */
-      var uIn = findStreamlitInput('__LU__');
-      var pIn = findStreamlitInput('__LP__');
-      var p2In = findStreamlitInput('__LP2__');
-      var mIn = findStreamlitInput('__LM__');
-      if (uIn) setNativeValue(uIn, user);
-      if (pIn) setNativeValue(pIn, pass);
-      if (p2In) setNativeValue(p2In, pass2);
-      if (mIn) setNativeValue(mIn, mode);
-
+    if (user === '' || pass === '') {
+      glass.classList.add('shake');
+      setTimeout(function(){ glass.classList.remove('shake'); }, 500);
+      hintMsg.innerHTML = '<span style="color:#ff8c8c;">Please fill all fields</span>';
       setTimeout(function(){
-        clickStreamlitButton('__LAMP_SUBMIT__');
-      }, 220);
+        hintMsg.innerHTML = mode === 'signup'
+          ? 'Pull the cord <b>again</b> to create account'
+          : 'Pull the cord <b>again</b> to sign in';
+      }, 2200);
+      return;
+    }
+
+    if (mode === 'signup' && pass !== pass2) {
+      glass.classList.add('shake');
+      setTimeout(function(){ glass.classList.remove('shake'); }, 500);
+      hintMsg.innerHTML = '<span style="color:#ff8c8c;">Passwords do not match</span>';
+      setTimeout(function(){
+        hintMsg.innerHTML = 'Pull the cord <b>again</b> to create account';
+      }, 2200);
+      return;
+    }
+
+    var uIn = findStreamlitInput('__LU__');
+    var pIn = findStreamlitInput('__LP__');
+    var p2In = findStreamlitInput('__LP2__');
+    var mIn = findStreamlitInput('__LM__');
+    if (uIn) setNativeValue(uIn, user);
+    if (pIn) setNativeValue(pIn, pass);
+    if (p2In) setNativeValue(p2In, pass2);
+    if (mIn) setNativeValue(mIn, mode);
+
+    hintMsg.innerHTML = '<span style="color:#f4c96f;">Authenticating…</span>';
+    setTimeout(function(){
+      clickStreamlitButton('__LAMP_SUBMIT__');
+    }, 220);
+  }
+
+  cord.addEventListener('click', pullCord);
+  cord.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      pullCord();
     }
   });
 
-  /* Auto-focus username when lit */
+  /* Auto-focus username when already lit after Streamlit rerun. */
   if (scene.classList.contains('lit')) {
-    setTimeout(function(){ try { fUser.focus(); } catch(e){} }, 800);
+    bottomHint.textContent = 'ENTER DETAILS • PULL CORD TO CONTINUE';
+    setTimeout(function(){ try { fUser.focus(); } catch(e){} }, 650);
   }
 })();
 </script>
@@ -1164,198 +1256,133 @@ if "auth_error" not in st.session_state:
     st.session_state["auth_error"] = ""
 
 # ============================================================
-# PROFESSIONAL LAMP LOGIN — RELIABLE NATIVE STREAMLIT FLOW
+# HIDE EVERYTHING DURING AUTH
 # ============================================================
 if not st.session_state.get("logged_in_user"):
     st.markdown("""
     <style>
-    section[data-testid="stSidebar"], header[data-testid="stHeader"],
-    [data-testid="stToolbar"], [data-testid="stDecoration"],
-    [data-testid="stStatusWidget"], #MainMenu, footer,
-    .stAppDeployButton, [data-testid="manage-app-button"] { display:none !important; }
-    html, body, .stApp { background:#101011 !important; color:#eee !important; overflow-x:hidden !important; }
-    .block-container { padding:0 !important; max-width:100% !important; }
-
-    .login-scene { position:fixed; inset:0; z-index:0; overflow:hidden;
-      background:radial-gradient(ellipse at 50% 18%,rgba(214,164,72,.10),transparent 27%),
-      radial-gradient(ellipse at 50% 70%,rgba(166,116,38,.055),transparent 42%),
-      linear-gradient(180deg,#151515 0%,#101011 58%,#0c0c0d 100%); }
-    .login-scene:before { content:""; position:absolute; inset:0; pointer-events:none;
-      background:linear-gradient(90deg,rgba(255,255,255,.018),transparent 28%,transparent 72%,rgba(255,255,255,.018)); }
-
-    .ceiling-mount { position:absolute; top:0; left:50%; transform:translateX(-50%); width:76px; height:12px;
-      border-radius:0 0 9px 9px; background:linear-gradient(180deg,#343434,#171717); box-shadow:0 5px 18px rgba(0,0,0,.55); }
-    .main-wire { position:absolute; top:10px; left:50%; transform:translateX(-50%); width:2px; height:145px;
-      background:linear-gradient(180deg,#444,#777 55%,#252525); box-shadow:0 0 3px rgba(255,255,255,.12); }
-
-    .pendant { position:absolute; top:135px; left:50%; transform:translateX(-50%); width:230px; height:132px; }
-    .shade { position:absolute; left:0; top:0; width:230px; height:102px;
-      border-radius:115px 115px 28px 28px / 75px 75px 25px 25px;
-      background:radial-gradient(ellipse at 50% 15%,rgba(255,221,159,.20),transparent 34%),
-      linear-gradient(180deg,#4a3520 0%,#241a10 48%,#0c0b0a 100%);
-      box-shadow:inset 0 2px 10px rgba(255,220,160,.10),inset 0 -14px 25px rgba(0,0,0,.65),0 18px 38px rgba(0,0,0,.65); }
-    .shade:after { content:""; position:absolute; left:40px; right:40px; bottom:7px; height:10px; border-radius:50%; background:rgba(0,0,0,.55); filter:blur(4px); }
-    .bulb { position:absolute; left:50%; top:69px; transform:translateX(-50%); width:42px; height:42px; border-radius:50%;
-      background:radial-gradient(circle at 35% 30%,#fff,#fff0bd 30%,#ffd45c 58%,#d58d27 100%);
-      box-shadow:0 0 14px 5px rgba(255,211,107,.72),0 0 65px 22px rgba(226,161,55,.30),0 0 125px 45px rgba(207,145,40,.13);
-      animation:bulbPulse 2.8s ease-in-out infinite; }
-    @keyframes bulbPulse { 0%,100%{filter:brightness(.96)} 50%{filter:brightness(1.08)} }
-    .light-cone { position:absolute; top:212px; left:50%; transform:translateX(-50%); width:min(850px,78vw); height:470px;
-      pointer-events:none; background:linear-gradient(180deg,rgba(255,207,104,.13),rgba(255,184,62,.035) 48%,transparent 78%);
-      clip-path:polygon(39% 0,61% 0,100% 100%,0 100%); filter:blur(8px); }
-    .floor-glow { position:absolute; top:610px; left:50%; transform:translateX(-50%); width:620px; height:160px; border-radius:50%;
-      background:radial-gradient(ellipse,rgba(218,162,62,.08),transparent 70%); filter:blur(15px); }
-
-    .pull-cord-visual { position:absolute; top:188px; left:calc(50% + 49px); width:2px; height:150px; z-index:4;
-      background:linear-gradient(180deg,#555,#aaa 48%,#2b2b2b); box-shadow:1px 0 3px rgba(0,0,0,.7); }
-    .pull-bead { position:absolute; left:50%; bottom:-18px; transform:translateX(-50%); width:25px; height:30px; border-radius:50% 50% 46% 46%;
-      background:radial-gradient(circle at 34% 27%,#f0c77b 0%,#ae7130 35%,#4a2912 78%,#1c1008 100%);
-      box-shadow:0 5px 12px rgba(0,0,0,.75),0 0 18px rgba(232,164,61,.24),inset 0 -4px 5px rgba(0,0,0,.4); }
-    .pull-bead:after { content:""; position:absolute; top:6px; left:6px; width:6px; height:6px; border-radius:50%; background:#fff1c7; box-shadow:0 0 8px #fff1c7; }
-
-    /* OFF state: the only Streamlit button is the invisible pull target. */
-    div[data-testid="stButton"] { position:fixed !important; z-index:100 !important; }
-    div[data-testid="stButton"] button { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif !important; }
-    div[data-testid="stButton"] button { height:105px !important; min-height:105px !important; width:100px !important;
-      opacity:0 !important; background:transparent !important; border:0 !important; cursor:pointer !important; padding:0 !important; }
-
-    .auth-shell { position:fixed; top:385px; left:50%; transform:translateX(-50%); width:430px; z-index:40; padding:27px 30px 25px;
-      border-radius:20px; background:linear-gradient(145deg,rgba(31,31,30,.985),rgba(19,19,19,.985));
-      border:1px solid rgba(221,174,84,.30); box-shadow:0 28px 75px rgba(0,0,0,.72),0 0 75px rgba(209,157,55,.08),inset 0 1px 0 rgba(255,255,255,.07); pointer-events:none; }
-    .auth-shell:before { content:""; position:absolute; top:0; left:26px; right:26px; height:1px; background:linear-gradient(90deg,transparent,#e4ba69,transparent); opacity:.7; }
-    .brand-title { text-align:center; color:#efc66d; font-size:24px; font-weight:850; letter-spacing:5px; margin:0; }
-    .brand-sub { text-align:center; color:#82745d; font-size:9px; font-weight:700; letter-spacing:5px; margin:5px 0 20px; }
-    .auth-divider { height:1px; background:linear-gradient(90deg,transparent,rgba(220,174,85,.28),transparent); margin-bottom:16px; }
-
-    div[data-testid="stRadio"] { position:fixed !important; top:486px !important; left:50% !important; transform:translateX(-50%) !important; width:370px !important; z-index:80 !important; }
-    div[data-testid="stRadio"] > label { display:none !important; }
-    div[data-testid="stRadio"] [role="radiogroup"] { display:flex !important; gap:4px !important; padding:4px !important; background:#0d0d0d !important; border:1px solid rgba(255,255,255,.07) !important; border-radius:10px !important; }
-    div[data-testid="stRadio"] [role="radio"] { flex:1 !important; justify-content:center !important; padding:8px !important; border-radius:7px !important; color:#777168 !important; font-size:11px !important; font-weight:800 !important; letter-spacing:1.4px !important; }
-    div[data-testid="stRadio"] [role="radio"][aria-checked="true"] { background:linear-gradient(135deg,#3a2d1a,#241c11) !important; color:#efc66d !important; box-shadow:inset 0 0 0 1px rgba(220,174,84,.25) !important; }
-    div[data-testid="stRadio"] [role="radio"] > div:first-child { display:none !important; }
-
-    div[data-testid="stTextInput"] { position:fixed !important; left:50% !important; transform:translateX(-50%) !important; width:370px !important; z-index:80 !important; }
-    div[data-testid="stTextInput"]:has(input[aria-label="USERNAME"]) { top:545px !important; }
-    div[data-testid="stTextInput"]:has(input[aria-label="PASSWORD"]) { top:619px !important; }
-    div[data-testid="stTextInput"]:has(input[aria-label="CONFIRM PASSWORD"]) { top:693px !important; }
-    div[data-testid="stTextInput"] label, div[data-testid="stTextInput"] label p { color:#9d8968 !important; font-size:9px !important; font-weight:800 !important; letter-spacing:2px !important; margin-bottom:5px !important; }
-    div[data-testid="stTextInput"] input { height:42px !important; border-radius:9px !important; background:#0c0c0d !important; color:#f7f1e5 !important; -webkit-text-fill-color:#f7f1e5 !important; border:1px solid rgba(255,255,255,.09) !important; }
-    div[data-testid="stTextInput"] input:focus { border-color:rgba(225,179,88,.68) !important; box-shadow:0 0 0 2px rgba(225,179,88,.08),0 0 18px rgba(225,179,88,.08) !important; }
-
-    /* ON state: only the auth button is rendered, so this selector is unambiguous. */
-    div[data-testid="stButton"] { top:770px !important; left:50% !important; transform:translateX(-50%) !important; width:370px !important; }
-    div[data-testid="stButton"] button[kind="primary"] { height:44px !important; min-height:44px !important; width:370px !important; opacity:1 !important; border-radius:9px !important;
-      background:linear-gradient(135deg,#c89b48,#e4bb68) !important; color:#17130d !important; border:1px solid rgba(245,207,123,.45) !important;
-      font-weight:900 !important; letter-spacing:1.5px !important; box-shadow:0 8px 24px rgba(205,158,69,.16) !important; }
-    div[data-testid="stButton"] button[kind="primary"]:hover { filter:brightness(1.07) !important; }
-
-    .auth-hint { position:fixed; top:825px; left:50%; transform:translateX(-50%); color:#70685c; font-size:9px; letter-spacing:2px; text-align:center; width:440px; z-index:50; }
-    .auth-error { position:fixed; top:870px; left:50%; transform:translateX(-50%); color:#ffaaa0; background:rgba(71,24,20,.96); border:1px solid rgba(255,100,80,.22); border-radius:8px; padding:8px 14px; font-size:11px; font-weight:700; width:390px; text-align:center; z-index:200; }
-
-    @media(max-width:600px){
-      .pendant{transform:translateX(-50%) scale(.78); transform-origin:top center;}
-      .main-wire{height:112px;} .pull-cord-visual{top:164px;height:120px;}
-      .light-cone{top:195px;width:110vw;} .auth-shell{width:calc(100vw - 28px);top:330px;padding:23px 18px;}
-      div[data-testid="stRadio"],div[data-testid="stTextInput"],div[data-testid="stButton"]{width:calc(100vw - 58px) !important;}
-      div[data-testid="stRadio"]{top:424px !important;}
-      div[data-testid="stTextInput"]:has(input[aria-label="USERNAME"]){top:482px !important;}
-      div[data-testid="stTextInput"]:has(input[aria-label="PASSWORD"]){top:556px !important;}
-      div[data-testid="stTextInput"]:has(input[aria-label="CONFIRM PASSWORD"]){top:630px !important;}
-      div[data-testid="stButton"] button[kind="primary"]{width:calc(100vw - 58px) !important;}
-      .auth-hint{width:90vw;top:704px;} .auth-error{width:calc(100vw - 40px);top:750px;}
-    }
+        section[data-testid="stSidebar"],
+        header[data-testid="stHeader"],
+        [data-testid="stToolbar"],
+        [data-testid="stDecoration"],
+        [data-testid="stStatusWidget"],
+        #MainMenu,
+        footer,
+        .stAppDeployButton,
+        [data-testid="manage-app-button"] {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        html, body, .stApp {
+            background: #000000 !important;
+        }
+        .block-container {
+            padding: 0 !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+        }
+        iframe {
+            border: none !important;
+        }
     </style>
     """, unsafe_allow_html=True)
 
-    # Visual-only lamp. No iframe: therefore the pull target can never be blocked.
-    st.markdown("""
-    <div class="login-scene">
-      <div class="ceiling-mount"></div>
-      <div class="main-wire"></div>
-      <div class="pendant"><div class="shade"></div><div class="bulb"></div></div>
-      <div class="light-cone"></div><div class="floor-glow"></div>
-      <div class="pull-cord-visual"><div class="pull-bead"></div></div>
-    </div>
-    """, unsafe_allow_html=True)
+    # Render lamp (full screen)
+    components.html(build_lamp_html(st.session_state["light_on"]), height=900, scrolling=False)
 
-    if not st.session_state["light_on"]:
-        # Exactly one Streamlit button exists in OFF mode.
-        pull_cord = st.button("PULL", key="pull_cord", use_container_width=True)
-        if pull_cord:
-            st.session_state["light_on"] = True
-            st.session_state["auth_error"] = ""
-            st.rerun()
-        st.markdown('<div style="position:fixed;top:505px;left:50%;transform:translateX(-50%);z-index:20;color:#71695e;font-size:10px;letter-spacing:3px;">PULL THE CORD TO BEGIN</div>', unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div class="auth-shell">
-          <div class="brand-title">AL-BARAKAH</div>
-          <div class="brand-sub">ENTERPRISES • SECURE ACCESS</div>
-          <div class="auth-divider"></div>
+    # Hidden form + trigger buttons
+    with st.container():
+        st.markdown('<div id="hidden_lamp_inputs" style="position:fixed;left:-99999px;top:-99999px;height:0;width:0;overflow:hidden;">', unsafe_allow_html=True)
+        st.text_input("__LU__", key="lamp_user", label_visibility="visible")
+        st.text_input("__LP__", key="lamp_pass", label_visibility="visible")
+        st.text_input("__LP2__", key="lamp_pass2", label_visibility="visible")
+        st.text_input("__LM__", key="lamp_mode", label_visibility="visible")
+        turn_on = st.button("__LAMP_TURN_ON__", key="lamp_turn_on")
+        submit = st.button("__LAMP_SUBMIT__", key="lamp_submit")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # Show current error if any
+    if st.session_state.get("auth_error"):
+        st.markdown(f"""
+        <div style="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);
+                    background:rgba(200,40,40,0.9);color:#fff;padding:10px 22px;
+                    border-radius:10px;font-weight:700;font-size:14px;z-index:2147483647;
+                    box-shadow:0 6px 20px rgba(0,0,0,0.6);">
+            ⚠️ {st.session_state["auth_error"]}
         </div>
         """, unsafe_allow_html=True)
+        # clear after showing
+        st.session_state["auth_error"] = ""
 
-        mode = st.radio("MODE", ["LOGIN", "SIGNUP"], horizontal=True, key="auth_mode", label_visibility="collapsed")
-        st.text_input("USERNAME", key="auth_username", placeholder="Enter your username")
-        st.text_input("PASSWORD", key="auth_password", type="password", placeholder="Enter your password")
-        if mode == "SIGNUP":
-            st.text_input("CONFIRM PASSWORD", key="auth_password2", type="password", placeholder="Repeat your password")
+    if turn_on:
+        st.session_state["light_on"] = True
+        st.rerun()
 
-        action_label = "CREATE ACCOUNT" if mode == "SIGNUP" else "SIGN IN"
-        auth_action = st.button(action_label, key="auth_action", type="primary", use_container_width=True)
-        st.markdown('<div class="auth-hint">SECURE BUSINESS MANAGEMENT • AL-BARAKAH ENTERPRISES</div>', unsafe_allow_html=True)
+    if submit:
+        users = load_users()
+        uname_raw = st.session_state.get("lamp_user", "").strip().lower()
+        uname = sanitize_username(uname_raw)
+        pass_v = st.session_state.get("lamp_pass", "")
+        pass2_v = st.session_state.get("lamp_pass2", "")
+        mode = st.session_state.get("lamp_mode", "login")
 
-        if auth_action:
-            users = load_users()
-            uname_raw = st.session_state.get("auth_username", "").strip()
-            uname = sanitize_username(uname_raw)
-            pass_v = st.session_state.get("auth_password", "")
-            pass2_v = st.session_state.get("auth_password2", "")
-
-            if not uname or not pass_v:
-                st.session_state["auth_error"] = "Please enter your username and password."
-            elif mode == "LOGIN":
-                if uname not in users:
-                    st.session_state["auth_error"] = "Username not found. Please create an account first."
-                elif users[uname].get("password_hash") != hash_password(pass_v):
-                    st.session_state["auth_error"] = "Incorrect password. Please try again."
-                else:
-                    st.session_state["logged_in_user"] = uname
-                    st.session_state["display_name"] = users[uname].get("display_name", uname)
-                    st.session_state["page"] = "📊 Dashboard"
-                    st.session_state["light_on"] = False
-                    st.session_state["auth_error"] = ""
-                    st.rerun()
+        if mode == "login":
+            if uname == "" or pass_v == "":
+                st.session_state["auth_error"] = "Please fill all fields"
+            elif uname not in users:
+                st.session_state["auth_error"] = "Username not found. Please signup."
+                st.session_state["light_on"] = True
+            elif users[uname].get("password_hash") != hash_password(pass_v):
+                st.session_state["auth_error"] = "Incorrect password"
+                st.session_state["light_on"] = True
             else:
-                if len(uname) < 3:
-                    st.session_state["auth_error"] = "Username must be at least 3 characters."
-                elif len(uname) > 20:
-                    st.session_state["auth_error"] = "Username must be 20 characters or less."
-                elif len(pass_v) < 4:
-                    st.session_state["auth_error"] = "Password must be at least 4 characters."
-                elif pass_v != pass2_v:
-                    st.session_state["auth_error"] = "Passwords do not match."
-                elif uname in users:
-                    st.session_state["auth_error"] = f"Username '{uname}' is already registered."
-                else:
-                    users[uname] = {
-                        "username": uname,
-                        "display_name": uname_raw,
-                        "password_hash": hash_password(pass_v),
-                        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    }
-                    save_users(users)
-                    with open(user_data_file(uname), "w", encoding="utf-8") as f:
-                        json.dump(default_blank_db(), f, indent=4, ensure_ascii=False)
-                    st.session_state["logged_in_user"] = uname
-                    st.session_state["display_name"] = uname_raw
-                    st.session_state["page"] = "📊 Dashboard"
-                    st.session_state["light_on"] = False
-                    st.session_state["auth_error"] = ""
-                    st.rerun()
+                st.session_state["logged_in_user"] = uname
+                st.session_state["display_name"] = users[uname].get("display_name", uname)
+                st.session_state["page"] = "📊 Dashboard"
+                st.session_state["light_on"] = False
+                # clear
+                st.session_state["lamp_user"] = ""
+                st.session_state["lamp_pass"] = ""
+                st.session_state["lamp_pass2"] = ""
+                st.session_state["lamp_mode"] = ""
+                st.rerun()
+
+        else:  # signup
+            if uname == "" or pass_v == "" or pass2_v == "":
+                st.session_state["auth_error"] = "Please fill all fields"
+            elif len(uname) < 3:
+                st.session_state["auth_error"] = "Username min 3 chars"
+            elif len(uname) > 20:
+                st.session_state["auth_error"] = "Username max 20 chars"
+            elif len(pass_v) < 4:
+                st.session_state["auth_error"] = "Password min 4 chars"
+            elif pass_v != pass2_v:
+                st.session_state["auth_error"] = "Passwords do not match"
+            elif uname in users:
+                st.session_state["auth_error"] = f"Username '{uname}' already taken"
+            else:
+                users[uname] = {
+                    "username": uname,
+                    "display_name": uname_raw,
+                    "password_hash": hash_password(pass_v),
+                    "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                }
+                save_users(users)
+                with open(user_data_file(uname), "w", encoding="utf-8") as f:
+                    json.dump(default_blank_db(), f, indent=4, ensure_ascii=False)
+                st.session_state["logged_in_user"] = uname
+                st.session_state["display_name"] = uname_raw
+                st.session_state["page"] = "📊 Dashboard"
+                st.session_state["light_on"] = False
+                st.session_state["lamp_user"] = ""
+                st.session_state["lamp_pass"] = ""
+                st.session_state["lamp_pass2"] = ""
+                st.session_state["lamp_mode"] = ""
+                st.rerun()
 
         if st.session_state.get("auth_error"):
-            st.markdown(f'<div class="auth-error">⚠️ {st.session_state["auth_error"]}</div>', unsafe_allow_html=True)
+            st.session_state["light_on"] = True
+        st.rerun()
 
     st.stop()
 
