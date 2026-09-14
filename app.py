@@ -1164,153 +1164,198 @@ if "auth_error" not in st.session_state:
     st.session_state["auth_error"] = ""
 
 # ============================================================
-# RELIABLE AUTH UI — NATIVE STREAMLIT CONTROLS
+# PROFESSIONAL LAMP LOGIN — RELIABLE NATIVE STREAMLIT FLOW
 # ============================================================
 if not st.session_state.get("logged_in_user"):
     st.markdown("""
     <style>
-        section[data-testid="stSidebar"], header[data-testid="stHeader"],
-        [data-testid="stToolbar"], [data-testid="stDecoration"],
-        [data-testid="stStatusWidget"], #MainMenu, footer,
-        .stAppDeployButton, [data-testid="manage-app-button"] { display:none !important; }
-        html, body, .stApp { background:#0b0b0c !important; overflow-x:hidden !important; overflow-y:auto !important; }
-        .block-container { padding:0 !important; max-width:100% !important; margin:0 !important; }
-        iframe { border:none !important; position:relative !important; z-index:1 !important; pointer-events:none !important; }
+    section[data-testid="stSidebar"], header[data-testid="stHeader"],
+    [data-testid="stToolbar"], [data-testid="stDecoration"],
+    [data-testid="stStatusWidget"], #MainMenu, footer,
+    .stAppDeployButton, [data-testid="manage-app-button"] { display:none !important; }
+    html, body, .stApp { background:#101011 !important; color:#eee !important; overflow-x:hidden !important; }
+    .block-container { padding:0 !important; max-width:100% !important; }
 
-        .auth-card {
-            position:fixed; top:395px; left:50%; transform:translateX(-50%);
-            width:440px; height:350px; border-radius:22px;
-            background:linear-gradient(145deg,rgba(28,29,31,.97),rgba(15,16,18,.985));
-            border:1px solid rgba(214,167,82,.34);
-            box-shadow:0 30px 90px rgba(0,0,0,.72),0 0 90px rgba(205,154,58,.10),inset 0 1px 0 rgba(255,255,255,.07);
-            z-index:20; pointer-events:none; backdrop-filter:blur(18px);
-        }
-        .auth-card::before { content:''; position:absolute; left:28px; right:28px; top:0; height:1px; background:linear-gradient(90deg,transparent,rgba(238,194,105,.65),transparent); }
-        .auth-title { position:fixed; top:420px; left:50%; transform:translateX(-50%); width:400px; text-align:center; z-index:40; pointer-events:none; color:#e8bf68; font-size:22px; font-weight:800; letter-spacing:5px; text-shadow:0 0 24px rgba(226,178,83,.25); }
-        .auth-subtitle { position:fixed; top:449px; left:50%; transform:translateX(-50%); width:400px; text-align:center; z-index:40; pointer-events:none; color:#81745e; font-size:8px; font-weight:700; letter-spacing:5px; }
-        .auth-line { position:fixed; top:466px; left:50%; transform:translateX(-50%); width:330px; height:1px; z-index:40; pointer-events:none; background:linear-gradient(90deg,transparent,rgba(214,167,82,.30),transparent); }
+    .login-scene { position:fixed; inset:0; z-index:0; overflow:hidden;
+      background:radial-gradient(ellipse at 50% 18%,rgba(214,164,72,.10),transparent 27%),
+      radial-gradient(ellipse at 50% 70%,rgba(166,116,38,.055),transparent 42%),
+      linear-gradient(180deg,#151515 0%,#101011 58%,#0c0c0d 100%); }
+    .login-scene:before { content:""; position:absolute; inset:0; pointer-events:none;
+      background:linear-gradient(90deg,rgba(255,255,255,.018),transparent 28%,transparent 72%,rgba(255,255,255,.018)); }
 
-        div[data-testid="stRadio"] { position:fixed !important; top:478px !important; left:50% !important; transform:translateX(-50%) !important; width:330px !important; z-index:100 !important; padding:3px !important; border:1px solid rgba(255,255,255,.07) !important; border-radius:10px !important; background:#0d0e10 !important; }
-        div[data-testid="stRadio"] > label { display:none !important; }
-        div[data-testid="stRadio"] [role="radiogroup"] { gap:3px !important; }
-        div[data-testid="stRadio"] [role="radio"] { flex:1 !important; justify-content:center !important; padding:8px 0 !important; border-radius:7px !important; color:#77736b !important; font-size:11px !important; font-weight:800 !important; letter-spacing:1.5px !important; }
-        div[data-testid="stRadio"] [role="radio"][aria-checked="true"] { background:linear-gradient(135deg,#3a2d19,#2b2114) !important; color:#f0c86d !important; box-shadow:inset 0 0 0 1px rgba(221,174,84,.28),0 3px 12px rgba(0,0,0,.35) !important; }
-        div[data-testid="stRadio"] [role="radio"] > div:first-child { display:none !important; }
+    .ceiling-mount { position:absolute; top:0; left:50%; transform:translateX(-50%); width:76px; height:12px;
+      border-radius:0 0 9px 9px; background:linear-gradient(180deg,#343434,#171717); box-shadow:0 5px 18px rgba(0,0,0,.55); }
+    .main-wire { position:absolute; top:10px; left:50%; transform:translateX(-50%); width:2px; height:145px;
+      background:linear-gradient(180deg,#444,#777 55%,#252525); box-shadow:0 0 3px rgba(255,255,255,.12); }
 
-        div[data-testid="stTextInput"] { position:fixed !important; left:50% !important; transform:translateX(-50%) !important; width:330px !important; z-index:100 !important; }
-        div[data-testid="stTextInput"]:has(input[aria-label="USERNAME"]) { top:535px !important; }
-        div[data-testid="stTextInput"]:has(input[aria-label="PASSWORD"]) { top:602px !important; }
-        div[data-testid="stTextInput"]:has(input[aria-label="CONFIRM PASSWORD"]) { top:669px !important; }
-        div[data-testid="stTextInput"] label, div[data-testid="stTextInput"] label p { color:#9c8a69 !important; font-size:9px !important; font-weight:800 !important; letter-spacing:2px !important; margin-bottom:5px !important; }
-        div[data-testid="stTextInput"] input { height:42px !important; border-radius:9px !important; background:#0b0c0e !important; color:#f6f1e7 !important; -webkit-text-fill-color:#f6f1e7 !important; border:1px solid rgba(255,255,255,.09) !important; box-shadow:inset 0 1px 0 rgba(255,255,255,.025) !important; }
-        div[data-testid="stTextInput"] input:focus { border-color:rgba(221,174,84,.65) !important; box-shadow:0 0 0 2px rgba(221,174,84,.08),0 0 20px rgba(221,174,84,.08) !important; }
-        div[data-testid="stTextInput"] input::placeholder { color:#55565a !important; }
+    .pendant { position:absolute; top:135px; left:50%; transform:translateX(-50%); width:230px; height:132px; }
+    .shade { position:absolute; left:0; top:0; width:230px; height:102px;
+      border-radius:115px 115px 28px 28px / 75px 75px 25px 25px;
+      background:radial-gradient(ellipse at 50% 15%,rgba(255,221,159,.20),transparent 34%),
+      linear-gradient(180deg,#4a3520 0%,#241a10 48%,#0c0b0a 100%);
+      box-shadow:inset 0 2px 10px rgba(255,220,160,.10),inset 0 -14px 25px rgba(0,0,0,.65),0 18px 38px rgba(0,0,0,.65); }
+    .shade:after { content:""; position:absolute; left:40px; right:40px; bottom:7px; height:10px; border-radius:50%; background:rgba(0,0,0,.55); filter:blur(4px); }
+    .bulb { position:absolute; left:50%; top:69px; transform:translateX(-50%); width:42px; height:42px; border-radius:50%;
+      background:radial-gradient(circle at 35% 30%,#fff,#fff0bd 30%,#ffd45c 58%,#d58d27 100%);
+      box-shadow:0 0 14px 5px rgba(255,211,107,.72),0 0 65px 22px rgba(226,161,55,.30),0 0 125px 45px rgba(207,145,40,.13);
+      animation:bulbPulse 2.8s ease-in-out infinite; }
+    @keyframes bulbPulse { 0%,100%{filter:brightness(.96)} 50%{filter:brightness(1.08)} }
+    .light-cone { position:absolute; top:212px; left:50%; transform:translateX(-50%); width:min(850px,78vw); height:470px;
+      pointer-events:none; background:linear-gradient(180deg,rgba(255,207,104,.13),rgba(255,184,62,.035) 48%,transparent 78%);
+      clip-path:polygon(39% 0,61% 0,100% 100%,0 100%); filter:blur(8px); }
+    .floor-glow { position:absolute; top:610px; left:50%; transform:translateX(-50%); width:620px; height:160px; border-radius:50%;
+      background:radial-gradient(ellipse,rgba(218,162,62,.08),transparent 70%); filter:blur(15px); }
 
-        /* Authentication action button */
-        div[data-testid="stButton"] { position:fixed !important; top:718px !important; left:50% !important; transform:translateX(-50%) !important; width:330px !important; z-index:120 !important; }
-        div[data-testid="stButton"] button { height:43px !important; border-radius:9px !important; border:1px solid rgba(225,180,88,.42) !important; background:linear-gradient(135deg,#c99b45,#e0b85f) !important; color:#17130d !important; font-weight:900 !important; letter-spacing:1.5px !important; box-shadow:0 8px 24px rgba(202,157,67,.16) !important; }
-        div[data-testid="stButton"] button:hover { border-color:#f1cc78 !important; filter:brightness(1.06) !important; }
+    .pull-cord-visual { position:absolute; top:188px; left:calc(50% + 49px); width:2px; height:150px; z-index:4;
+      background:linear-gradient(180deg,#555,#aaa 48%,#2b2b2b); box-shadow:1px 0 3px rgba(0,0,0,.7); }
+    .pull-bead { position:absolute; left:50%; bottom:-18px; transform:translateX(-50%); width:25px; height:30px; border-radius:50% 50% 46% 46%;
+      background:radial-gradient(circle at 34% 27%,#f0c77b 0%,#ae7130 35%,#4a2912 78%,#1c1008 100%);
+      box-shadow:0 5px 12px rgba(0,0,0,.75),0 0 18px rgba(232,164,61,.24),inset 0 -4px 5px rgba(0,0,0,.4); }
+    .pull-bead:after { content:""; position:absolute; top:6px; left:6px; width:6px; height:6px; border-radius:50%; background:#fff1c7; box-shadow:0 0 8px #fff1c7; }
 
-        /* Invisible PULL target over the pendant bead */
-        div[data-testid="stButton"]:has(button[aria-label="PULL"]) { top:335px !important; left:calc(50% + 12px) !important; width:72px !important; height:78px !important; z-index:150 !important; }
-        div[data-testid="stButton"]:has(button[aria-label="PULL"]) button { width:72px !important; height:78px !important; min-height:78px !important; opacity:0 !important; background:transparent !important; border:0 !important; }
+    /* OFF state: the only Streamlit button is the invisible pull target. */
+    div[data-testid="stButton"] { position:fixed !important; z-index:100 !important; }
+    div[data-testid="stButton"] button { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif !important; }
+    div[data-testid="stButton"] button { height:105px !important; min-height:105px !important; width:100px !important;
+      opacity:0 !important; background:transparent !important; border:0 !important; cursor:pointer !important; padding:0 !important; }
 
-        .auth-hint { position:fixed; top:772px; left:50%; transform:translateX(-50%); width:400px; text-align:center; z-index:40; pointer-events:none; color:#66615a; font-size:9px; letter-spacing:2px; }
-        .auth-error { position:fixed; top:775px; left:50%; transform:translateX(-50%); width:390px; text-align:center; z-index:200; color:#ffaaa0; font-size:11px; font-weight:700; background:rgba(71,24,20,.94); border:1px solid rgba(255,100,80,.20); border-radius:8px; padding:8px 12px; }
-        @media(max-width:600px){
-            .auth-card { width:calc(100vw - 28px); top:385px; }
-            .auth-title,.auth-subtitle,.auth-line { width:calc(100vw - 55px); }
-            div[data-testid="stRadio"], div[data-testid="stTextInput"], div[data-testid="stButton"] { width:calc(100vw - 80px) !important; }
-        }
+    .auth-shell { position:fixed; top:385px; left:50%; transform:translateX(-50%); width:430px; z-index:40; padding:27px 30px 25px;
+      border-radius:20px; background:linear-gradient(145deg,rgba(31,31,30,.985),rgba(19,19,19,.985));
+      border:1px solid rgba(221,174,84,.30); box-shadow:0 28px 75px rgba(0,0,0,.72),0 0 75px rgba(209,157,55,.08),inset 0 1px 0 rgba(255,255,255,.07); pointer-events:none; }
+    .auth-shell:before { content:""; position:absolute; top:0; left:26px; right:26px; height:1px; background:linear-gradient(90deg,transparent,#e4ba69,transparent); opacity:.7; }
+    .brand-title { text-align:center; color:#efc66d; font-size:24px; font-weight:850; letter-spacing:5px; margin:0; }
+    .brand-sub { text-align:center; color:#82745d; font-size:9px; font-weight:700; letter-spacing:5px; margin:5px 0 20px; }
+    .auth-divider { height:1px; background:linear-gradient(90deg,transparent,rgba(220,174,85,.28),transparent); margin-bottom:16px; }
+
+    div[data-testid="stRadio"] { position:fixed !important; top:486px !important; left:50% !important; transform:translateX(-50%) !important; width:370px !important; z-index:80 !important; }
+    div[data-testid="stRadio"] > label { display:none !important; }
+    div[data-testid="stRadio"] [role="radiogroup"] { display:flex !important; gap:4px !important; padding:4px !important; background:#0d0d0d !important; border:1px solid rgba(255,255,255,.07) !important; border-radius:10px !important; }
+    div[data-testid="stRadio"] [role="radio"] { flex:1 !important; justify-content:center !important; padding:8px !important; border-radius:7px !important; color:#777168 !important; font-size:11px !important; font-weight:800 !important; letter-spacing:1.4px !important; }
+    div[data-testid="stRadio"] [role="radio"][aria-checked="true"] { background:linear-gradient(135deg,#3a2d1a,#241c11) !important; color:#efc66d !important; box-shadow:inset 0 0 0 1px rgba(220,174,84,.25) !important; }
+    div[data-testid="stRadio"] [role="radio"] > div:first-child { display:none !important; }
+
+    div[data-testid="stTextInput"] { position:fixed !important; left:50% !important; transform:translateX(-50%) !important; width:370px !important; z-index:80 !important; }
+    div[data-testid="stTextInput"]:has(input[aria-label="USERNAME"]) { top:545px !important; }
+    div[data-testid="stTextInput"]:has(input[aria-label="PASSWORD"]) { top:619px !important; }
+    div[data-testid="stTextInput"]:has(input[aria-label="CONFIRM PASSWORD"]) { top:693px !important; }
+    div[data-testid="stTextInput"] label, div[data-testid="stTextInput"] label p { color:#9d8968 !important; font-size:9px !important; font-weight:800 !important; letter-spacing:2px !important; margin-bottom:5px !important; }
+    div[data-testid="stTextInput"] input { height:42px !important; border-radius:9px !important; background:#0c0c0d !important; color:#f7f1e5 !important; -webkit-text-fill-color:#f7f1e5 !important; border:1px solid rgba(255,255,255,.09) !important; }
+    div[data-testid="stTextInput"] input:focus { border-color:rgba(225,179,88,.68) !important; box-shadow:0 0 0 2px rgba(225,179,88,.08),0 0 18px rgba(225,179,88,.08) !important; }
+
+    /* ON state: only the auth button is rendered, so this selector is unambiguous. */
+    div[data-testid="stButton"] { top:770px !important; left:50% !important; transform:translateX(-50%) !important; width:370px !important; }
+    div[data-testid="stButton"] button[kind="primary"] { height:44px !important; min-height:44px !important; width:370px !important; opacity:1 !important; border-radius:9px !important;
+      background:linear-gradient(135deg,#c89b48,#e4bb68) !important; color:#17130d !important; border:1px solid rgba(245,207,123,.45) !important;
+      font-weight:900 !important; letter-spacing:1.5px !important; box-shadow:0 8px 24px rgba(205,158,69,.16) !important; }
+    div[data-testid="stButton"] button[kind="primary"]:hover { filter:brightness(1.07) !important; }
+
+    .auth-hint { position:fixed; top:825px; left:50%; transform:translateX(-50%); color:#70685c; font-size:9px; letter-spacing:2px; text-align:center; width:440px; z-index:50; }
+    .auth-error { position:fixed; top:870px; left:50%; transform:translateX(-50%); color:#ffaaa0; background:rgba(71,24,20,.96); border:1px solid rgba(255,100,80,.22); border-radius:8px; padding:8px 14px; font-size:11px; font-weight:700; width:390px; text-align:center; z-index:200; }
+
+    @media(max-width:600px){
+      .pendant{transform:translateX(-50%) scale(.78); transform-origin:top center;}
+      .main-wire{height:112px;} .pull-cord-visual{top:164px;height:120px;}
+      .light-cone{top:195px;width:110vw;} .auth-shell{width:calc(100vw - 28px);top:330px;padding:23px 18px;}
+      div[data-testid="stRadio"],div[data-testid="stTextInput"],div[data-testid="stButton"]{width:calc(100vw - 58px) !important;}
+      div[data-testid="stRadio"]{top:424px !important;}
+      div[data-testid="stTextInput"]:has(input[aria-label="USERNAME"]){top:482px !important;}
+      div[data-testid="stTextInput"]:has(input[aria-label="PASSWORD"]){top:556px !important;}
+      div[data-testid="stTextInput"]:has(input[aria-label="CONFIRM PASSWORD"]){top:630px !important;}
+      div[data-testid="stButton"] button[kind="primary"]{width:calc(100vw - 58px) !important;}
+      .auth-hint{width:90vw;top:704px;} .auth-error{width:calc(100vw - 40px);top:750px;}
+    }
     </style>
     """, unsafe_allow_html=True)
 
-    components.html(build_lamp_html(st.session_state["light_on"]), height=800, scrolling=False)
+    # Visual-only lamp. No iframe: therefore the pull target can never be blocked.
+    st.markdown("""
+    <div class="login-scene">
+      <div class="ceiling-mount"></div>
+      <div class="main-wire"></div>
+      <div class="pendant"><div class="shade"></div><div class="bulb"></div></div>
+      <div class="light-cone"></div><div class="floor-glow"></div>
+      <div class="pull-cord-visual"><div class="pull-bead"></div></div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    if st.session_state["light_on"]:
-        st.markdown('''<div class="auth-card"></div>
-            <div class="auth-title">AL-BARAKAH</div>
-            <div class="auth-subtitle">ENTERPRISES • SECURE ACCESS</div>
-            <div class="auth-line"></div>''', unsafe_allow_html=True)
+    if not st.session_state["light_on"]:
+        # Exactly one Streamlit button exists in OFF mode.
+        pull_cord = st.button("PULL", key="pull_cord", use_container_width=True)
+        if pull_cord:
+            st.session_state["light_on"] = True
+            st.session_state["auth_error"] = ""
+            st.rerun()
+        st.markdown('<div style="position:fixed;top:505px;left:50%;transform:translateX(-50%);z-index:20;color:#71695e;font-size:10px;letter-spacing:3px;">PULL THE CORD TO BEGIN</div>', unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div class="auth-shell">
+          <div class="brand-title">AL-BARAKAH</div>
+          <div class="brand-sub">ENTERPRISES • SECURE ACCESS</div>
+          <div class="auth-divider"></div>
+        </div>
+        """, unsafe_allow_html=True)
+
         mode = st.radio("MODE", ["LOGIN", "SIGNUP"], horizontal=True, key="auth_mode", label_visibility="collapsed")
         st.text_input("USERNAME", key="auth_username", placeholder="Enter your username")
         st.text_input("PASSWORD", key="auth_password", type="password", placeholder="Enter your password")
         if mode == "SIGNUP":
             st.text_input("CONFIRM PASSWORD", key="auth_password2", type="password", placeholder="Repeat your password")
+
         action_label = "CREATE ACCOUNT" if mode == "SIGNUP" else "SIGN IN"
-        auth_action = st.button(action_label, key="auth_action", use_container_width=True)
+        auth_action = st.button(action_label, key="auth_action", type="primary", use_container_width=True)
         st.markdown('<div class="auth-hint">SECURE BUSINESS MANAGEMENT • AL-BARAKAH ENTERPRISES</div>', unsafe_allow_html=True)
-    else:
-        mode = "LOGIN"
-        auth_action = False
 
-    # Native Streamlit pull target for the pendant.
-    st.markdown('<div class="cord-hit-area">', unsafe_allow_html=True)
-    pull_cord = st.button("PULL", key="pull_cord", use_container_width=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+        if auth_action:
+            users = load_users()
+            uname_raw = st.session_state.get("auth_username", "").strip()
+            uname = sanitize_username(uname_raw)
+            pass_v = st.session_state.get("auth_password", "")
+            pass2_v = st.session_state.get("auth_password2", "")
 
-    if pull_cord:
-        if not st.session_state["light_on"]:
-            st.session_state["light_on"] = True
-            st.session_state["auth_error"] = ""
-            st.rerun()
-        else:
-            # Cord is only for the lamp. Authentication uses the clean action button.
-            st.session_state["light_on"] = False
-            st.session_state["auth_error"] = ""
-            st.rerun()
-
-    if st.session_state["light_on"] and auth_action:
-        users = load_users()
-        uname_raw = st.session_state.get("auth_username", "").strip()
-        uname = sanitize_username(uname_raw)
-        pass_v = st.session_state.get("auth_password", "")
-        pass2_v = st.session_state.get("auth_password2", "")
-
-        if not uname or not pass_v:
-            st.session_state["auth_error"] = "Please enter your username and password."
-        elif mode == "LOGIN":
-            if uname not in users:
-                st.session_state["auth_error"] = "Username not found. Please create an account first."
-            elif users[uname].get("password_hash") != hash_password(pass_v):
-                st.session_state["auth_error"] = "Incorrect password. Please try again."
+            if not uname or not pass_v:
+                st.session_state["auth_error"] = "Please enter your username and password."
+            elif mode == "LOGIN":
+                if uname not in users:
+                    st.session_state["auth_error"] = "Username not found. Please create an account first."
+                elif users[uname].get("password_hash") != hash_password(pass_v):
+                    st.session_state["auth_error"] = "Incorrect password. Please try again."
+                else:
+                    st.session_state["logged_in_user"] = uname
+                    st.session_state["display_name"] = users[uname].get("display_name", uname)
+                    st.session_state["page"] = "📊 Dashboard"
+                    st.session_state["light_on"] = False
+                    st.session_state["auth_error"] = ""
+                    st.rerun()
             else:
-                st.session_state["logged_in_user"] = uname
-                st.session_state["display_name"] = users[uname].get("display_name", uname)
-                st.session_state["page"] = "📊 Dashboard"
-                st.session_state["light_on"] = False
-                st.session_state["auth_error"] = ""
-                st.rerun()
-        else:
-            if len(uname) < 3:
-                st.session_state["auth_error"] = "Username must be at least 3 characters."
-            elif len(uname) > 20:
-                st.session_state["auth_error"] = "Username must be 20 characters or less."
-            elif len(pass_v) < 4:
-                st.session_state["auth_error"] = "Password must be at least 4 characters."
-            elif pass_v != pass2_v:
-                st.session_state["auth_error"] = "Passwords do not match."
-            elif uname in users:
-                st.session_state["auth_error"] = f"Username '{uname}' is already registered."
-            else:
-                users[uname] = {
-                    "username": uname,
-                    "display_name": uname_raw,
-                    "password_hash": hash_password(pass_v),
-                    "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                }
-                save_users(users)
-                with open(user_data_file(uname), "w", encoding="utf-8") as f:
-                    json.dump(default_blank_db(), f, indent=4, ensure_ascii=False)
-                st.session_state["logged_in_user"] = uname
-                st.session_state["display_name"] = uname_raw
-                st.session_state["page"] = "📊 Dashboard"
-                st.session_state["light_on"] = False
-                st.session_state["auth_error"] = ""
-                st.rerun()
+                if len(uname) < 3:
+                    st.session_state["auth_error"] = "Username must be at least 3 characters."
+                elif len(uname) > 20:
+                    st.session_state["auth_error"] = "Username must be 20 characters or less."
+                elif len(pass_v) < 4:
+                    st.session_state["auth_error"] = "Password must be at least 4 characters."
+                elif pass_v != pass2_v:
+                    st.session_state["auth_error"] = "Passwords do not match."
+                elif uname in users:
+                    st.session_state["auth_error"] = f"Username '{uname}' is already registered."
+                else:
+                    users[uname] = {
+                        "username": uname,
+                        "display_name": uname_raw,
+                        "password_hash": hash_password(pass_v),
+                        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    }
+                    save_users(users)
+                    with open(user_data_file(uname), "w", encoding="utf-8") as f:
+                        json.dump(default_blank_db(), f, indent=4, ensure_ascii=False)
+                    st.session_state["logged_in_user"] = uname
+                    st.session_state["display_name"] = uname_raw
+                    st.session_state["page"] = "📊 Dashboard"
+                    st.session_state["light_on"] = False
+                    st.session_state["auth_error"] = ""
+                    st.rerun()
 
-    if st.session_state.get("auth_error") and st.session_state.get("light_on"):
-        st.markdown(f'<div class="auth-error">{st.session_state["auth_error"]}</div>', unsafe_allow_html=True)
+        if st.session_state.get("auth_error"):
+            st.markdown(f'<div class="auth-error">⚠️ {st.session_state["auth_error"]}</div>', unsafe_allow_html=True)
 
     st.stop()
 
