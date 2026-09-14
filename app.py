@@ -1186,10 +1186,11 @@ if not st.session_state.get("logged_in_user"):
             max-width:100% !important;
             margin:0 !important;
         }
-        iframe { border:none !important; }
+        iframe { border:none !important; pointer-events:none !important; position:relative !important; z-index:1 !important; }
 
         /* Premium authentication card behind the real Streamlit fields */
         .auth-card {
+            pointer-events:none !important;
             position:fixed;
             top:350px;
             left:50%;
@@ -1260,21 +1261,23 @@ if not st.session_state.get("logged_in_user"):
             box-shadow:0 0 0 2px rgba(255,190,70,.10),0 0 20px rgba(255,185,60,.12) !important;
         }
 
-        /* Invisible real Streamlit button placed directly over the lamp bead/cord. */
-        div[data-testid="stButton"]:has(button p) {
+        /* Reliable invisible Streamlit click target over the pull bead. */
+        div[data-testid="stButton"] {
             position:fixed !important;
-            top:318px !important;
-            left:calc(50% + 12px) !important;
-            width:58px !important;
-            height:62px !important;
-            z-index:200 !important;
+            top:350px !important;
+            left:calc(50% + 5px) !important;
+            width:95px !important;
+            height:105px !important;
+            z-index:2147483647 !important;
             margin:0 !important;
+            padding:0 !important;
         }
-        div[data-testid="stButton"]:has(button p) button {
-            width:58px !important; height:62px !important;
-            min-height:62px !important;
+        div[data-testid="stButton"] button {
+            width:95px !important; height:105px !important;
+            min-height:105px !important;
             opacity:0 !important; cursor:pointer !important;
             padding:0 !important; border:0 !important;
+            background:transparent !important;
         }
 
         .auth-error {
@@ -1284,6 +1287,12 @@ if not st.session_state.get("logged_in_user"):
             background:rgba(90,20,15,.78); border:1px solid rgba(255,100,80,.22);
             border-radius:9px; padding:8px 12px;
         }
+        div[data-testid="stRadio"],
+        div[data-testid="stTextInput"] {
+            position:relative !important;
+            z-index:1000 !important;
+        }
+
         .auth-hint {
             position:fixed; top:700px; left:50%; transform:translateX(-50%);
             width:420px; text-align:center; z-index:60; pointer-events:none;
