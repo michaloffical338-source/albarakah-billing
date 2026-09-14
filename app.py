@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# + Multi-User Login System (Signup/Login + Per-User Data)
+# + Animated Lamp Login + Multi-User System
 # ============================================================
 
 import os
@@ -57,9 +57,6 @@ def default_blank_db():
         "discount_packages": default_discount_packages()
     }
 
-# ============================================================
-# DEFAULT DISCOUNT PACKAGES
-# ============================================================
 def default_discount_packages():
     return [
         {"id": 1, "name": "Package 1",
@@ -83,6 +80,217 @@ def default_discount_packages():
          "tier3_amount": 3100.0, "tier3_pct": 3.0,
          "active": True},
     ]
+
+# ============================================================
+# LAMP HTML (black screen + pull-cord light)
+# ============================================================
+LAMP_HTML = """
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%;
+    min-height: 100vh;
+    background: #000000;
+    overflow: hidden;
+    font-family: -apple-system, 'Segoe UI', sans-serif;
+  }
+  .scene {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    background: #000000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+  }
+  .wire {
+    width: 3px;
+    height: 140px;
+    background: linear-gradient(180deg, #3a3a3a 0%, #151515 100%);
+  }
+  .lamp-wrap {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .lamp-shade {
+    width: 140px;
+    height: 85px;
+    background: linear-gradient(180deg, #2d2d2d 0%, #0f0f0f 100%);
+    border-radius: 50% 50% 6% 6% / 65% 65% 35% 35%;
+    position: relative;
+    box-shadow: inset 0 -12px 25px rgba(0,0,0,0.9), 0 4px 15px rgba(0,0,0,0.6);
+    transition: box-shadow 0.6s ease;
+    z-index: 2;
+  }
+  .lamp-shade::before {
+    content: '';
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: #2b2b2b;
+    transition: all 0.6s ease;
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.8);
+  }
+  .lamp-shade.on::before {
+    background: radial-gradient(circle at 50% 40%, #fffbe6 0%, #ffe082 40%, #ffb300 100%);
+    box-shadow:
+      0 0 40px 15px rgba(255, 220, 130, 0.85),
+      0 0 100px 35px rgba(255, 200, 80, 0.45),
+      inset 0 0 15px rgba(255, 255, 200, 0.9);
+  }
+  .lamp-shade.on {
+    box-shadow: inset 0 -12px 25px rgba(0,0,0,0.9),
+                0 0 60px 20px rgba(255, 220, 130, 0.35);
+  }
+  .beam {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 520px;
+    background: radial-gradient(ellipse at top,
+      rgba(255, 235, 160, 0.55) 0%,
+      rgba(255, 220, 130, 0.28) 25%,
+      rgba(255, 200, 80, 0.10) 50%,
+      transparent 78%);
+    opacity: 0;
+    transition: opacity 0.9s ease;
+    pointer-events: none;
+    filter: blur(6px);
+    z-index: 1;
+  }
+  .beam.on { opacity: 1; }
+  .cord {
+    position: absolute;
+    top: 65px;
+    left: 50%;
+    transform: translateX(28px);
+    width: 2px;
+    height: 110px;
+    background: linear-gradient(180deg, #666 0%, #333 100%);
+    cursor: pointer;
+    transition: transform 0.35s ease;
+    transform-origin: top center;
+    z-index: 10;
+  }
+  .cord::after {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #ffd54f, #ef6c00);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.8), 0 0 12px rgba(255,180,50,0.5);
+    transition: all 0.3s ease;
+  }
+  .cord:hover::after {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.8), 0 0 22px 6px rgba(255,200,80,0.8);
+    transform: translateX(-50%) scale(1.18);
+  }
+  .cord.pulled {
+    animation: pullCord 0.55s ease;
+  }
+  @keyframes pullCord {
+    0%   { transform: translateX(28px) scaleY(1); }
+    45%  { transform: translateX(28px) scaleY(1.4); }
+    100% { transform: translateX(28px) scaleY(1); }
+  }
+  .hint {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #999;
+    font-size: 14px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    font-weight: 300;
+    animation: pulse 2.5s infinite;
+    transition: opacity 0.5s, color 0.5s;
+    text-align: center;
+    width: 100%;
+    padding: 0 20px;
+  }
+  .hint.hidden { opacity: 0; }
+  .hint.on { color: #ffd54f; opacity: 1; animation: none; }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50%      { opacity: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="wire"></div>
+  <div class="lamp-wrap">
+    <div class="lamp-shade" id="shade"></div>
+    <div class="beam" id="beam"></div>
+  </div>
+  <div class="cord" id="cord" title="Pull me"></div>
+  <div class="hint" id="hint">▼ Pull the cord ▼</div>
+</div>
+
+<script>
+  (function(){
+    var pulled = false;
+    var cord = document.getElementById('cord');
+    var shade = document.getElementById('shade');
+    var beam = document.getElementById('beam');
+    var hint = document.getElementById('hint');
+
+    function triggerStreamlit() {
+      try {
+        var pd = window.parent.document;
+        var btns = pd.querySelectorAll('button');
+        for (var i = 0; i < btns.length; i++) {
+          var t = (btns[i].textContent || '').trim();
+          if (t.indexOf('__LAMP_ON__') !== -1) {
+            btns[i].click();
+            return true;
+          }
+        }
+      } catch(e) {}
+      return false;
+    }
+
+    cord.addEventListener('click', function(){
+      if (pulled) return;
+      pulled = true;
+      cord.classList.add('pulled');
+      hint.textContent = '☀ Turning on...';
+      hint.classList.add('on');
+
+      setTimeout(function(){
+        shade.classList.add('on');
+        beam.classList.add('on');
+      }, 220);
+
+      setTimeout(function(){
+        if (!triggerStreamlit()) {
+          setTimeout(triggerStreamlit, 400);
+          setTimeout(triggerStreamlit, 900);
+        }
+      }, 1200);
+    });
+  })();
+</script>
+</body>
+</html>
+"""
 
 # ============================================================
 # GLOBAL CSS (applies to login screen too)
@@ -346,42 +554,24 @@ st.markdown("""
     }
 
     .full-bill-box {
-        background: #ffffff;
-        border: 3px solid #2196f3;
-        border-radius: 14px;
-        padding: 18px 22px;
-        margin: 10px 0 18px 0;
+        background: #ffffff; border: 3px solid #2196f3; border-radius: 14px;
+        padding: 18px 22px; margin: 10px 0 18px 0;
         box-shadow: 0 6px 20px rgba(33,150,243,0.25);
     }
-    .full-bill-title {
-        font-size: 20px; font-weight: 800; color: #1976d2; margin-bottom: 8px;
-    }
-    .full-bill-meta {
-        font-size: 13px; color: #0277bd; margin-bottom: 12px;
-    }
+    .full-bill-title { font-size: 20px; font-weight: 800; color: #1976d2; margin-bottom: 8px; }
+    .full-bill-meta { font-size: 13px; color: #0277bd; margin-bottom: 12px; }
 
-    /* Login screen */
     .auth-title {
-        text-align: center;
-        font-size: 36px;
-        font-weight: 900;
-        color: #1976d2;
-        margin-bottom: 6px;
-        margin-top: 20px;
+        text-align: center; font-size: 36px; font-weight: 900;
+        color: #1976d2; margin-bottom: 6px; margin-top: 20px;
     }
     .auth-subtitle {
-        text-align: center;
-        font-size: 14px;
-        color: #0277bd;
-        margin-bottom: 24px;
-        font-weight: 600;
+        text-align: center; font-size: 14px; color: #0277bd;
+        margin-bottom: 24px; font-weight: 600;
     }
     .auth-card {
-        background: #ffffff;
-        border: 3px solid #90caf9;
-        border-radius: 16px;
-        padding: 28px 32px;
-        box-shadow: 0 8px 24px rgba(33,150,243,0.2);
+        background: #ffffff; border: 3px solid #90caf9; border-radius: 16px;
+        padding: 28px 32px; box-shadow: 0 8px 24px rgba(33,150,243,0.2);
         margin: 0 auto;
     }
 
@@ -391,90 +581,87 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# SIDEBAR TOGGLE (only after login)
+# SIDEBAR TOGGLE + MANAGE APP KILLER (only used after login)
 # ============================================================
-components.html("""
-<script>
-(function(){
-    function killManageApp() {
-        try {
-            var doc = window.parent.document;
-            var sel = [
-                '[data-testid="manage-app-button"]',
-                '[data-testid="stAppDeployButton"]',
-                '[data-testid="stCloudAppManageButton"]',
-                '.stAppDeployButton',
-                'iframe[title="streamlit_cloud_status"]',
-                'div[class*="manageApp"]',
-                'div[class*="ManageApp"]',
-                'button[class*="manageApp"]',
-                'button[class*="ManageApp"]'
-            ];
-            sel.forEach(function(s){
-                doc.querySelectorAll(s).forEach(function(el){
-                    el.style.setProperty('display','none','important');
-                    el.style.setProperty('visibility','hidden','important');
-                    el.style.setProperty('opacity','0','important');
-                });
-            });
-            doc.querySelectorAll('button, a').forEach(function(el){
-                try {
-                    var t = (el.textContent || '').trim();
-                    if (t === 'Manage app' || t === 'Manage App') {
-                        el.style.setProperty('display','none','important');
-                    }
-                } catch(e){}
-            });
-        } catch(e) {}
-    }
-
-    function attachToggle() {
-        try {
-            var doc = window.parent.document;
-            // Only show toggle if sidebar exists (logged in)
-            if (!doc.querySelector('section[data-testid="stSidebar"]')) return;
-
-            var old = doc.getElementById('custom-sidebar-toggle');
-            if (old) old.parentNode.removeChild(old);
-            var btn = doc.createElement('button');
-            btn.id = 'custom-sidebar-toggle';
-            btn.title = 'Sidebar Open/Close';
-            btn.innerHTML = '\\u2630';
-            var s = {
-                'position':'fixed','top':'14px','left':'14px','z-index':'2147483647',
-                'background':'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
-                'color':'#fff','border':'none','border-radius':'10px','padding':'8px 14px',
-                'font-size':'20px','font-weight':'bold','cursor':'pointer',
-                'box-shadow':'0 3px 10px rgba(33,150,243,0.5)'
-            };
-            for (var k in s) btn.style.setProperty(k, s[k], 'important');
-            btn.onclick = function() {
-                var targets = [
-                    '[data-testid="stSidebarCollapseButton"] button',
-                    '[data-testid="stSidebarCollapsedControl"] button',
-                    '[data-testid="collapsedControl"] button',
-                    '[data-testid="stExpandSidebarButton"] button',
-                    'button[kind="headerNoPadding"]'
+def inject_sidebar_toggle():
+    components.html("""
+    <script>
+    (function(){
+        function killManageApp() {
+            try {
+                var doc = window.parent.document;
+                var sel = [
+                    '[data-testid="manage-app-button"]',
+                    '[data-testid="stAppDeployButton"]',
+                    '[data-testid="stCloudAppManageButton"]',
+                    '.stAppDeployButton',
+                    'iframe[title="streamlit_cloud_status"]',
+                    'div[class*="manageApp"]',
+                    'div[class*="ManageApp"]',
+                    'button[class*="manageApp"]',
+                    'button[class*="ManageApp"]'
                 ];
-                for (var i = 0; i < targets.length; i++) {
-                    var el = doc.querySelector(targets[i]);
-                    if (el) { el.click(); return; }
-                }
-            };
-            if (doc.body) doc.body.appendChild(btn);
-        } catch(e) {}
-    }
+                sel.forEach(function(s){
+                    doc.querySelectorAll(s).forEach(function(el){
+                        el.style.setProperty('display','none','important');
+                        el.style.setProperty('visibility','hidden','important');
+                        el.style.setProperty('opacity','0','important');
+                    });
+                });
+                doc.querySelectorAll('button, a').forEach(function(el){
+                    try {
+                        var t = (el.textContent || '').trim();
+                        if (t === 'Manage app' || t === 'Manage App') {
+                            el.style.setProperty('display','none','important');
+                        }
+                    } catch(e){}
+                });
+            } catch(e) {}
+        }
 
-    function tick() { killManageApp(); attachToggle(); }
-    setTimeout(tick, 300);
-    setTimeout(tick, 1000);
-    setTimeout(tick, 2000);
-    setInterval(tick, 1500);
-})();
-</script>
-""", height=0)
+        function attachToggle() {
+            try {
+                var doc = window.parent.document;
+                if (!doc.querySelector('section[data-testid="stSidebar"]')) return;
+                var old = doc.getElementById('custom-sidebar-toggle');
+                if (old) old.parentNode.removeChild(old);
+                var btn = doc.createElement('button');
+                btn.id = 'custom-sidebar-toggle';
+                btn.title = 'Sidebar Open/Close';
+                btn.innerHTML = '\\u2630';
+                var s = {
+                    'position':'fixed','top':'14px','left':'14px','z-index':'2147483647',
+                    'background':'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
+                    'color':'#fff','border':'none','border-radius':'10px','padding':'8px 14px',
+                    'font-size':'20px','font-weight':'bold','cursor':'pointer',
+                    'box-shadow':'0 3px 10px rgba(33,150,243,0.5)'
+                };
+                for (var k in s) btn.style.setProperty(k, s[k], 'important');
+                btn.onclick = function() {
+                    var targets = [
+                        '[data-testid="stSidebarCollapseButton"] button',
+                        '[data-testid="stSidebarCollapsedControl"] button',
+                        '[data-testid="collapsedControl"] button',
+                        '[data-testid="stExpandSidebarButton"] button',
+                        'button[kind="headerNoPadding"]'
+                    ];
+                    for (var i = 0; i < targets.length; i++) {
+                        var el = doc.querySelector(targets[i]);
+                        if (el) { el.click(); return; }
+                    }
+                };
+                if (doc.body) doc.body.appendChild(btn);
+            } catch(e) {}
+        }
 
-COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
+        function tick() { killManageApp(); attachToggle(); }
+        setTimeout(tick, 300);
+        setTimeout(tick, 1000);
+        setTimeout(tick, 2000);
+        setInterval(tick, 1500);
+    })();
+    </script>
+    """, height=0)
 
 # ============================================================
 # PRODUCT LIST
@@ -568,7 +755,7 @@ PRODUCTS = sorted([
     {"code":"87","name":"KIMS – CHOKOZO STRAWBERRY","price":129},
     {"code":"88","name":"KIMS – CHOKOZO CHOCOLATE CREAM","price":129},
     {"code":"89","name":"KIMS – CHOKOZO MILK MAZA","price":129},
-    {"code":"90","name":"KIMS – SIP STRAWBERRY","price":328},
+    {"code":"90","name":"KIMS – SIR STRAWBERRY","price":328},
     {"code":"91","name":"KIMS – CHAMPION DELICIOUS MILK CHOCOLATE JAR","price":269},
     {"code":"92","name":"KIMS – CHOCO DELIGHT CREAMY CHOCOLATE","price":219},
     {"code":"93","name":"KIMS – NUT KHUT CHOCOLATE","price":135},
@@ -600,8 +787,58 @@ PRODUCTS = sorted([
 
 PRODUCT_NAMES = [p["name"] for p in PRODUCTS]
 
+COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
+
 # ============================================================
-# AUTH SCREEN (Login + Signup)
+# SESSION STATE INIT (before auth check)
+# ============================================================
+if "light_on" not in st.session_state:
+    st.session_state["light_on"] = False
+
+# ============================================================
+# LAMP ANIMATION SCREEN (black + lamp)
+# ============================================================
+if (not st.session_state.get("logged_in_user")) and (not st.session_state.get("light_on")):
+    # Hide sidebar / header / toolbar completely, force black bg
+    st.markdown("""
+    <style>
+        section[data-testid="stSidebar"],
+        header[data-testid="stHeader"],
+        [data-testid="stToolbar"],
+        [data-testid="stDecoration"],
+        [data-testid="stStatusWidget"],
+        #MainMenu,
+        footer,
+        .stAppDeployButton,
+        [data-testid="manage-app-button"] {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        html, body, .stApp {
+            background: #000000 !important;
+        }
+        .block-container {
+            padding: 0 !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # The lamp animation (iframe fills the page)
+    components.html(LAMP_HTML, height=880, scrolling=False)
+
+    # Hidden trigger button (JS will auto-click it)
+    st.markdown('<div style="position:fixed;left:-99999px;top:-99999px;width:1px;height:1px;overflow:hidden;">', unsafe_allow_html=True)
+    if st.button("__LAMP_ON__", key="lamp_on_trigger"):
+        st.session_state["light_on"] = True
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    st.stop()
+
+# ============================================================
+# AUTH SCREEN (login / signup)
 # ============================================================
 def render_auth_page():
     st.markdown(f"<div class='auth-title'>🧾 {COMPANY_NAME}</div>", unsafe_allow_html=True)
@@ -612,7 +849,6 @@ def render_auth_page():
         st.markdown("<div class='auth-card'>", unsafe_allow_html=True)
         tab1, tab2 = st.tabs(["🔐 Login", "📝 Signup"])
 
-        # ---------------- LOGIN TAB ----------------
         with tab1:
             st.markdown("### 🔐 Login")
             st.caption("Apna username aur password daalo")
@@ -636,7 +872,6 @@ def render_auth_page():
                     st.success(f"✅ Welcome {uname}!")
                     st.rerun()
 
-        # ---------------- SIGNUP TAB ----------------
         with tab2:
             st.markdown("### 📝 Signup")
             st.caption("Naya account banao — apna data apna hi rahega")
@@ -671,7 +906,6 @@ def render_auth_page():
                     }
                     save_users(users)
 
-                    # Create blank data file for this user
                     blank = default_blank_db()
                     with open(user_data_file(uname_safe), "w", encoding="utf-8") as f:
                         json.dump(blank, f, indent=4, ensure_ascii=False)
@@ -733,7 +967,6 @@ def parse_date(dstr):
 if "database" not in st.session_state:
     st.session_state.database = load_database(CURRENT_USER)
 
-# Also refresh if user changed
 if st.session_state.get("_db_user") != CURRENT_USER:
     st.session_state.database = load_database(CURRENT_USER)
     st.session_state["_db_user"] = CURRENT_USER
@@ -763,6 +996,9 @@ if "discount_packages" not in db or not db["discount_packages"]:
 for p in db["discount_packages"]:
     if "tier3_amount" not in p: p["tier3_amount"] = 0.0
     if "tier3_pct" not in p: p["tier3_pct"] = 0.0
+
+# Inject sidebar toggle (now that user is logged in)
+inject_sidebar_toggle()
 
 # ============================================================
 # HELPERS
@@ -827,9 +1063,6 @@ def show_auto_download():
         </script>
         """, height=0)
 
-# ============================================================
-# EXPORT SINGLE GROUP BILL
-# ============================================================
 def export_single_group_bill(shop, date_str, booker, salesman, items, bill_no):
     bill_total_net = sum(float(it.get("Net", 0)) for it in items)
     pkg_pct, pkg_name, tier_label = get_package_discount_pct(bill_total_net)
@@ -974,6 +1207,7 @@ with st.sidebar:
         st.session_state["display_name"] = None
         st.session_state["database"] = None
         st.session_state["_db_user"] = None
+        st.session_state["light_on"] = False
         st.session_state["page"] = "📊 Dashboard"
         st.rerun()
 
