@@ -79,495 +79,427 @@ def build_lamp_html(light_on):
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
   html, body {
     width: 100%;
     height: 100vh;
-    background: #0b0d10;
+    background: #000;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     overflow: hidden;
     user-select: none;
   }
-
   .scene {
     position: relative;
     width: 100%;
     height: 100vh;
-    min-height: 720px;
-    background:
-      radial-gradient(ellipse at 50% 5%, rgba(38, 42, 48, 0.72) 0%, rgba(22, 25, 29, 0.72) 24%, rgba(11, 13, 16, 0.98) 65%),
-      linear-gradient(180deg, #171a1f 0%, #0e1013 52%, #090b0e 100%);
+    background: radial-gradient(ellipse at 50% 0%, #0a0805 0%, #000 60%);
     overflow: hidden;
-    transition: background 1s ease;
   }
-
-  .scene::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background:
-      radial-gradient(circle at 50% 18%, rgba(255,255,255,0.055), transparent 30%),
-      linear-gradient(90deg, rgba(255,255,255,0.018), transparent 22%, transparent 78%, rgba(255,255,255,0.018));
-    z-index: 0;
-  }
-
   .scene.lit {
-    background:
-      radial-gradient(ellipse at 50% 17%, rgba(94, 65, 30, 0.55) 0%, rgba(43, 31, 19, 0.48) 22%, rgba(18, 16, 14, 0.92) 55%, #0a0c0f 100%),
-      linear-gradient(180deg, #1b1d20 0%, #111214 55%, #0a0c0f 100%);
+    background: radial-gradient(ellipse at 50% 15%, #1f1408 0%, #0a0604 40%, #000 75%);
+    transition: background 1.2s ease;
   }
 
-  /* ========= CEILING MOUNT ========= */
+  /* ========= CEILING ========= */
   .ceiling {
     position: absolute;
     top: 0; left: 50%;
     transform: translateX(-50%);
-    width: 76px; height: 14px;
-    background: linear-gradient(180deg, #4b5057 0%, #22262b 38%, #0b0d10 100%);
-    border-radius: 0 0 9px 9px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.12);
+    width: 56px; height: 10px;
+    background: linear-gradient(180deg, #1a1a1a 0%, #050505 100%);
+    border-radius: 0 0 6px 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.9);
     z-index: 5;
   }
-
-  .ceiling::before {
+  .ceiling::after {
     content: '';
     position: absolute;
     top: 0; left: 50%;
     transform: translateX(-50%);
-    width: 32px; height: 4px;
-    background: #747980;
-    border-radius: 3px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.7);
+    width: 22px; height: 3px;
+    background: #2a2a2a;
+    border-radius: 2px;
   }
 
   /* ========= WIRE ========= */
   .wire {
     position: absolute;
-    top: 12px; left: 50%;
+    top: 8px; left: 50%;
     transform: translateX(-50%);
-    width: 3px; height: 124px;
-    background: linear-gradient(90deg, #1b1e22 0%, #9da2a8 50%, #25282c 100%);
-    box-shadow: 0 0 5px rgba(0,0,0,0.85), inset 0 0 1px rgba(255,255,255,0.35);
+    width: 3px; height: 130px;
+    background: linear-gradient(90deg, #3a3a3a 0%, #6b6b6b 50%, #1a1a1a 100%);
+    box-shadow: 0 0 4px rgba(0,0,0,0.8);
     z-index: 4;
   }
 
-  /* ========= PREMIUM LAMP ========= */
+  /* ========= LAMP ASSEMBLY ========= */
   .lamp {
     position: absolute;
-    top: 128px; left: 50%;
+    top: 130px; left: 50%;
     transform: translateX(-50%);
-    width: 250px; height: 150px;
+    width: 220px; height: 130px;
     z-index: 6;
   }
-
-  .lamp::before {
-    content: '';
-    position: absolute;
-    top: -8px; left: 50%;
-    transform: translateX(-50%);
-    width: 54px; height: 13px;
-    border-radius: 50%;
-    background: linear-gradient(180deg, #9a7041, #3a2818 70%, #17100a);
-    box-shadow: 0 3px 8px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,220,160,0.28);
-    z-index: 5;
-  }
-
   .lamp-shade {
     position: absolute;
-    top: 0; left: 15px;
-    width: 220px; height: 104px;
-    border-radius: 112px 112px 22px 22px / 100px 100px 24px 24px;
+    top: 0; left: 0;
+    width: 220px; height: 100px;
+    border-radius: 110px 110px 20px 20px / 100px 100px 22px 22px;
     background:
-      radial-gradient(ellipse at 50% 3%, #6d4b29 0%, #3d2a19 23%, #21160d 52%, #0d0905 88%),
-      linear-gradient(180deg, #4b3420 0%, #120c07 100%);
-    border: 1px solid rgba(170,120,65,0.24);
+      radial-gradient(ellipse at 50% -10%, #4a3826 0%, #2b1d10 30%, #0f0a05 85%),
+      linear-gradient(180deg, #2a1d10 0%, #0a0603 100%);
     box-shadow:
-      inset 0 5px 14px rgba(196,145,80,0.22),
-      inset 0 -20px 34px rgba(0,0,0,0.95),
-      0 8px 28px rgba(0,0,0,0.78);
-    transition: box-shadow 0.9s ease, filter 0.9s ease;
+      inset 0 -18px 30px rgba(0,0,0,0.95),
+      inset 0 4px 12px rgba(120, 80, 40, 0.25),
+      0 6px 22px rgba(0,0,0,0.85);
+    transition: box-shadow 0.9s ease;
     z-index: 3;
   }
-
   .lamp-shade::before {
     content: '';
     position: absolute;
-    top: 7px; left: 50%;
+    top: 6px; left: 50%;
     transform: translateX(-50%);
-    width: 82%; height: 26px;
+    width: 90%; height: 30px;
     border-radius: 50%;
-    background: radial-gradient(ellipse, rgba(255,205,125,0.24) 0%, transparent 72%);
+    background: radial-gradient(ellipse, rgba(160,110,60,0.25) 0%, transparent 70%);
     pointer-events: none;
   }
-
   .lamp-shade::after {
     content: '';
     position: absolute;
-    bottom: -1px; left: 0;
-    width: 100%; height: 25px;
-    border-radius: 0 0 22px 22px;
-    background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.78) 100%);
-    border-top: 1px solid rgba(205,154,88,0.16);
+    bottom: 0; left: 0;
+    width: 100%; height: 22px;
+    border-radius: 0 0 22px 22px / 0 0 22px 22px;
+    background: linear-gradient(180deg, transparent 0%, #050301 100%);
   }
-
   .scene.lit .lamp-shade {
-    filter: brightness(1.13);
     box-shadow:
-      inset 0 5px 14px rgba(255,210,135,0.34),
-      inset 0 -20px 34px rgba(0,0,0,0.9),
-      0 8px 28px rgba(0,0,0,0.72),
-      0 0 72px 18px rgba(255,194,82,0.23);
+      inset 0 -18px 30px rgba(0,0,0,0.95),
+      inset 0 4px 12px rgba(160, 110, 60, 0.45),
+      0 6px 22px rgba(0,0,0,0.85),
+      0 0 60px 12px rgba(255, 200, 80, 0.18);
   }
 
-  /* ========= BULB ========= */
+  /* Bulb (visible under shade) */
   .bulb {
     position: absolute;
-    top: 80px; left: 50%;
+    top: 78px; left: 50%;
     transform: translateX(-50%);
-    width: 50px; height: 45px;
-    border-radius: 50% 50% 44% 44% / 56% 56% 44% 44%;
-    background: radial-gradient(circle at 50% 35%, #383b3f 0%, #17191c 60%, #070809 100%);
-    border: 1px solid rgba(255,255,255,0.08);
-    transition: all 0.7s cubic-bezier(0.2, 0.9, 0.3, 1);
+    width: 46px; height: 42px;
+    border-radius: 50% 50% 42% 42% / 55% 55% 45% 45%;
+    background: radial-gradient(circle at 50% 35%, #2a2a2a 0%, #0a0a0a 75%);
+    transition: all 0.9s cubic-bezier(0.2, 0.9, 0.3, 1);
     z-index: 5;
-    box-shadow: inset 0 -7px 13px rgba(0,0,0,0.9), 0 4px 8px rgba(0,0,0,0.5);
+    box-shadow: inset 0 -6px 12px rgba(0,0,0,0.9);
   }
-
   .scene.lit .bulb {
-    background: radial-gradient(circle at 50% 34%, #ffffff 0%, #fff9df 22%, #ffd96a 53%, #ff9e1a 100%);
-    border-color: rgba(255,245,205,0.8);
+    background: radial-gradient(circle at 50% 35%, #ffffff 0%, #fff8e1 25%, #ffd54f 55%, #ff9800 100%);
     box-shadow:
-      0 0 24px 9px rgba(255,239,174,0.98),
-      0 0 58px 24px rgba(255,202,84,0.72),
-      0 0 120px 50px rgba(255,169,42,0.38),
-      inset 0 0 12px rgba(255,255,230,0.98);
+      0 0 22px 8px rgba(255, 235, 160, 0.95),
+      0 0 55px 22px rgba(255, 200, 80, 0.6),
+      0 0 110px 45px rgba(255, 170, 40, 0.3),
+      inset 0 0 10px rgba(255, 255, 220, 0.9);
   }
 
   /* ========= LIGHT BEAM ========= */
   .beam {
     position: absolute;
-    top: 210px; left: 50%;
+    top: 220px; left: 50%;
     transform: translateX(-50%);
-    width: min(980px, 90vw); height: 760px;
+    width: 900px; height: 780px;
     background: radial-gradient(
       ellipse at 50% 0%,
-      rgba(255,244,198,0.58) 0%,
-      rgba(255,226,146,0.34) 18%,
-      rgba(255,202,91,0.16) 42%,
-      rgba(255,180,55,0.055) 66%,
-      transparent 84%
+      rgba(255, 235, 160, 0.55) 0%,
+      rgba(255, 220, 130, 0.30) 18%,
+      rgba(255, 200, 80, 0.14) 40%,
+      rgba(255, 180, 60, 0.04) 65%,
+      transparent 82%
     );
     opacity: 0;
-    transition: opacity 1.05s ease;
+    transition: opacity 1.2s ease;
     pointer-events: none;
     filter: blur(8px);
     z-index: 1;
   }
-
   .scene.lit .beam { opacity: 1; }
 
-  /* ========= FLOOR / AMBIENT GLOW ========= */
-  .ambient-glow {
-    position: absolute;
-    left: 50%; bottom: -150px;
-    transform: translateX(-50%);
-    width: min(850px, 85vw); height: 420px;
-    border-radius: 50%;
-    background: radial-gradient(ellipse, rgba(255,191,78,0.11) 0%, rgba(255,175,55,0.035) 38%, transparent 72%);
-    opacity: 0;
-    transition: opacity 1.3s ease;
-    filter: blur(18px);
-    pointer-events: none;
-    z-index: 1;
-  }
-  .scene.lit .ambient-glow { opacity: 1; }
-
-  /* ========= DUST ========= */
+  /* Dust particles */
   .dust {
     position: absolute;
-    top: 235px; left: 50%;
+    top: 240px; left: 50%;
     transform: translateX(-50%);
-    width: 760px; height: 690px;
+    width: 700px; height: 700px;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 1.2s ease 0.2s;
+    transition: opacity 1.5s ease 0.3s;
     z-index: 2;
   }
   .scene.lit .dust { opacity: 1; }
   .dust span {
     position: absolute;
     width: 2px; height: 2px;
-    background: radial-gradient(circle, #fff8e1 0%, #ffd86a 60%, transparent 100%);
+    background: radial-gradient(circle, #fff8e1 0%, #ffd54f 60%, transparent 100%);
     border-radius: 50%;
-    box-shadow: 0 0 5px #ffd05a;
+    box-shadow: 0 0 4px #ffd54f;
     animation: drift linear infinite;
   }
   @keyframes drift {
     0%   { transform: translateY(0) translateX(0); opacity: 0; }
-    20%  { opacity: 0.85; }
-    80%  { opacity: 0.85; }
+    20%  { opacity: 0.9; }
+    80%  { opacity: 0.9; }
     100% { transform: translateY(220px) translateX(40px); opacity: 0; }
   }
 
   /* ========= PULL CORD ========= */
   .cord {
     position: absolute;
-    top: 126px; left: 50%;
-    transform: translateX(57px);
-    width: 26px; height: 250px;
+    top: 130px; left: 50%;
+    transform: translateX(48px);
+    width: 2px;
+    height: 220px;
     cursor: pointer;
-    z-index: 20;
+    z-index: 10;
+    transition: transform 0.4s ease;
     transform-origin: top center;
-    touch-action: manipulation;
   }
-
   .cord::before {
     content: '';
     position: absolute;
-    top: 0; left: 12px;
-    width: 2px; height: 222px;
-    background: linear-gradient(180deg, #292d32 0%, #b7bdc3 38%, #60666d 66%, #171a1d 100%);
-    box-shadow: 1px 0 2px rgba(0,0,0,0.7), 0 0 4px rgba(255,255,255,0.08);
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(180deg, #4a4a4a 0%, #b8b8b8 40%, #2a2a2a 100%);
+    box-shadow: 1px 0 2px rgba(0,0,0,0.6);
   }
-
-  .cord::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 7px;
-    width: 12px; height: 12px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #e8c98f 0%, #8c6132 45%, #2d1a0b 100%);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.7), 0 0 12px rgba(255,194,93,0.18);
-  }
-
   .cord .bead {
     position: absolute;
-    bottom: 0; left: 50%;
+    bottom: -14px; left: 50%;
     transform: translateX(-50%);
-    width: 22px; height: 28px;
+    width: 18px; height: 22px;
     border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
-    background: radial-gradient(circle at 34% 28%, #f0ca82 0%, #a56c31 38%, #5a3516 70%, #241408 100%);
-    border: 1px solid rgba(244,205,140,0.24);
+    background:
+      radial-gradient(circle at 35% 30%, #d4a35e 0%, #8a5a2a 40%, #3a2210 100%);
     box-shadow:
-      0 4px 10px rgba(0,0,0,0.88),
-      0 0 16px 2px rgba(255,190,85,0.34),
-      inset 0 -3px 5px rgba(0,0,0,0.5),
-      inset 1px 1px 2px rgba(255,235,185,0.3);
-    transition: all 0.25s ease;
+      0 3px 8px rgba(0,0,0,0.85),
+      0 0 14px 2px rgba(255, 190, 90, 0.35),
+      inset 0 -2px 4px rgba(0,0,0,0.5);
+    transition: all 0.3s ease;
   }
-
   .cord .bead::after {
     content: '';
     position: absolute;
-    top: 6px; left: 6px;
-    width: 6px; height: 6px;
+    top: 5px; left: 5px;
+    width: 5px; height: 5px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,248,220,0.95) 0%, transparent 72%);
+    background: radial-gradient(circle, rgba(255,240,200,0.9) 0%, transparent 70%);
   }
-
-  .cord:hover .bead,
-  .cord:focus .bead {
-    transform: translateX(-50%) scale(1.16);
+  .cord:hover .bead {
     box-shadow:
-      0 4px 10px rgba(0,0,0,0.88),
-      0 0 28px 7px rgba(255,202,100,0.9),
-      inset 0 -3px 5px rgba(0,0,0,0.5);
+      0 3px 8px rgba(0,0,0,0.85),
+      0 0 24px 6px rgba(255, 200, 100, 0.9),
+      inset 0 -2px 4px rgba(0,0,0,0.5);
+    transform: translateX(-50%) scale(1.15);
   }
-
-  .cord:active .bead { transform: translateX(-50%) scale(0.94); }
-
-  .cord.pulled { animation: pullCord 0.58s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .cord.pulled {
+    animation: pullCord 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
   @keyframes pullCord {
-    0%   { transform: translateX(57px) scaleY(1); }
-    38%  { transform: translateX(57px) scaleY(1.5); }
-    68%  { transform: translateX(57px) scaleY(0.91); }
-    100% { transform: translateX(57px) scaleY(1); }
+    0%   { transform: translateX(48px) scaleY(1); }
+    40%  { transform: translateX(48px) scaleY(1.55); }
+    70%  { transform: translateX(48px) scaleY(0.92); }
+    100% { transform: translateX(48px) scaleY(1); }
   }
 
-  /* ========= LOGIN GLASS CARD ========= */
+  /* ========= LOGIN FORM (inside beam) ========= */
   .form-wrap {
     position: absolute;
-    top: 348px; left: 50%;
-    transform: translateX(-50%) translateY(-16px) scale(0.98);
-    width: min(400px, calc(100vw - 38px));
+    top: 340px; left: 50%;
+    transform: translateX(-50%);
+    width: 380px;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.75s ease 0.28s, transform 0.75s cubic-bezier(0.2,0.9,0.3,1) 0.28s;
+    transition: opacity 0.9s ease 0.4s, transform 0.9s ease 0.4s;
     z-index: 8;
+    transform: translateX(-50%) translateY(-15px);
   }
-
   .scene.lit .form-wrap {
     opacity: 1;
     pointer-events: auto;
-    transform: translateX(-50%) translateY(0) scale(1);
+    transform: translateX(-50%) translateY(0);
   }
-
   .glass {
-    background: linear-gradient(145deg, rgba(30,31,33,0.82), rgba(15,16,18,0.72));
-    border: 1px solid rgba(255,203,113,0.25);
-    border-radius: 20px;
-    padding: 28px 30px 24px;
-    backdrop-filter: blur(18px) saturate(115%);
-    -webkit-backdrop-filter: blur(18px) saturate(115%);
+    background: rgba(15, 12, 8, 0.65);
+    border: 1px solid rgba(255, 200, 100, 0.28);
+    border-radius: 18px;
+    padding: 26px 28px 22px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     box-shadow:
-      0 20px 60px rgba(0,0,0,0.58),
-      inset 0 1px 0 rgba(255,255,255,0.08),
-      inset 0 -1px 0 rgba(255,192,82,0.06),
-      0 0 70px rgba(255,188,75,0.08);
+      0 12px 40px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255, 220, 150, 0.15),
+      0 0 60px rgba(255, 190, 80, 0.08);
   }
-
-  .brand { text-align: center; margin-bottom: 17px; }
+  .brand {
+    text-align: center;
+    margin-bottom: 16px;
+  }
   .brand h1 {
-    color: #f4c96f;
-    font-size: 21px;
-    font-weight: 850;
-    letter-spacing: 4px;
-    text-shadow: 0 0 20px rgba(255,199,92,0.38);
-    margin-bottom: 3px;
+    color: #ffd54f;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-shadow: 0 0 18px rgba(255, 200, 80, 0.5);
+    margin-bottom: 2px;
   }
   .brand p {
-    color: #a98a5e;
+    color: #a8845a;
     font-size: 10px;
-    letter-spacing: 5px;
-    font-weight: 700;
+    letter-spacing: 4px;
+    font-weight: 600;
   }
 
   .tabs {
     display: flex;
-    background: rgba(0,0,0,0.34);
-    border-radius: 11px;
-    padding: 4px;
-    margin-bottom: 17px;
-    border: 1px solid rgba(255,203,113,0.11);
+    background: rgba(0,0,0,0.5);
+    border-radius: 10px;
+    padding: 3px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255, 200, 100, 0.12);
   }
   .tab {
     flex: 1;
     text-align: center;
-    padding: 9px 0;
-    color: #83745e;
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: 1.5px;
+    padding: 8px 0;
+    color: #8a7a5a;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.25s ease;
+    transition: all 0.3s ease;
     border: none;
     background: transparent;
     font-family: inherit;
   }
-  .tab:hover { color: #d0b17a; }
   .tab.active {
-    background: linear-gradient(135deg, rgba(255,205,105,0.18), rgba(255,154,45,0.09));
-    color: #f5cc72;
-    box-shadow: 0 2px 10px rgba(255,180,50,0.13), inset 0 0 0 1px rgba(255,210,120,0.22);
+    background: linear-gradient(135deg, rgba(255,200,80,0.18) 0%, rgba(255,150,40,0.10) 100%);
+    color: #ffd54f;
+    box-shadow: 0 2px 8px rgba(255,180,50,0.2), inset 0 0 0 1px rgba(255,200,100,0.25);
   }
 
-  .f-field { margin-bottom: 13px; position: relative; }
+  .f-field {
+    margin-bottom: 12px;
+    position: relative;
+  }
   .f-field label {
     display: block;
-    color: #a98b62;
+    color: #a8845a;
     font-size: 10px;
     letter-spacing: 2px;
-    font-weight: 750;
-    margin-bottom: 6px;
+    font-weight: 700;
+    margin-bottom: 5px;
     padding-left: 4px;
   }
   .f-field input {
     width: 100%;
-    padding: 12px 14px;
-    background: rgba(5,6,8,0.58);
-    border: 1px solid rgba(255,205,113,0.17);
-    border-radius: 11px;
-    color: #fff9e8;
+    padding: 11px 14px;
+    background: rgba(0,0,0,0.55);
+    border: 1px solid rgba(255, 200, 100, 0.15);
+    border-radius: 10px;
+    color: #fff8e1;
     font-size: 14px;
     font-family: inherit;
     outline: none;
-    transition: all 0.25s ease;
-    caret-color: #f4c96f;
+    transition: all 0.3s ease;
+    caret-color: #ffd54f;
   }
-  .f-field input::placeholder { color: #675a46; font-style: italic; }
-  .f-field input:hover { border-color: rgba(255,205,113,0.28); }
+  .f-field input::placeholder {
+    color: #6a5a3a;
+    font-style: italic;
+  }
   .f-field input:focus {
-    border-color: rgba(255,205,113,0.58);
-    background: rgba(4,5,7,0.76);
-    box-shadow: 0 0 0 3px rgba(255,200,100,0.08), 0 0 24px rgba(255,180,50,0.13);
+    border-color: rgba(255, 200, 100, 0.55);
+    background: rgba(0,0,0,0.7);
+    box-shadow: 0 0 0 3px rgba(255, 200, 100, 0.1), 0 0 20px rgba(255, 180, 50, 0.15);
   }
   .f-field.hidden { display: none; }
 
   .hint-msg {
     text-align: center;
-    color: #a98a5e;
+    color: #a8845a;
     font-size: 11px;
     margin-top: 14px;
     letter-spacing: 1px;
     line-height: 1.6;
   }
-  .hint-msg b { color: #f4c96f; }
+  .hint-msg b { color: #ffd54f; }
 
-  .glass.shake { animation: shake 0.45s ease; }
+  /* Error state shake */
+  .glass.shake {
+    animation: shake 0.45s ease;
+  }
   @keyframes shake {
     0%,100% { transform: translateX(0); }
-    20% { transform: translateX(-8px); }
-    40% { transform: translateX(8px); }
-    60% { transform: translateX(-6px); }
-    80% { transform: translateX(6px); }
+    20%     { transform: translateX(-8px); }
+    40%     { transform: translateX(8px); }
+    60%     { transform: translateX(-6px); }
+    80%     { transform: translateX(6px); }
   }
 
+  /* ========= HINT AT BOTTOM ========= */
   .bottom-hint {
     position: absolute;
-    bottom: 38px; left: 50%;
+    bottom: 40px; left: 50%;
     transform: translateX(-50%);
-    color: #8a8f96;
-    font-size: 11px;
-    letter-spacing: 4px;
+    color: #666;
+    font-size: 12px;
+    letter-spacing: 5px;
     text-transform: uppercase;
-    font-weight: 500;
+    font-weight: 300;
     animation: pulse 2.8s ease-in-out infinite;
-    transition: all 0.5s ease;
+    transition: all 0.6s ease;
     z-index: 9;
     text-align: center;
     white-space: nowrap;
   }
   .scene.lit .bottom-hint {
-    color: #a98a5e;
+    color: #a8845a;
     animation: none;
-    letter-spacing: 2.5px;
-    font-size: 10px;
+    letter-spacing: 3px;
+    font-size: 11px;
   }
-  @keyframes pulse { 0%,100% { opacity: 0.42; } 50% { opacity: 1; } }
-
-  @media (max-width: 600px) {
-    .lamp { top: 105px; transform: translateX(-50%) scale(0.82); transform-origin: top center; }
-    .wire { height: 102px; }
-    .cord { top: 103px; transform: translateX(49px) scale(0.82); transform-origin: top left; }
-    .form-wrap { top: 310px; width: calc(100vw - 28px); }
-    .glass { padding: 23px 21px 20px; }
-    .bottom-hint { bottom: 22px; font-size: 9px; letter-spacing: 2px; }
+  @keyframes pulse {
+    0%,100% { opacity: 0.35; }
+    50%     { opacity: 0.95; }
   }
 </style>
 </head>
 <body>
 <div class="scene __INITIAL_CLASS__" id="scene">
+
+  <!-- Ceiling mount -->
   <div class="ceiling"></div>
+
+  <!-- Wire -->
   <div class="wire"></div>
 
+  <!-- Lamp assembly -->
   <div class="lamp">
     <div class="lamp-shade"></div>
     <div class="bulb"></div>
   </div>
 
+  <!-- Light beam -->
   <div class="beam"></div>
-  <div class="ambient-glow"></div>
+
+  <!-- Dust particles -->
   <div class="dust" id="dust"></div>
 
-  <div class="cord" id="cord" tabindex="0" role="button" aria-label="Pull lamp cord">
-    <div class="bead"></div>
-  </div>
+  <!-- Pull cord -->
+  <div class="cord" id="cord"><div class="bead"></div></div>
 
+  <!-- Login form -->
   <div class="form-wrap">
     <div class="glass" id="glass">
       <div class="brand">
@@ -590,11 +522,15 @@ def build_lamp_html(light_on):
         <label>CONFIRM PASSWORD</label>
         <input type="password" id="fPass2" placeholder="repeat password" autocomplete="off">
       </div>
-      <div class="hint-msg" id="hintMsg">Pull the cord <b>again</b> to sign in</div>
+      <div class="hint-msg" id="hintMsg">
+        Pull the cord <b>again</b> to sign in
+      </div>
     </div>
   </div>
 
+  <!-- Bottom hint -->
   <div class="bottom-hint" id="bottomHint">▼ PULL THE CORD ▼</div>
+
 </div>
 
 <script>
@@ -614,11 +550,11 @@ def build_lamp_html(light_on):
 
   /* ---- Dust particles ---- */
   var dust = document.getElementById('dust');
-  for (var i = 0; i < 30; i++) {
+  for (var i = 0; i < 22; i++) {
     var s = document.createElement('span');
-    s.style.left = (8 + Math.random() * 84) + '%';
-    s.style.top = (Math.random() * 62) + '%';
-    s.style.animationDuration = (5 + Math.random() * 7) + 's';
+    s.style.left = (10 + Math.random() * 80) + '%';
+    s.style.top = (Math.random() * 60) + '%';
+    s.style.animationDuration = (5 + Math.random() * 6) + 's';
     s.style.animationDelay = (Math.random() * 5) + 's';
     var sz = 1 + Math.random() * 2;
     s.style.width = sz + 'px';
@@ -642,27 +578,22 @@ def build_lamp_html(light_on):
     });
   });
 
-  /* ---- React/Streamlit native value setter ---- */
+  /* ---- Native value setter for React inputs ---- */
   function setNativeValue(element, value) {
-    try {
-      var proto = Object.getPrototypeOf(element);
-      var desc = Object.getOwnPropertyDescriptor(proto, 'value');
-      if (desc && desc.set) desc.set.call(element, value);
-      else element.value = value;
-      element.dispatchEvent(new Event('input', { bubbles: true }));
-      element.dispatchEvent(new Event('change', { bubbles: true }));
-    } catch(e) {
-      try { element.value = value; } catch(ignore) {}
-    }
+    var proto = Object.getPrototypeOf(element);
+    var setter = Object.getOwnPropertyDescriptor(proto, 'value').set;
+    setter.call(element, value);
+    element.dispatchEvent(new Event('input', { bubbles: true }));
+    element.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
-  /* ---- Find Streamlit input by marker ---- */
+  /* ---- Find streamlit hidden input by label marker ---- */
   function findStreamlitInput(marker) {
     try {
       var pd = window.parent.document;
       var labels = pd.querySelectorAll('label');
       for (var i = 0; i < labels.length; i++) {
-        if ((labels[i].textContent || '').indexOf(marker) !== -1) {
+        if (labels[i].textContent.indexOf(marker) !== -1) {
           var wrap = labels[i].closest('[data-testid="stTextInput"]');
           if (wrap) return wrap.querySelector('input');
         }
@@ -671,14 +602,13 @@ def build_lamp_html(light_on):
     return null;
   }
 
-  /* ---- Find/click Streamlit button safely ---- */
+  /* ---- Click streamlit hidden button by text ---- */
   function clickStreamlitButton(marker) {
     try {
       var pd = window.parent.document;
       var btns = pd.querySelectorAll('button');
       for (var i = 0; i < btns.length; i++) {
-        var text = (btns[i].textContent || '').trim();
-        if (text === marker || text.indexOf(marker) !== -1) {
+        if ((btns[i].textContent || '').indexOf(marker) !== -1) {
           btns[i].click();
           return true;
         }
@@ -687,92 +617,68 @@ def build_lamp_html(light_on):
     return false;
   }
 
-  /* ---- Pull cord ---- */
-  function pullCord(){
+  /* ---- Cord click ---- */
+  cord.addEventListener('click', function(){
     if (pulled) return;
     pulled = true;
-    cord.classList.remove('pulled');
-    void cord.offsetWidth;
     cord.classList.add('pulled');
-    setTimeout(function(){
-      cord.classList.remove('pulled');
-      pulled = false;
-    }, 650);
+    setTimeout(function(){ cord.classList.remove('pulled'); pulled = false; }, 650);
 
     var isLit = scene.classList.contains('lit');
 
     if (!isLit) {
-      /* IMPORTANT: light the lamp immediately in the iframe.
-         Streamlit rerun is only used to persist the state. */
-      scene.classList.add('lit');
-      bottomHint.textContent = 'ENTER DETAILS • PULL CORD TO CONTINUE';
-      hintMsg.innerHTML = 'Pull the cord <b>again</b> to sign in';
-
-      setTimeout(function(){
-        try { fUser.focus(); } catch(e) {}
-      }, 650);
-
-      /* Persist light_on=True in Streamlit. */
+      /* Turn ON: click the "TURN_ON" streamlit button */
       setTimeout(function(){
         clickStreamlitButton('__LAMP_TURN_ON__');
-      }, 120);
-      return;
-    }
+      }, 350);
+    } else {
+      /* Turn OFF: check form values first */
+      var user = (fUser.value || '').trim();
+      var pass = fPass.value || '';
+      var pass2 = fPass2.value || '';
 
-    /* Second pull = submit/login, same original workflow. */
-    var user = (fUser.value || '').trim();
-    var pass = fPass.value || '';
-    var pass2 = fPass2.value || '';
+      if (user === '' || pass === '') {
+        /* shake */
+        glass.classList.add('shake');
+        setTimeout(function(){ glass.classList.remove('shake'); }, 500);
+        hintMsg.innerHTML = '<span style="color:#ff7b7b;">Please fill all fields</span>';
+        setTimeout(function(){
+          hintMsg.innerHTML = mode === 'signup'
+            ? 'Pull the cord <b>again</b> to create account'
+            : 'Pull the cord <b>again</b> to sign in';
+        }, 2200);
+        return;
+      }
 
-    if (user === '' || pass === '') {
-      glass.classList.add('shake');
-      setTimeout(function(){ glass.classList.remove('shake'); }, 500);
-      hintMsg.innerHTML = '<span style="color:#ff8c8c;">Please fill all fields</span>';
+      if (mode === 'signup' && pass !== pass2) {
+        glass.classList.add('shake');
+        setTimeout(function(){ glass.classList.remove('shake'); }, 500);
+        hintMsg.innerHTML = '<span style="color:#ff7b7b;">Passwords do not match</span>';
+        setTimeout(function(){
+          hintMsg.innerHTML = 'Pull the cord <b>again</b> to create account';
+        }, 2200);
+        return;
+      }
+
+      /* Set hidden streamlit inputs and click submit */
+      var uIn = findStreamlitInput('__LU__');
+      var pIn = findStreamlitInput('__LP__');
+      var p2In = findStreamlitInput('__LP2__');
+      var mIn = findStreamlitInput('__LM__');
+      if (uIn) setNativeValue(uIn, user);
+      if (pIn) setNativeValue(pIn, pass);
+      if (p2In) setNativeValue(p2In, pass2);
+      if (mIn) setNativeValue(mIn, mode);
+
       setTimeout(function(){
-        hintMsg.innerHTML = mode === 'signup'
-          ? 'Pull the cord <b>again</b> to create account'
-          : 'Pull the cord <b>again</b> to sign in';
-      }, 2200);
-      return;
-    }
-
-    if (mode === 'signup' && pass !== pass2) {
-      glass.classList.add('shake');
-      setTimeout(function(){ glass.classList.remove('shake'); }, 500);
-      hintMsg.innerHTML = '<span style="color:#ff8c8c;">Passwords do not match</span>';
-      setTimeout(function(){
-        hintMsg.innerHTML = 'Pull the cord <b>again</b> to create account';
-      }, 2200);
-      return;
-    }
-
-    var uIn = findStreamlitInput('__LU__');
-    var pIn = findStreamlitInput('__LP__');
-    var p2In = findStreamlitInput('__LP2__');
-    var mIn = findStreamlitInput('__LM__');
-    if (uIn) setNativeValue(uIn, user);
-    if (pIn) setNativeValue(pIn, pass);
-    if (p2In) setNativeValue(p2In, pass2);
-    if (mIn) setNativeValue(mIn, mode);
-
-    hintMsg.innerHTML = '<span style="color:#f4c96f;">Authenticating…</span>';
-    setTimeout(function(){
-      clickStreamlitButton('__LAMP_SUBMIT__');
-    }, 220);
-  }
-
-  cord.addEventListener('click', pullCord);
-  cord.addEventListener('keydown', function(e){
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      pullCord();
+        clickStreamlitButton('__LAMP_SUBMIT__');
+      }, 220);
     }
   });
 
-  /* Auto-focus username when already lit after Streamlit rerun. */
+  /* Auto-focus username when lit */
   if (scene.classList.contains('lit')) {
-    bottomHint.textContent = 'ENTER DETAILS • PULL CORD TO CONTINUE';
-    setTimeout(function(){ try { fUser.focus(); } catch(e){} }, 650);
+    setTimeout(function(){ try { fUser.focus(); } catch(e){} }, 800);
   }
 })();
 </script>
@@ -1339,12 +1245,11 @@ if not st.session_state.get("logged_in_user"):
                 st.session_state["logged_in_user"] = uname
                 st.session_state["display_name"] = users[uname].get("display_name", uname)
                 st.session_state["page"] = "📊 Dashboard"
+                # IMPORTANT: Do not modify lamp widget keys after they are instantiated.
+                # Streamlit raises an exception if widget-backed session_state values are
+                # changed later in the same run. The auth UI disappears automatically
+                # because logged_in_user is now set, so clearing these fields is unnecessary.
                 st.session_state["light_on"] = False
-                # clear
-                st.session_state["lamp_user"] = ""
-                st.session_state["lamp_pass"] = ""
-                st.session_state["lamp_pass2"] = ""
-                st.session_state["lamp_mode"] = ""
                 st.rerun()
 
         else:  # signup
@@ -1373,11 +1278,9 @@ if not st.session_state.get("logged_in_user"):
                 st.session_state["logged_in_user"] = uname
                 st.session_state["display_name"] = uname_raw
                 st.session_state["page"] = "📊 Dashboard"
+                # Same reason as login above: widget values disappear with the auth screen.
+                # Do not mutate widget-backed keys in this run.
                 st.session_state["light_on"] = False
-                st.session_state["lamp_user"] = ""
-                st.session_state["lamp_pass"] = ""
-                st.session_state["lamp_pass2"] = ""
-                st.session_state["lamp_mode"] = ""
                 st.rerun()
 
         if st.session_state.get("auth_error"):
