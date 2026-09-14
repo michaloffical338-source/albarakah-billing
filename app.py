@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# + Animated Lamp Login + Multi-User System
+# + Premium Animated Lamp Login + Multi-User System
 # ============================================================
 
 import os
@@ -49,6 +49,18 @@ def sanitize_username(u):
 def user_data_file(username):
     return f"billing_database_{username}.json"
 
+def default_discount_packages():
+    return [
+        {"id": 1, "name": "Package 1", "tier1_amount": 1200.0, "tier1_pct": 1.0,
+         "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
+        {"id": 2, "name": "Package 2", "tier1_amount": 1200.0, "tier1_pct": 1.0,
+         "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
+        {"id": 3, "name": "Package 3", "tier1_amount": 1200.0, "tier1_pct": 1.0,
+         "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
+        {"id": 4, "name": "Package 4", "tier1_amount": 1200.0, "tier1_pct": 1.0,
+         "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
+    ]
+
 def default_blank_db():
     return {
         "next_bill_no": 1, "bills": [], "bookers": [], "salesmen": [],
@@ -57,243 +69,625 @@ def default_blank_db():
         "discount_packages": default_discount_packages()
     }
 
-def default_discount_packages():
-    return [
-        {"id": 1, "name": "Package 1",
-         "tier1_amount": 1200.0, "tier1_pct": 1.0,
-         "tier2_amount": 2100.0, "tier2_pct": 2.0,
-         "tier3_amount": 3100.0, "tier3_pct": 3.0,
-         "active": True},
-        {"id": 2, "name": "Package 2",
-         "tier1_amount": 1200.0, "tier1_pct": 1.0,
-         "tier2_amount": 2100.0, "tier2_pct": 2.0,
-         "tier3_amount": 3100.0, "tier3_pct": 3.0,
-         "active": True},
-        {"id": 3, "name": "Package 3",
-         "tier1_amount": 1200.0, "tier1_pct": 1.0,
-         "tier2_amount": 2100.0, "tier2_pct": 2.0,
-         "tier3_amount": 3100.0, "tier3_pct": 3.0,
-         "active": True},
-        {"id": 4, "name": "Package 4",
-         "tier1_amount": 1200.0, "tier1_pct": 1.0,
-         "tier2_amount": 2100.0, "tier2_pct": 2.0,
-         "tier3_amount": 3100.0, "tier3_pct": 3.0,
-         "active": True},
-    ]
-
 # ============================================================
-# LAMP HTML (black screen + pull-cord light)
+# LAMP HTML — Premium Pendant Lamp + Login Form Inside Light
 # ============================================================
-LAMP_HTML = """
+def build_lamp_html(light_on):
+    initial_class = "lit" if light_on else ""
+    return """
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="utf-8">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
     width: 100%;
-    min-height: 100vh;
-    background: #000000;
+    height: 100vh;
+    background: #000;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     overflow: hidden;
-    font-family: -apple-system, 'Segoe UI', sans-serif;
+    user-select: none;
   }
   .scene {
     position: relative;
     width: 100%;
-    min-height: 100vh;
-    background: #000000;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    height: 100vh;
+    background: radial-gradient(ellipse at 50% 0%, #0a0805 0%, #000 60%);
     overflow: hidden;
   }
-  .wire {
-    width: 3px;
-    height: 140px;
-    background: linear-gradient(180deg, #3a3a3a 0%, #151515 100%);
+  .scene.lit {
+    background: radial-gradient(ellipse at 50% 15%, #1f1408 0%, #0a0604 40%, #000 75%);
+    transition: background 1.2s ease;
   }
-  .lamp-wrap {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+
+  /* ========= CEILING ========= */
+  .ceiling {
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 56px; height: 10px;
+    background: linear-gradient(180deg, #1a1a1a 0%, #050505 100%);
+    border-radius: 0 0 6px 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.9);
+    z-index: 5;
+  }
+  .ceiling::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 22px; height: 3px;
+    background: #2a2a2a;
+    border-radius: 2px;
+  }
+
+  /* ========= WIRE ========= */
+  .wire {
+    position: absolute;
+    top: 8px; left: 50%;
+    transform: translateX(-50%);
+    width: 3px; height: 130px;
+    background: linear-gradient(90deg, #3a3a3a 0%, #6b6b6b 50%, #1a1a1a 100%);
+    box-shadow: 0 0 4px rgba(0,0,0,0.8);
+    z-index: 4;
+  }
+
+  /* ========= LAMP ASSEMBLY ========= */
+  .lamp {
+    position: absolute;
+    top: 130px; left: 50%;
+    transform: translateX(-50%);
+    width: 220px; height: 130px;
+    z-index: 6;
   }
   .lamp-shade {
-    width: 140px;
-    height: 85px;
-    background: linear-gradient(180deg, #2d2d2d 0%, #0f0f0f 100%);
-    border-radius: 50% 50% 6% 6% / 65% 65% 35% 35%;
-    position: relative;
-    box-shadow: inset 0 -12px 25px rgba(0,0,0,0.9), 0 4px 15px rgba(0,0,0,0.6);
-    transition: box-shadow 0.6s ease;
-    z-index: 2;
+    position: absolute;
+    top: 0; left: 0;
+    width: 220px; height: 100px;
+    border-radius: 110px 110px 20px 20px / 100px 100px 22px 22px;
+    background:
+      radial-gradient(ellipse at 50% -10%, #4a3826 0%, #2b1d10 30%, #0f0a05 85%),
+      linear-gradient(180deg, #2a1d10 0%, #0a0603 100%);
+    box-shadow:
+      inset 0 -18px 30px rgba(0,0,0,0.95),
+      inset 0 4px 12px rgba(120, 80, 40, 0.25),
+      0 6px 22px rgba(0,0,0,0.85);
+    transition: box-shadow 0.9s ease;
+    z-index: 3;
   }
   .lamp-shade::before {
     content: '';
     position: absolute;
-    top: 18px;
-    left: 50%;
+    top: 6px; left: 50%;
     transform: translateX(-50%);
-    width: 46px;
-    height: 46px;
+    width: 90%; height: 30px;
     border-radius: 50%;
-    background: #2b2b2b;
-    transition: all 0.6s ease;
-    box-shadow: inset 0 0 8px rgba(0,0,0,0.8);
-  }
-  .lamp-shade.on::before {
-    background: radial-gradient(circle at 50% 40%, #fffbe6 0%, #ffe082 40%, #ffb300 100%);
-    box-shadow:
-      0 0 40px 15px rgba(255, 220, 130, 0.85),
-      0 0 100px 35px rgba(255, 200, 80, 0.45),
-      inset 0 0 15px rgba(255, 255, 200, 0.9);
-  }
-  .lamp-shade.on {
-    box-shadow: inset 0 -12px 25px rgba(0,0,0,0.9),
-                0 0 60px 20px rgba(255, 220, 130, 0.35);
-  }
-  .beam {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 600px;
-    height: 520px;
-    background: radial-gradient(ellipse at top,
-      rgba(255, 235, 160, 0.55) 0%,
-      rgba(255, 220, 130, 0.28) 25%,
-      rgba(255, 200, 80, 0.10) 50%,
-      transparent 78%);
-    opacity: 0;
-    transition: opacity 0.9s ease;
+    background: radial-gradient(ellipse, rgba(160,110,60,0.25) 0%, transparent 70%);
     pointer-events: none;
-    filter: blur(6px);
-    z-index: 1;
   }
-  .beam.on { opacity: 1; }
-  .cord {
-    position: absolute;
-    top: 65px;
-    left: 50%;
-    transform: translateX(28px);
-    width: 2px;
-    height: 110px;
-    background: linear-gradient(180deg, #666 0%, #333 100%);
-    cursor: pointer;
-    transition: transform 0.35s ease;
-    transform-origin: top center;
-    z-index: 10;
-  }
-  .cord::after {
+  .lamp-shade::after {
     content: '';
     position: absolute;
-    bottom: -12px;
-    left: 50%;
+    bottom: 0; left: 0;
+    width: 100%; height: 22px;
+    border-radius: 0 0 22px 22px / 0 0 22px 22px;
+    background: linear-gradient(180deg, transparent 0%, #050301 100%);
+  }
+  .scene.lit .lamp-shade {
+    box-shadow:
+      inset 0 -18px 30px rgba(0,0,0,0.95),
+      inset 0 4px 12px rgba(160, 110, 60, 0.45),
+      0 6px 22px rgba(0,0,0,0.85),
+      0 0 60px 12px rgba(255, 200, 80, 0.18);
+  }
+
+  /* Bulb (visible under shade) */
+  .bulb {
+    position: absolute;
+    top: 78px; left: 50%;
     transform: translateX(-50%);
-    width: 14px;
-    height: 14px;
+    width: 46px; height: 42px;
+    border-radius: 50% 50% 42% 42% / 55% 55% 45% 45%;
+    background: radial-gradient(circle at 50% 35%, #2a2a2a 0%, #0a0a0a 75%);
+    transition: all 0.9s cubic-bezier(0.2, 0.9, 0.3, 1);
+    z-index: 5;
+    box-shadow: inset 0 -6px 12px rgba(0,0,0,0.9);
+  }
+  .scene.lit .bulb {
+    background: radial-gradient(circle at 50% 35%, #ffffff 0%, #fff8e1 25%, #ffd54f 55%, #ff9800 100%);
+    box-shadow:
+      0 0 22px 8px rgba(255, 235, 160, 0.95),
+      0 0 55px 22px rgba(255, 200, 80, 0.6),
+      0 0 110px 45px rgba(255, 170, 40, 0.3),
+      inset 0 0 10px rgba(255, 255, 220, 0.9);
+  }
+
+  /* ========= LIGHT BEAM ========= */
+  .beam {
+    position: absolute;
+    top: 220px; left: 50%;
+    transform: translateX(-50%);
+    width: 900px; height: 780px;
+    background: radial-gradient(
+      ellipse at 50% 0%,
+      rgba(255, 235, 160, 0.55) 0%,
+      rgba(255, 220, 130, 0.30) 18%,
+      rgba(255, 200, 80, 0.14) 40%,
+      rgba(255, 180, 60, 0.04) 65%,
+      transparent 82%
+    );
+    opacity: 0;
+    transition: opacity 1.2s ease;
+    pointer-events: none;
+    filter: blur(8px);
+    z-index: 1;
+  }
+  .scene.lit .beam { opacity: 1; }
+
+  /* Dust particles */
+  .dust {
+    position: absolute;
+    top: 240px; left: 50%;
+    transform: translateX(-50%);
+    width: 700px; height: 700px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1.5s ease 0.3s;
+    z-index: 2;
+  }
+  .scene.lit .dust { opacity: 1; }
+  .dust span {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: radial-gradient(circle, #fff8e1 0%, #ffd54f 60%, transparent 100%);
     border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #ffd54f, #ef6c00);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.8), 0 0 12px rgba(255,180,50,0.5);
+    box-shadow: 0 0 4px #ffd54f;
+    animation: drift linear infinite;
+  }
+  @keyframes drift {
+    0%   { transform: translateY(0) translateX(0); opacity: 0; }
+    20%  { opacity: 0.9; }
+    80%  { opacity: 0.9; }
+    100% { transform: translateY(220px) translateX(40px); opacity: 0; }
+  }
+
+  /* ========= PULL CORD ========= */
+  .cord {
+    position: absolute;
+    top: 130px; left: 50%;
+    transform: translateX(48px);
+    width: 2px;
+    height: 220px;
+    cursor: pointer;
+    z-index: 10;
+    transition: transform 0.4s ease;
+    transform-origin: top center;
+  }
+  .cord::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(180deg, #4a4a4a 0%, #b8b8b8 40%, #2a2a2a 100%);
+    box-shadow: 1px 0 2px rgba(0,0,0,0.6);
+  }
+  .cord .bead {
+    position: absolute;
+    bottom: -14px; left: 50%;
+    transform: translateX(-50%);
+    width: 18px; height: 22px;
+    border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+    background:
+      radial-gradient(circle at 35% 30%, #d4a35e 0%, #8a5a2a 40%, #3a2210 100%);
+    box-shadow:
+      0 3px 8px rgba(0,0,0,0.85),
+      0 0 14px 2px rgba(255, 190, 90, 0.35),
+      inset 0 -2px 4px rgba(0,0,0,0.5);
     transition: all 0.3s ease;
   }
-  .cord:hover::after {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.8), 0 0 22px 6px rgba(255,200,80,0.8);
-    transform: translateX(-50%) scale(1.18);
+  .cord .bead::after {
+    content: '';
+    position: absolute;
+    top: 5px; left: 5px;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,240,200,0.9) 0%, transparent 70%);
+  }
+  .cord:hover .bead {
+    box-shadow:
+      0 3px 8px rgba(0,0,0,0.85),
+      0 0 24px 6px rgba(255, 200, 100, 0.9),
+      inset 0 -2px 4px rgba(0,0,0,0.5);
+    transform: translateX(-50%) scale(1.15);
   }
   .cord.pulled {
-    animation: pullCord 0.55s ease;
+    animation: pullCord 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   @keyframes pullCord {
-    0%   { transform: translateX(28px) scaleY(1); }
-    45%  { transform: translateX(28px) scaleY(1.4); }
-    100% { transform: translateX(28px) scaleY(1); }
+    0%   { transform: translateX(48px) scaleY(1); }
+    40%  { transform: translateX(48px) scaleY(1.55); }
+    70%  { transform: translateX(48px) scaleY(0.92); }
+    100% { transform: translateX(48px) scaleY(1); }
   }
-  .hint {
+
+  /* ========= LOGIN FORM (inside beam) ========= */
+  .form-wrap {
     position: absolute;
-    bottom: 80px;
-    left: 50%;
+    top: 340px; left: 50%;
     transform: translateX(-50%);
-    color: #999;
-    font-size: 14px;
+    width: 380px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.9s ease 0.4s, transform 0.9s ease 0.4s;
+    z-index: 8;
+    transform: translateX(-50%) translateY(-15px);
+  }
+  .scene.lit .form-wrap {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+  }
+  .glass {
+    background: rgba(15, 12, 8, 0.65);
+    border: 1px solid rgba(255, 200, 100, 0.28);
+    border-radius: 18px;
+    padding: 26px 28px 22px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow:
+      0 12px 40px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255, 220, 150, 0.15),
+      0 0 60px rgba(255, 190, 80, 0.08);
+  }
+  .brand {
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .brand h1 {
+    color: #ffd54f;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-shadow: 0 0 18px rgba(255, 200, 80, 0.5);
+    margin-bottom: 2px;
+  }
+  .brand p {
+    color: #a8845a;
+    font-size: 10px;
     letter-spacing: 4px;
+    font-weight: 600;
+  }
+
+  .tabs {
+    display: flex;
+    background: rgba(0,0,0,0.5);
+    border-radius: 10px;
+    padding: 3px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255, 200, 100, 0.12);
+  }
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 8px 0;
+    color: #8a7a5a;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+  }
+  .tab.active {
+    background: linear-gradient(135deg, rgba(255,200,80,0.18) 0%, rgba(255,150,40,0.10) 100%);
+    color: #ffd54f;
+    box-shadow: 0 2px 8px rgba(255,180,50,0.2), inset 0 0 0 1px rgba(255,200,100,0.25);
+  }
+
+  .f-field {
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .f-field label {
+    display: block;
+    color: #a8845a;
+    font-size: 10px;
+    letter-spacing: 2px;
+    font-weight: 700;
+    margin-bottom: 5px;
+    padding-left: 4px;
+  }
+  .f-field input {
+    width: 100%;
+    padding: 11px 14px;
+    background: rgba(0,0,0,0.55);
+    border: 1px solid rgba(255, 200, 100, 0.15);
+    border-radius: 10px;
+    color: #fff8e1;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.3s ease;
+    caret-color: #ffd54f;
+  }
+  .f-field input::placeholder {
+    color: #6a5a3a;
+    font-style: italic;
+  }
+  .f-field input:focus {
+    border-color: rgba(255, 200, 100, 0.55);
+    background: rgba(0,0,0,0.7);
+    box-shadow: 0 0 0 3px rgba(255, 200, 100, 0.1), 0 0 20px rgba(255, 180, 50, 0.15);
+  }
+  .f-field.hidden { display: none; }
+
+  .hint-msg {
+    text-align: center;
+    color: #a8845a;
+    font-size: 11px;
+    margin-top: 14px;
+    letter-spacing: 1px;
+    line-height: 1.6;
+  }
+  .hint-msg b { color: #ffd54f; }
+
+  /* Error state shake */
+  .glass.shake {
+    animation: shake 0.45s ease;
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%     { transform: translateX(-8px); }
+    40%     { transform: translateX(8px); }
+    60%     { transform: translateX(-6px); }
+    80%     { transform: translateX(6px); }
+  }
+
+  /* ========= HINT AT BOTTOM ========= */
+  .bottom-hint {
+    position: absolute;
+    bottom: 40px; left: 50%;
+    transform: translateX(-50%);
+    color: #666;
+    font-size: 12px;
+    letter-spacing: 5px;
     text-transform: uppercase;
     font-weight: 300;
-    animation: pulse 2.5s infinite;
-    transition: opacity 0.5s, color 0.5s;
+    animation: pulse 2.8s ease-in-out infinite;
+    transition: all 0.6s ease;
+    z-index: 9;
     text-align: center;
-    width: 100%;
-    padding: 0 20px;
+    white-space: nowrap;
   }
-  .hint.hidden { opacity: 0; }
-  .hint.on { color: #ffd54f; opacity: 1; animation: none; }
+  .scene.lit .bottom-hint {
+    color: #a8845a;
+    animation: none;
+    letter-spacing: 3px;
+    font-size: 11px;
+  }
   @keyframes pulse {
-    0%, 100% { opacity: 0.4; }
-    50%      { opacity: 1; }
+    0%,100% { opacity: 0.35; }
+    50%     { opacity: 0.95; }
   }
 </style>
 </head>
 <body>
-<div class="scene">
+<div class="scene __INITIAL_CLASS__" id="scene">
+
+  <!-- Ceiling mount -->
+  <div class="ceiling"></div>
+
+  <!-- Wire -->
   <div class="wire"></div>
-  <div class="lamp-wrap">
-    <div class="lamp-shade" id="shade"></div>
-    <div class="beam" id="beam"></div>
+
+  <!-- Lamp assembly -->
+  <div class="lamp">
+    <div class="lamp-shade"></div>
+    <div class="bulb"></div>
   </div>
-  <div class="cord" id="cord" title="Pull me"></div>
-  <div class="hint" id="hint">▼ Pull the cord ▼</div>
+
+  <!-- Light beam -->
+  <div class="beam"></div>
+
+  <!-- Dust particles -->
+  <div class="dust" id="dust"></div>
+
+  <!-- Pull cord -->
+  <div class="cord" id="cord"><div class="bead"></div></div>
+
+  <!-- Login form -->
+  <div class="form-wrap">
+    <div class="glass" id="glass">
+      <div class="brand">
+        <h1>AL-BARAKAH</h1>
+        <p>ENTERPRISES</p>
+      </div>
+      <div class="tabs">
+        <button class="tab active" data-mode="login" type="button">LOGIN</button>
+        <button class="tab" data-mode="signup" type="button">SIGNUP</button>
+      </div>
+      <div class="f-field">
+        <label>USERNAME</label>
+        <input type="text" id="fUser" placeholder="enter username" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="f-field">
+        <label>PASSWORD</label>
+        <input type="password" id="fPass" placeholder="enter password" autocomplete="off">
+      </div>
+      <div class="f-field hidden" id="fPass2Wrap">
+        <label>CONFIRM PASSWORD</label>
+        <input type="password" id="fPass2" placeholder="repeat password" autocomplete="off">
+      </div>
+      <div class="hint-msg" id="hintMsg">
+        Pull the cord <b>again</b> to sign in
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom hint -->
+  <div class="bottom-hint" id="bottomHint">▼ PULL THE CORD ▼</div>
+
 </div>
 
 <script>
-  (function(){
-    var pulled = false;
-    var cord = document.getElementById('cord');
-    var shade = document.getElementById('shade');
-    var beam = document.getElementById('beam');
-    var hint = document.getElementById('hint');
+(function(){
+  var scene = document.getElementById('scene');
+  var cord = document.getElementById('cord');
+  var glass = document.getElementById('glass');
+  var bottomHint = document.getElementById('bottomHint');
+  var hintMsg = document.getElementById('hintMsg');
+  var fUser = document.getElementById('fUser');
+  var fPass = document.getElementById('fPass');
+  var fPass2 = document.getElementById('fPass2');
+  var fPass2Wrap = document.getElementById('fPass2Wrap');
+  var tabs = document.querySelectorAll('.tab');
+  var mode = 'login';
+  var pulled = false;
 
-    function triggerStreamlit() {
-      try {
-        var pd = window.parent.document;
-        var btns = pd.querySelectorAll('button');
-        for (var i = 0; i < btns.length; i++) {
-          var t = (btns[i].textContent || '').trim();
-          if (t.indexOf('__LAMP_ON__') !== -1) {
-            btns[i].click();
-            return true;
-          }
-        }
-      } catch(e) {}
-      return false;
-    }
+  /* ---- Dust particles ---- */
+  var dust = document.getElementById('dust');
+  for (var i = 0; i < 22; i++) {
+    var s = document.createElement('span');
+    s.style.left = (10 + Math.random() * 80) + '%';
+    s.style.top = (Math.random() * 60) + '%';
+    s.style.animationDuration = (5 + Math.random() * 6) + 's';
+    s.style.animationDelay = (Math.random() * 5) + 's';
+    var sz = 1 + Math.random() * 2;
+    s.style.width = sz + 'px';
+    s.style.height = sz + 'px';
+    dust.appendChild(s);
+  }
 
-    cord.addEventListener('click', function(){
-      if (pulled) return;
-      pulled = true;
-      cord.classList.add('pulled');
-      hint.textContent = '☀ Turning on...';
-      hint.classList.add('on');
-
-      setTimeout(function(){
-        shade.classList.add('on');
-        beam.classList.add('on');
-      }, 220);
-
-      setTimeout(function(){
-        if (!triggerStreamlit()) {
-          setTimeout(triggerStreamlit, 400);
-          setTimeout(triggerStreamlit, 900);
-        }
-      }, 1200);
+  /* ---- Tab switching ---- */
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){
+      tabs.forEach(function(x){ x.classList.remove('active'); });
+      t.classList.add('active');
+      mode = t.getAttribute('data-mode');
+      if (mode === 'signup') {
+        fPass2Wrap.classList.remove('hidden');
+        hintMsg.innerHTML = 'Pull the cord <b>again</b> to create account';
+      } else {
+        fPass2Wrap.classList.add('hidden');
+        hintMsg.innerHTML = 'Pull the cord <b>again</b> to sign in';
+      }
     });
-  })();
+  });
+
+  /* ---- Native value setter for React inputs ---- */
+  function setNativeValue(element, value) {
+    var proto = Object.getPrototypeOf(element);
+    var setter = Object.getOwnPropertyDescriptor(proto, 'value').set;
+    setter.call(element, value);
+    element.dispatchEvent(new Event('input', { bubbles: true }));
+    element.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  /* ---- Find streamlit hidden input by label marker ---- */
+  function findStreamlitInput(marker) {
+    try {
+      var pd = window.parent.document;
+      var labels = pd.querySelectorAll('label');
+      for (var i = 0; i < labels.length; i++) {
+        if (labels[i].textContent.indexOf(marker) !== -1) {
+          var wrap = labels[i].closest('[data-testid="stTextInput"]');
+          if (wrap) return wrap.querySelector('input');
+        }
+      }
+    } catch(e) {}
+    return null;
+  }
+
+  /* ---- Click streamlit hidden button by text ---- */
+  function clickStreamlitButton(marker) {
+    try {
+      var pd = window.parent.document;
+      var btns = pd.querySelectorAll('button');
+      for (var i = 0; i < btns.length; i++) {
+        if ((btns[i].textContent || '').indexOf(marker) !== -1) {
+          btns[i].click();
+          return true;
+        }
+      }
+    } catch(e) {}
+    return false;
+  }
+
+  /* ---- Cord click ---- */
+  cord.addEventListener('click', function(){
+    if (pulled) return;
+    pulled = true;
+    cord.classList.add('pulled');
+    setTimeout(function(){ cord.classList.remove('pulled'); pulled = false; }, 650);
+
+    var isLit = scene.classList.contains('lit');
+
+    if (!isLit) {
+      /* Turn ON: click the "TURN_ON" streamlit button */
+      setTimeout(function(){
+        clickStreamlitButton('__LAMP_TURN_ON__');
+      }, 350);
+    } else {
+      /* Turn OFF: check form values first */
+      var user = (fUser.value || '').trim();
+      var pass = fPass.value || '';
+      var pass2 = fPass2.value || '';
+
+      if (user === '' || pass === '') {
+        /* shake */
+        glass.classList.add('shake');
+        setTimeout(function(){ glass.classList.remove('shake'); }, 500);
+        hintMsg.innerHTML = '<span style="color:#ff7b7b;">Please fill all fields</span>';
+        setTimeout(function(){
+          hintMsg.innerHTML = mode === 'signup'
+            ? 'Pull the cord <b>again</b> to create account'
+            : 'Pull the cord <b>again</b> to sign in';
+        }, 2200);
+        return;
+      }
+
+      if (mode === 'signup' && pass !== pass2) {
+        glass.classList.add('shake');
+        setTimeout(function(){ glass.classList.remove('shake'); }, 500);
+        hintMsg.innerHTML = '<span style="color:#ff7b7b;">Passwords do not match</span>';
+        setTimeout(function(){
+          hintMsg.innerHTML = 'Pull the cord <b>again</b> to create account';
+        }, 2200);
+        return;
+      }
+
+      /* Set hidden streamlit inputs and click submit */
+      var uIn = findStreamlitInput('__LU__');
+      var pIn = findStreamlitInput('__LP__');
+      var p2In = findStreamlitInput('__LP2__');
+      var mIn = findStreamlitInput('__LM__');
+      if (uIn) setNativeValue(uIn, user);
+      if (pIn) setNativeValue(pIn, pass);
+      if (p2In) setNativeValue(p2In, pass2);
+      if (mIn) setNativeValue(mIn, mode);
+
+      setTimeout(function(){
+        clickStreamlitButton('__LAMP_SUBMIT__');
+      }, 220);
+    }
+  });
+
+  /* Auto-focus username when lit */
+  if (scene.classList.contains('lit')) {
+    setTimeout(function(){ try { fUser.focus(); } catch(e){} }, 800);
+  }
+})();
 </script>
 </body>
 </html>
-"""
+""".replace("__INITIAL_CLASS__", initial_class)
 
 # ============================================================
-# GLOBAL CSS (applies to login screen too)
+# GLOBAL CSS (for the app itself, applies when logged in)
 # ============================================================
 st.markdown("""
 <style>
@@ -561,27 +955,13 @@ st.markdown("""
     .full-bill-title { font-size: 20px; font-weight: 800; color: #1976d2; margin-bottom: 8px; }
     .full-bill-meta { font-size: 13px; color: #0277bd; margin-bottom: 12px; }
 
-    .auth-title {
-        text-align: center; font-size: 36px; font-weight: 900;
-        color: #1976d2; margin-bottom: 6px; margin-top: 20px;
-    }
-    .auth-subtitle {
-        text-align: center; font-size: 14px; color: #0277bd;
-        margin-bottom: 24px; font-weight: 600;
-    }
-    .auth-card {
-        background: #ffffff; border: 3px solid #90caf9; border-radius: 16px;
-        padding: 28px 32px; box-shadow: 0 8px 24px rgba(33,150,243,0.2);
-        margin: 0 auto;
-    }
-
     .stAlert { border-radius: 10px !important; }
     hr { border-color: #90caf9 !important; opacity: 0.6 !important; }
 </style>
 """, unsafe_allow_html=True)
 
 # ============================================================
-# SIDEBAR TOGGLE + MANAGE APP KILLER (only used after login)
+# SIDEBAR TOGGLE
 # ============================================================
 def inject_sidebar_toggle():
     components.html("""
@@ -590,17 +970,10 @@ def inject_sidebar_toggle():
         function killManageApp() {
             try {
                 var doc = window.parent.document;
-                var sel = [
-                    '[data-testid="manage-app-button"]',
-                    '[data-testid="stAppDeployButton"]',
-                    '[data-testid="stCloudAppManageButton"]',
-                    '.stAppDeployButton',
-                    'iframe[title="streamlit_cloud_status"]',
-                    'div[class*="manageApp"]',
-                    'div[class*="ManageApp"]',
-                    'button[class*="manageApp"]',
-                    'button[class*="ManageApp"]'
-                ];
+                var sel = ['[data-testid="manage-app-button"]','[data-testid="stAppDeployButton"]',
+                    '[data-testid="stCloudAppManageButton"]','.stAppDeployButton',
+                    'iframe[title="streamlit_cloud_status"]','div[class*="manageApp"]',
+                    'div[class*="ManageApp"]','button[class*="manageApp"]','button[class*="ManageApp"]'];
                 sel.forEach(function(s){
                     doc.querySelectorAll(s).forEach(function(el){
                         el.style.setProperty('display','none','important');
@@ -611,14 +984,11 @@ def inject_sidebar_toggle():
                 doc.querySelectorAll('button, a').forEach(function(el){
                     try {
                         var t = (el.textContent || '').trim();
-                        if (t === 'Manage app' || t === 'Manage App') {
-                            el.style.setProperty('display','none','important');
-                        }
+                        if (t === 'Manage app' || t === 'Manage App') el.style.setProperty('display','none','important');
                     } catch(e){}
                 });
             } catch(e) {}
         }
-
         function attachToggle() {
             try {
                 var doc = window.parent.document;
@@ -627,7 +997,7 @@ def inject_sidebar_toggle():
                 if (old) old.parentNode.removeChild(old);
                 var btn = doc.createElement('button');
                 btn.id = 'custom-sidebar-toggle';
-                btn.title = 'Sidebar Open/Close';
+                btn.title = 'Sidebar';
                 btn.innerHTML = '\\u2630';
                 var s = {
                     'position':'fixed','top':'14px','left':'14px','z-index':'2147483647',
@@ -638,13 +1008,11 @@ def inject_sidebar_toggle():
                 };
                 for (var k in s) btn.style.setProperty(k, s[k], 'important');
                 btn.onclick = function() {
-                    var targets = [
-                        '[data-testid="stSidebarCollapseButton"] button',
+                    var targets = ['[data-testid="stSidebarCollapseButton"] button',
                         '[data-testid="stSidebarCollapsedControl"] button',
                         '[data-testid="collapsedControl"] button',
                         '[data-testid="stExpandSidebarButton"] button',
-                        'button[kind="headerNoPadding"]'
-                    ];
+                        'button[kind="headerNoPadding"]'];
                     for (var i = 0; i < targets.length; i++) {
                         var el = doc.querySelector(targets[i]);
                         if (el) { el.click(); return; }
@@ -653,11 +1021,8 @@ def inject_sidebar_toggle():
                 if (doc.body) doc.body.appendChild(btn);
             } catch(e) {}
         }
-
         function tick() { killManageApp(); attachToggle(); }
-        setTimeout(tick, 300);
-        setTimeout(tick, 1000);
-        setTimeout(tick, 2000);
+        setTimeout(tick, 300); setTimeout(tick, 1000); setTimeout(tick, 2000);
         setInterval(tick, 1500);
     })();
     </script>
@@ -786,20 +1151,20 @@ PRODUCTS = sorted([
 ], key=lambda x: x["name"])
 
 PRODUCT_NAMES = [p["name"] for p in PRODUCTS]
-
 COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
 
 # ============================================================
-# SESSION STATE INIT (before auth check)
+# SESSION STATE INIT
 # ============================================================
 if "light_on" not in st.session_state:
     st.session_state["light_on"] = False
+if "auth_error" not in st.session_state:
+    st.session_state["auth_error"] = ""
 
 # ============================================================
-# LAMP ANIMATION SCREEN (black + lamp)
+# HIDE EVERYTHING DURING AUTH
 # ============================================================
-if (not st.session_state.get("logged_in_user")) and (not st.session_state.get("light_on")):
-    # Hide sidebar / header / toolbar completely, force black bg
+if not st.session_state.get("logged_in_user"):
     st.markdown("""
     <style>
         section[data-testid="stSidebar"],
@@ -822,104 +1187,109 @@ if (not st.session_state.get("logged_in_user")) and (not st.session_state.get("l
             max-width: 100% !important;
             margin: 0 !important;
         }
+        iframe {
+            border: none !important;
+        }
     </style>
     """, unsafe_allow_html=True)
 
-    # The lamp animation (iframe fills the page)
-    components.html(LAMP_HTML, height=880, scrolling=False)
+    # Render lamp (full screen)
+    components.html(build_lamp_html(st.session_state["light_on"]), height=900, scrolling=False)
 
-    # Hidden trigger button (JS will auto-click it)
-    st.markdown('<div style="position:fixed;left:-99999px;top:-99999px;width:1px;height:1px;overflow:hidden;">', unsafe_allow_html=True)
-    if st.button("__LAMP_ON__", key="lamp_on_trigger"):
+    # Hidden form + trigger buttons
+    with st.container():
+        st.markdown('<div id="hidden_lamp_inputs" style="position:fixed;left:-99999px;top:-99999px;height:0;width:0;overflow:hidden;">', unsafe_allow_html=True)
+        st.text_input("__LU__", key="lamp_user", label_visibility="visible")
+        st.text_input("__LP__", key="lamp_pass", label_visibility="visible")
+        st.text_input("__LP2__", key="lamp_pass2", label_visibility="visible")
+        st.text_input("__LM__", key="lamp_mode", label_visibility="visible")
+        turn_on = st.button("__LAMP_TURN_ON__", key="lamp_turn_on")
+        submit = st.button("__LAMP_SUBMIT__", key="lamp_submit")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # Show current error if any
+    if st.session_state.get("auth_error"):
+        st.markdown(f"""
+        <div style="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);
+                    background:rgba(200,40,40,0.9);color:#fff;padding:10px 22px;
+                    border-radius:10px;font-weight:700;font-size:14px;z-index:2147483647;
+                    box-shadow:0 6px 20px rgba(0,0,0,0.6);">
+            ⚠️ {st.session_state["auth_error"]}
+        </div>
+        """, unsafe_allow_html=True)
+        # clear after showing
+        st.session_state["auth_error"] = ""
+
+    if turn_on:
         st.session_state["light_on"] = True
         st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.stop()
+    if submit:
+        users = load_users()
+        uname_raw = st.session_state.get("lamp_user", "").strip().lower()
+        uname = sanitize_username(uname_raw)
+        pass_v = st.session_state.get("lamp_pass", "")
+        pass2_v = st.session_state.get("lamp_pass2", "")
+        mode = st.session_state.get("lamp_mode", "login")
 
-# ============================================================
-# AUTH SCREEN (login / signup)
-# ============================================================
-def render_auth_page():
-    st.markdown(f"<div class='auth-title'>🧾 {COMPANY_NAME}</div>", unsafe_allow_html=True)
-    st.markdown("<div class='auth-subtitle'>Billing Software 2026 — Login ya Signup Karo</div>", unsafe_allow_html=True)
+        if mode == "login":
+            if uname == "" or pass_v == "":
+                st.session_state["auth_error"] = "Please fill all fields"
+            elif uname not in users:
+                st.session_state["auth_error"] = "Username not found. Please signup."
+                st.session_state["light_on"] = True
+            elif users[uname].get("password_hash") != hash_password(pass_v):
+                st.session_state["auth_error"] = "Incorrect password"
+                st.session_state["light_on"] = True
+            else:
+                st.session_state["logged_in_user"] = uname
+                st.session_state["display_name"] = users[uname].get("display_name", uname)
+                st.session_state["page"] = "📊 Dashboard"
+                st.session_state["light_on"] = False
+                # clear
+                st.session_state["lamp_user"] = ""
+                st.session_state["lamp_pass"] = ""
+                st.session_state["lamp_pass2"] = ""
+                st.session_state["lamp_mode"] = ""
+                st.rerun()
 
-    col1, col2, col3 = st.columns([1, 1.2, 1])
-    with col2:
-        st.markdown("<div class='auth-card'>", unsafe_allow_html=True)
-        tab1, tab2 = st.tabs(["🔐 Login", "📝 Signup"])
+        else:  # signup
+            if uname == "" or pass_v == "" or pass2_v == "":
+                st.session_state["auth_error"] = "Please fill all fields"
+            elif len(uname) < 3:
+                st.session_state["auth_error"] = "Username min 3 chars"
+            elif len(uname) > 20:
+                st.session_state["auth_error"] = "Username max 20 chars"
+            elif len(pass_v) < 4:
+                st.session_state["auth_error"] = "Password min 4 chars"
+            elif pass_v != pass2_v:
+                st.session_state["auth_error"] = "Passwords do not match"
+            elif uname in users:
+                st.session_state["auth_error"] = f"Username '{uname}' already taken"
+            else:
+                users[uname] = {
+                    "username": uname,
+                    "display_name": uname_raw,
+                    "password_hash": hash_password(pass_v),
+                    "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                }
+                save_users(users)
+                with open(user_data_file(uname), "w", encoding="utf-8") as f:
+                    json.dump(default_blank_db(), f, indent=4, ensure_ascii=False)
+                st.session_state["logged_in_user"] = uname
+                st.session_state["display_name"] = uname_raw
+                st.session_state["page"] = "📊 Dashboard"
+                st.session_state["light_on"] = False
+                st.session_state["lamp_user"] = ""
+                st.session_state["lamp_pass"] = ""
+                st.session_state["lamp_pass2"] = ""
+                st.session_state["lamp_mode"] = ""
+                st.rerun()
 
-        with tab1:
-            st.markdown("### 🔐 Login")
-            st.caption("Apna username aur password daalo")
-            login_user = st.text_input("Username:", key="login_username", placeholder="username")
-            login_pass = st.text_input("Password:", key="login_password", type="password", placeholder="password")
-            login_btn = st.button("🔓 Login Karo", key="btn_login", use_container_width=True, type="primary")
+        if st.session_state.get("auth_error"):
+            st.session_state["light_on"] = True
+        st.rerun()
 
-            if login_btn:
-                users = load_users()
-                uname = login_user.strip().lower()
-                if uname == "" or login_pass == "":
-                    st.error("❌ Username aur password dono daalo")
-                elif uname not in users:
-                    st.error("❌ Ye username exist nahi karta. Pehle Signup karo.")
-                elif users[uname].get("password_hash") != hash_password(login_pass):
-                    st.error("❌ Password galat hai")
-                else:
-                    st.session_state["logged_in_user"] = uname
-                    st.session_state["display_name"] = users[uname].get("display_name", uname)
-                    st.session_state["page"] = "📊 Dashboard"
-                    st.success(f"✅ Welcome {uname}!")
-                    st.rerun()
-
-        with tab2:
-            st.markdown("### 📝 Signup")
-            st.caption("Naya account banao — apna data apna hi rahega")
-            su_user = st.text_input("Naya Username:", key="su_username", placeholder="sirf letters/numbers (3-20)")
-            su_pass = st.text_input("Naya Password:", key="su_password", type="password", placeholder="min 4 characters")
-            su_pass2 = st.text_input("Confirm Password:", key="su_password2", type="password", placeholder="same password")
-            su_btn = st.button("✅ Signup Karo", key="btn_signup", use_container_width=True)
-
-            if su_btn:
-                users = load_users()
-                uname = su_user.strip().lower()
-                uname_safe = sanitize_username(uname)
-
-                if uname_safe == "":
-                    st.error("❌ Username khali hai ya invalid characters hain")
-                elif len(uname_safe) < 3:
-                    st.error("❌ Username kam se kam 3 characters ka ho")
-                elif len(uname_safe) > 20:
-                    st.error("❌ Username 20 characters se zyada nahi ho sakta")
-                elif len(su_pass) < 4:
-                    st.error("❌ Password kam se kam 4 characters ka ho")
-                elif su_pass != su_pass2:
-                    st.error("❌ Dono passwords match nahi kar rahe")
-                elif uname_safe in users:
-                    st.error(f"❌ Username '{uname_safe}' pehle se exist karta hai. Doosra try karo.")
-                else:
-                    users[uname_safe] = {
-                        "username": uname_safe,
-                        "display_name": uname,
-                        "password_hash": hash_password(su_pass),
-                        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    }
-                    save_users(users)
-
-                    blank = default_blank_db()
-                    with open(user_data_file(uname_safe), "w", encoding="utf-8") as f:
-                        json.dump(blank, f, indent=4, ensure_ascii=False)
-
-                    st.success(f"✅ Account ban gaya! Ab 'Login' tab se login karo — username: **{uname_safe}**")
-                    st.info("💡 Yaad rakho: aapka data sirf aapko dikhega.")
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
-# ============================================================
-# CHECK LOGIN
-# ============================================================
-if "logged_in_user" not in st.session_state or not st.session_state["logged_in_user"]:
-    render_auth_page()
     st.stop()
 
 # ============================================================
@@ -997,7 +1367,6 @@ for p in db["discount_packages"]:
     if "tier3_amount" not in p: p["tier3_amount"] = 0.0
     if "tier3_pct" not in p: p["tier3_pct"] = 0.0
 
-# Inject sidebar toggle (now that user is logged in)
 inject_sidebar_toggle()
 
 # ============================================================
@@ -1104,8 +1473,7 @@ def export_single_group_bill(shop, date_str, booker, salesman, items, bill_no):
 
     gross_total = 0; total_boxes = 0; net_total = 0; after_disc_total = 0; saved_total = 0
     for it in items:
-        b_net = float(it.get("Net", 0))
-        b_gross = float(it.get("Gross", 0))
+        b_net = float(it.get("Net", 0)); b_gross = float(it.get("Gross", 0))
         b_boxes = int(it.get("Boxes", 0))
         after_net = b_net - (b_net * pkg_pct / 100)
         saved = b_net - after_net
@@ -2085,22 +2453,14 @@ def render_bills_list():
         key = (b.get("Shop",""), b.get("Date",""), b.get("Order Booker",""))
         if key not in groups:
             groups[key] = {
-                "shop": b.get("Shop",""),
-                "date": b.get("Date",""),
-                "booker": b.get("Order Booker",""),
-                "salesman": b.get("Salesman",""),
-                "items": [],
-                "orig_indices": [],
-                "bill_no": b.get("Bill No",""),
+                "shop": b.get("Shop",""), "date": b.get("Date",""),
+                "booker": b.get("Order Booker",""), "salesman": b.get("Salesman",""),
+                "items": [], "orig_indices": [], "bill_no": b.get("Bill No",""),
             }
         groups[key]["items"].append({
-            "Code": b.get("Code"),
-            "Product": b.get("Product"),
-            "Boxes": b.get("Boxes"),
-            "TP/Box": b.get("TP/Box"),
-            "Discount %": b.get("Discount %"),
-            "Gross": b.get("Gross"),
-            "Net": b.get("Net"),
+            "Code": b.get("Code"), "Product": b.get("Product"),
+            "Boxes": b.get("Boxes"), "TP/Box": b.get("TP/Box"),
+            "Discount %": b.get("Discount %"), "Gross": b.get("Gross"), "Net": b.get("Net"),
         })
         groups[key]["orig_indices"].append(orig_idx)
 
@@ -2134,12 +2494,9 @@ def render_bills_list():
 
     for idx, key in enumerate(sorted_keys):
         g = groups[key]
-        shop = g["shop"] or "-"
-        date_str = g["date"] or "-"
-        booker = g["booker"] or "-"
-        salesman = g["salesman"] or "-"
-        bill_no = g["bill_no"]
-        items = g["items"]
+        shop = g["shop"] or "-"; date_str = g["date"] or "-"
+        booker = g["booker"] or "-"; salesman = g["salesman"] or "-"
+        bill_no = g["bill_no"]; items = g["items"]
         total_b = sum(int(it.get("Boxes",0)) for it in items)
         total_n = sum(float(it.get("Net",0)) for it in items)
 
@@ -2159,12 +2516,9 @@ def render_bills_list():
             """, unsafe_allow_html=True)
         with c2:
             eye_icon = "🔽" if is_viewing else "👁️"
-            if st.button(eye_icon, key=f"eye_bill_{wkey}", use_container_width=True,
-                         help="Poora bill dekho"):
-                if is_viewing:
-                    st.session_state["view_bill_key"] = None
-                else:
-                    st.session_state["view_bill_key"] = wkey
+            if st.button(eye_icon, key=f"eye_bill_{wkey}", use_container_width=True, help="Poora bill dekho"):
+                if is_viewing: st.session_state["view_bill_key"] = None
+                else: st.session_state["view_bill_key"] = wkey
                 st.rerun()
         with c3:
             if st.button("⬇️ Excel", key=f"dl_bill_{wkey}", use_container_width=True, type="primary"):
@@ -2345,12 +2699,9 @@ def render_load_form():
             """, unsafe_allow_html=True)
         with c2:
             eye_icon = "🔽" if is_viewing else "👁️"
-            if st.button(eye_icon, key=f"eye_lf_{wkey}", use_container_width=True,
-                         help="Poora load form dekho"):
-                if is_viewing:
-                    st.session_state["view_lf_key"] = None
-                else:
-                    st.session_state["view_lf_key"] = wkey
+            if st.button(eye_icon, key=f"eye_lf_{wkey}", use_container_width=True, help="Poora load form dekho"):
+                if is_viewing: st.session_state["view_lf_key"] = None
+                else: st.session_state["view_lf_key"] = wkey
                 st.rerun()
         with c3:
             if st.button("⬇️ Excel", key=f"dl_lf_{wkey}", use_container_width=True, type="primary"):
@@ -2383,7 +2734,6 @@ def render_load_form():
 
             total_net = sum(float(it.get("Net", 0)) for it in bill_items)
             pkg_pct_preview, pkg_name_preview, _tier = get_package_discount_pct(total_net)
-            after_disc = total_net - (total_net * pkg_pct_preview / 100)
 
             cc1, cc2, cc3 = st.columns(3)
             with cc1:
@@ -2510,8 +2860,7 @@ def export_bill_callback():
 
     gross_total = 0; total_boxes = 0; net_total = 0; after_disc_total = 0; saved_total = 0
     for bill in shop_bills:
-        b_net = float(bill.get("Net", 0))
-        b_gross = float(bill.get("Gross", 0))
+        b_net = float(bill.get("Net", 0)); b_gross = float(bill.get("Gross", 0))
         b_boxes = int(bill.get("Boxes", 0))
         after_net = b_net - (b_net * pkg_pct / 100)
         saved = b_net - after_net
