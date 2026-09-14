@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# + Excel-Style Bills List & Load Form Grouping
+# + Eye Button (Full Bill View) in Bills List & Load Form
 # ============================================================
 
 import os
@@ -357,6 +357,22 @@ st.markdown("""
         border-radius: 6px; margin-left: 8px;
     }
 
+    /* Full bill view box */
+    .full-bill-box {
+        background: #ffffff;
+        border: 3px solid #2196f3;
+        border-radius: 14px;
+        padding: 18px 22px;
+        margin: 10px 0 18px 0;
+        box-shadow: 0 6px 20px rgba(33,150,243,0.25);
+    }
+    .full-bill-title {
+        font-size: 20px; font-weight: 800; color: #1976d2; margin-bottom: 8px;
+    }
+    .full-bill-meta {
+        font-size: 13px; color: #0277bd; margin-bottom: 12px;
+    }
+
     .stAlert { border-radius: 10px !important; }
     hr { border-color: #90caf9 !important; opacity: 0.6 !important; }
 </style>
@@ -457,7 +473,7 @@ PRODUCTS = sorted([
     {"code":"87","name":"KIMS – CHOKOZO STRAWBERRY","price":129},
     {"code":"88","name":"KIMS – CHOKOZO CHOCOLATE CREAM","price":129},
     {"code":"89","name":"KIMS – CHOKOZO MILK MAZA","price":129},
-    {"code":"90","name":"KIMS – SIP STRAWBERRY","price":328},
+    {"code":"90","name":"KIMS – SIR STRAWBERRY","price":328},
     {"code":"91","name":"KIMS – CHAMPION DELICIOUS MILK CHOCOLATE JAR","price":269},
     {"code":"92","name":"KIMS – CHOCO DELIGHT CREAMY CHOCOLATE","price":219},
     {"code":"93","name":"KIMS – NUT KHUT CHOCOLATE","price":135},
@@ -569,6 +585,10 @@ if "_dl_counter" not in st.session_state:
     st.session_state["_dl_counter"] = 0
 if "page" not in st.session_state:
     st.session_state["page"] = "📊 Dashboard"
+if "view_bill_key" not in st.session_state:
+    st.session_state["view_bill_key"] = None
+if "view_lf_key" not in st.session_state:
+    st.session_state["view_lf_key"] = None
 
 db = st.session_state.database
 for k in ["bookers", "salesmen", "load_forms", "petrol_expenses", "lunch_expenses"]:
@@ -645,7 +665,7 @@ def show_auto_download():
         """, height=0)
 
 # ============================================================
-# EXPORT SINGLE GROUP BILL (used by Bills List group cards)
+# EXPORT SINGLE GROUP BILL
 # ============================================================
 def export_single_group_bill(shop, date_str, booker, salesman, items, bill_no):
     bill_total_net = sum(float(it.get("Net", 0)) for it in items)
@@ -1600,11 +1620,11 @@ def render_billing():
     show_auto_download()
 
 # ============================================================
-# PAGE: BILLS LIST (Excel Style Grouped Cards)
+# PAGE: BILLS LIST (with Eye button)
 # ============================================================
 def render_bills_list():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📋 Bills List</h1>", unsafe_allow_html=True)
-    st.markdown(f"<p style='color:#0277bd;font-weight:500;'>Saved bills — Shop + Date + Booker wise (Excel style)</p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color:#0277bd;font-weight:500;'>Saved bills — 👁️ Eye button se poora bill dekho</p>", unsafe_allow_html=True)
     st.markdown("---")
 
     if len(db["bills"]) == 0:
@@ -1695,7 +1715,7 @@ def render_bills_list():
     """, unsafe_allow_html=True)
 
     st.markdown(f"### 📋 Bills ({len(groups)})")
-    st.caption("👇 Har card = ek saved bill (Shop + Date + Booker). Expand karo, Excel download karo ya delete karo.")
+    st.caption("👇 👁️ = Poora bill dekho | ⬇️ = Excel download | 🗑 = Delete")
 
     sorted_keys = sorted(groups.keys(), key=lambda k: (parse_date(k[1]) or date.min, k[0]), reverse=True)
 
@@ -1711,8 +1731,9 @@ def render_bills_list():
         total_n = sum(float(it.get("Net",0)) for it in items)
 
         wkey = f"{shop}_{date_str}_{booker}_{bill_no}_{idx}".replace(" ","_").replace("/","_").replace(":","")
+        is_viewing = st.session_state.get("view_bill_key") == wkey
 
-        c1, c2, c3 = st.columns([4, 1, 1])
+        c1, c2, c3, c4 = st.columns([4, 0.7, 1, 1])
         with c1:
             st.markdown(f"""
             <div class='lf-simple-card'>
@@ -1724,17 +1745,67 @@ def render_bills_list():
             </div>
             """, unsafe_allow_html=True)
         with c2:
+            eye_icon = "🔽" if is_viewing else "👁️"
+            if st.button(eye_icon, key=f"eye_bill_{wkey}", use_container_width=True,
+                         help="Poora bill dekho"):
+                if is_viewing:
+                    st.session_state["view_bill_key"] = None
+                else:
+                    st.session_state["view_bill_key"] = wkey
+                st.rerun()
+        with c3:
             if st.button("⬇️ Excel", key=f"dl_bill_{wkey}", use_container_width=True, type="primary"):
                 export_single_group_bill(shop, date_str, booker, salesman, items, bill_no)
                 st.rerun()
-        with c3:
+        with c4:
             if st.button("🗑 Delete", key=f"del_bill_{wkey}", use_container_width=True):
                 st.session_state["confirm_delete_group"] = g["orig_indices"]
                 st.session_state["_confirm_group_label"] = f"{shop} | {date_str} | {booker}"
 
-        with st.expander(f"📦 {len(items)} product(s) — Net Total Rs {total_n:,.0f}", expanded=False):
-            df = pd.DataFrame(items)
-            st.dataframe(df, use_container_width=True, hide_index=True)
+        # ---- Full Bill View (Eye clicked) ----
+        if is_viewing:
+            st.markdown(f"""
+            <div class='full-bill-box'>
+                <div class='full-bill-title'>👁️ {shop} — Full Bill View</div>
+                <div class='full-bill-meta'>
+                    📅 {date_str} &nbsp;·&nbsp; 👤 Booker: <b>{booker}</b> &nbsp;·&nbsp; 🧑‍💼 Salesman: <b>{salesman}</b> &nbsp;·&nbsp; 🧾 Bill No: <b>{bill_no}</b>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            df_items = pd.DataFrame(items)
+            st.dataframe(df_items, use_container_width=True, hide_index=True)
+
+            # Big totals
+            pkg_pct_preview, pkg_name_preview, _tier = get_package_discount_pct(total_n)
+            after_disc = total_n - (total_n * pkg_pct_preview / 100)
+            saved = total_n - after_disc
+
+            cc1, cc2, cc3 = st.columns(3)
+            with cc1:
+                st.markdown(f"<div class='metric-card'><h3>TOTAL BOXES</h3><h1>{total_b}</h1></div>", unsafe_allow_html=True)
+            with cc2:
+                st.markdown(f"<div class='metric-card'><h3>NET TOTAL</h3><h1>Rs {total_n:,.0f}</h1></div>", unsafe_allow_html=True)
+            with cc3:
+                if pkg_pct_preview > 0:
+                    st.markdown(f"<div class='metric-card'><h3>AFTER DISC ({pkg_pct_preview}%)</h3><h1>Rs {after_disc:,.0f}</h1></div>", unsafe_allow_html=True)
+                else:
+                    st.markdown(f"<div class='metric-card'><h3>AFTER DISC</h3><h1>Rs {total_n:,.0f}</h1></div>", unsafe_allow_html=True)
+
+            if pkg_pct_preview > 0:
+                st.markdown(f"<div class='hint-box'>🎁 Package: <b>{pkg_name_preview}</b> | {pkg_pct_preview}% discount | Saved: <b>Rs {saved:,.0f}</b></div>", unsafe_allow_html=True)
+
+            close_c1, close_c2 = st.columns([1, 4])
+            with close_c1:
+                if st.button("❌ Close View", key=f"close_view_bill_{wkey}", use_container_width=True):
+                    st.session_state["view_bill_key"] = None
+                    st.rerun()
+            with close_c2:
+                if st.button("⬇️ Download Excel", key=f"dl_from_view_{wkey}", use_container_width=True, type="primary"):
+                    export_single_group_bill(shop, date_str, booker, salesman, items, bill_no)
+                    st.rerun()
+
+            st.markdown("---")
 
     if st.session_state.get("confirm_delete_group"):
         label = st.session_state.get("_confirm_group_label", "this bill group")
@@ -1749,6 +1820,7 @@ def render_bills_list():
                     st.session_state["success_msg"] = f"🗑 {len(idxs)} bill line(s) deleted"
                 st.session_state["confirm_delete_group"] = None
                 st.session_state["_confirm_group_label"] = ""
+                st.session_state["view_bill_key"] = None
                 st.rerun()
         with cc2:
             if st.button("❌ Cancel", key="confirm_group_no", use_container_width=True):
@@ -1762,11 +1834,11 @@ def render_bills_list():
     show_auto_download()
 
 # ============================================================
-# PAGE: LOAD FORM (Excel Style)
+# PAGE: LOAD FORM (with Eye button)
 # ============================================================
 def render_load_form():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📦 Load Forms</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#0277bd;font-weight:500;'>Saved load forms — Booker + Date wise</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#0277bd;font-weight:500;'>Saved load forms — 👁️ Eye button se poora load form dekho</p>", unsafe_allow_html=True)
     st.markdown("---")
 
     load_forms = db.get("load_forms", [])
@@ -1847,8 +1919,9 @@ def render_load_form():
             })
 
         wkey = f"lf_{lf_id}_{idx}"
+        is_viewing = st.session_state.get("view_lf_key") == wkey
 
-        c1, c2, c3 = st.columns([4, 1, 1])
+        c1, c2, c3, c4 = st.columns([4, 0.7, 1, 1])
         with c1:
             st.markdown(f"""
             <div class='lf-simple-card'>
@@ -1860,23 +1933,67 @@ def render_load_form():
             </div>
             """, unsafe_allow_html=True)
         with c2:
+            eye_icon = "🔽" if is_viewing else "👁️"
+            if st.button(eye_icon, key=f"eye_lf_{wkey}", use_container_width=True,
+                         help="Poora load form dekho"):
+                if is_viewing:
+                    st.session_state["view_lf_key"] = None
+                else:
+                    st.session_state["view_lf_key"] = wkey
+                st.rerun()
+        with c3:
             if st.button("⬇️ Excel", key=f"dl_lf_{wkey}", use_container_width=True, type="primary"):
                 export_single_group_bill(booker + " Load", date_str, booker, "", bill_items, lf_id)
                 st.rerun()
-        with c3:
+        with c4:
             if st.button("🗑 Delete", key=f"del_lf_{wkey}", use_container_width=True):
                 db["load_forms"] = [x for x in db["load_forms"] if x.get("id") != lf_id]
                 save_database(db)
                 st.session_state["success_msg"] = f"🗑 Load Form deleted"
+                st.session_state["view_lf_key"] = None
                 st.rerun()
 
-        with st.expander(f"📦 {len(items)} product(s) — Total {total_boxes} boxes", expanded=False):
+        # ---- Full Load Form View (Eye clicked) ----
+        if is_viewing:
+            st.markdown(f"""
+            <div class='full-bill-box'>
+                <div class='full-bill-title'>👁️ Load Form — {booker}</div>
+                <div class='full-bill-meta'>
+                    📅 {date_str} &nbsp;·&nbsp; 🕐 {time_str} &nbsp;·&nbsp; 📦 {len(items)} products &nbsp;·&nbsp; Total: <b>{total_boxes} boxes</b>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
             if bill_items:
-                df = pd.DataFrame([{
+                df_items = pd.DataFrame([{
                     "Code": it["Code"], "Product": it["Product"],
                     "Boxes": it["Boxes"], "TP/Box": it["TP/Box"], "Net": it["Net"]
                 } for it in bill_items])
-                st.dataframe(df, use_container_width=True, hide_index=True)
+                st.dataframe(df_items, use_container_width=True, hide_index=True)
+
+            total_net = sum(float(it.get("Net", 0)) for it in bill_items)
+            pkg_pct_preview, pkg_name_preview, _tier = get_package_discount_pct(total_net)
+            after_disc = total_net - (total_net * pkg_pct_preview / 100)
+
+            cc1, cc2, cc3 = st.columns(3)
+            with cc1:
+                st.markdown(f"<div class='metric-card'><h3>PRODUCTS</h3><h1>{len(items)}</h1></div>", unsafe_allow_html=True)
+            with cc2:
+                st.markdown(f"<div class='metric-card'><h3>TOTAL BOXES</h3><h1>{total_boxes}</h1></div>", unsafe_allow_html=True)
+            with cc3:
+                st.markdown(f"<div class='metric-card'><h3>NET TOTAL</h3><h1>Rs {total_net:,.0f}</h1></div>", unsafe_allow_html=True)
+
+            close_c1, close_c2 = st.columns([1, 4])
+            with close_c1:
+                if st.button("❌ Close View", key=f"close_view_lf_{wkey}", use_container_width=True):
+                    st.session_state["view_lf_key"] = None
+                    st.rerun()
+            with close_c2:
+                if st.button("⬇️ Download Excel", key=f"dl_from_view_lf_{wkey}", use_container_width=True, type="primary"):
+                    export_single_group_bill(booker + " Load", date_str, booker, "", bill_items, lf_id)
+                    st.rerun()
+
+            st.markdown("---")
 
     if st.session_state.get("success_msg"):
         st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
