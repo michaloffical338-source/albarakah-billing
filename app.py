@@ -1,11 +1,13 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
 # + Premium Animated Lamp Login + Multi-User System
+# FIXED: Query-param based auth (no more loading stuck)
 # ============================================================
 
 import os
 import json
 import hashlib
+import base64
 import pandas as pd
 from datetime import datetime, date, timedelta
 import streamlit as st
@@ -19,6 +21,73 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# ============================================================
+# QUERY PARAM HANDLING (reliable cord + auth mechanism)
+# ============================================================
+if "light_on" not in st.session_state:
+    st.session_state["light_on"] = False
+if "auth_error" not in st.session_state:
+    st.session_state["auth_error"] = ""
+if "_auth_payload" not in st.session_state:
+    st.session_state["_auth_payload"] = None
+
+def _get_qp():
+    try:
+        return dict(st.query_params)
+    except Exception:
+        try:
+            return st.experimental_get_query_params()
+        except Exception:
+            return {}
+
+def _clear_qp():
+    try:
+        st.query_params.clear()
+    except Exception:
+        try:
+            st.experimental_set_query_params()
+        except Exception:
+            pass
+
+def _qp_val(qp, key):
+    if key not in qp:
+        return None
+    v = qp[key]
+    if isinstance(v, list):
+        return v[0] if v else None
+    return v
+
+def _handle_query_params():
+    qp = _get_qp()
+    handled = False
+
+    lamp_val = _qp_val(qp, "lamp")
+    if lamp_val == "on":
+        st.session_state["light_on"] = True
+        handled = True
+    elif lamp_val == "off":
+        st.session_state["light_on"] = False
+        handled = True
+
+    auth_val = _qp_val(qp, "auth")
+    if auth_val:
+        try:
+            raw = auth_val.replace('-', '+').replace('_', '/')
+            raw += '=' * (-len(raw) % 4)
+            decoded = base64.b64decode(raw).decode('utf-8')
+            data = json.loads(decoded)
+            st.session_state["_auth_payload"] = data
+            st.session_state["light_on"] = True
+        except Exception:
+            st.session_state["auth_error"] = "Invalid auth data"
+        handled = True
+
+    if handled:
+        _clear_qp()
+        st.rerun()
+
+_handle_query_params()
 
 # ============================================================
 # AUTH HELPERS
@@ -642,49 +711,18 @@ def build_lamp_html(light_on):
     });
   });
 
-  /* ---- React/Streamlit native value setter ---- */
-  function setNativeValue(element, value) {
+  /* ---- Navigate parent page (reliable) ---- */
+  function navigateParent(url) {
+    try { window.parent.location.href = url; return; } catch(e) {}
+    try { window.top.location.href = url; return; } catch(e) {}
     try {
-      var proto = Object.getPrototypeOf(element);
-      var desc = Object.getOwnPropertyDescriptor(proto, 'value');
-      if (desc && desc.set) desc.set.call(element, value);
-      else element.value = value;
-      element.dispatchEvent(new Event('input', { bubbles: true }));
-      element.dispatchEvent(new Event('change', { bubbles: true }));
-    } catch(e) {
-      try { element.value = value; } catch(ignore) {}
-    }
-  }
-
-  /* ---- Find Streamlit input by marker ---- */
-  function findStreamlitInput(marker) {
-    try {
-      var pd = window.parent.document;
-      var labels = pd.querySelectorAll('label');
-      for (var i = 0; i < labels.length; i++) {
-        if ((labels[i].textContent || '').indexOf(marker) !== -1) {
-          var wrap = labels[i].closest('[data-testid="stTextInput"]');
-          if (wrap) return wrap.querySelector('input');
-        }
-      }
+      var a = document.createElement('a');
+      a.href = url;
+      a.target = '_top';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function(){ try { document.body.removeChild(a); } catch(e){} }, 200);
     } catch(e) {}
-    return null;
-  }
-
-  /* ---- Find/click Streamlit button safely ---- */
-  function clickStreamlitButton(marker) {
-    try {
-      var pd = window.parent.document;
-      var btns = pd.querySelectorAll('button');
-      for (var i = 0; i < btns.length; i++) {
-        var text = (btns[i].textContent || '').trim();
-        if (text === marker || text.indexOf(marker) !== -1) {
-          btns[i].click();
-          return true;
-        }
-      }
-    } catch(e) {}
-    return false;
   }
 
   /* ---- Pull cord ---- */
@@ -702,24 +740,16 @@ def build_lamp_html(light_on):
     var isLit = scene.classList.contains('lit');
 
     if (!isLit) {
-      /* IMPORTANT: light the lamp immediately in the iframe.
-         Streamlit rerun is only used to persist the state. */
+      /* First pull → light ON via query param */
       scene.classList.add('lit');
       bottomHint.textContent = 'ENTER DETAILS • PULL CORD TO CONTINUE';
       hintMsg.innerHTML = 'Pull the cord <b>again</b> to sign in';
-
-      setTimeout(function(){
-        try { fUser.focus(); } catch(e) {}
-      }, 650);
-
-      /* Persist light_on=True in Streamlit. */
-      setTimeout(function(){
-        clickStreamlitButton('__LAMP_TURN_ON__');
-      }, 120);
+      setTimeout(function(){ try { fUser.focus(); } catch(e) {} }, 650);
+      setTimeout(function(){ navigateParent('?lamp=on'); }, 250);
       return;
     }
 
-    /* Second pull = submit/login, same original workflow. */
+    /* Second pull → submit */
     var user = (fUser.value || '').trim();
     var pass = fPass.value || '';
     var pass2 = fPass2.value || '';
@@ -746,19 +776,18 @@ def build_lamp_html(light_on):
       return;
     }
 
-    var uIn = findStreamlitInput('__LU__');
-    var pIn = findStreamlitInput('__LP__');
-    var p2In = findStreamlitInput('__LP2__');
-    var mIn = findStreamlitInput('__LM__');
-    if (uIn) setNativeValue(uIn, user);
-    if (pIn) setNativeValue(pIn, pass);
-    if (p2In) setNativeValue(p2In, pass2);
-    if (mIn) setNativeValue(mIn, mode);
-
     hintMsg.innerHTML = '<span style="color:#f4c96f;">Authenticating…</span>';
-    setTimeout(function(){
-      clickStreamlitButton('__LAMP_SUBMIT__');
-    }, 220);
+
+    var payload = JSON.stringify({u: user, p: pass, p2: pass2, m: mode});
+    var encoded;
+    try {
+      encoded = btoa(unescape(encodeURIComponent(payload)));
+    } catch(e) {
+      encoded = btoa(payload);
+    }
+    encoded = encoded.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+    setTimeout(function(){ navigateParent('?auth=' + encoded); }, 250);
   }
 
   cord.addEventListener('click', pullCord);
@@ -769,7 +798,6 @@ def build_lamp_html(light_on):
     }
   });
 
-  /* Auto-focus username when already lit after Streamlit rerun. */
   if (scene.classList.contains('lit')) {
     bottomHint.textContent = 'ENTER DETAILS • PULL CORD TO CONTINUE';
     setTimeout(function(){ try { fUser.focus(); } catch(e){} }, 650);
@@ -1248,14 +1276,6 @@ PRODUCT_NAMES = [p["name"] for p in PRODUCTS]
 COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
 
 # ============================================================
-# SESSION STATE INIT
-# ============================================================
-if "light_on" not in st.session_state:
-    st.session_state["light_on"] = False
-if "auth_error" not in st.session_state:
-    st.session_state["auth_error"] = ""
-
-# ============================================================
 # HIDE EVERYTHING DURING AUTH
 # ============================================================
 if not st.session_state.get("logged_in_user"):
@@ -1281,81 +1301,45 @@ if not st.session_state.get("logged_in_user"):
             max-width: 100% !important;
             margin: 0 !important;
         }
-        iframe {
-            border: none !important;
-        }
+        iframe { border: none !important; }
     </style>
     """, unsafe_allow_html=True)
 
-    # Render lamp (full screen)
     components.html(build_lamp_html(st.session_state["light_on"]), height=900, scrolling=False)
 
-    # Hidden form + trigger buttons
-    with st.container():
-        st.markdown('<div id="hidden_lamp_inputs" style="position:fixed;left:-99999px;top:-99999px;height:0;width:0;overflow:hidden;">', unsafe_allow_html=True)
-        st.text_input("__LU__", key="lamp_user", label_visibility="visible")
-        st.text_input("__LP__", key="lamp_pass", label_visibility="visible")
-        st.text_input("__LP2__", key="lamp_pass2", label_visibility="visible")
-        st.text_input("__LM__", key="lamp_mode", label_visibility="visible")
-        turn_on = st.button("__LAMP_TURN_ON__", key="lamp_turn_on")
-        submit = st.button("__LAMP_SUBMIT__", key="lamp_submit")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    # Show current error if any
-    if st.session_state.get("auth_error"):
-        st.markdown(f"""
-        <div style="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);
-                    background:rgba(200,40,40,0.9);color:#fff;padding:10px 22px;
-                    border-radius:10px;font-weight:700;font-size:14px;z-index:2147483647;
-                    box-shadow:0 6px 20px rgba(0,0,0,0.6);">
-            ⚠️ {st.session_state["auth_error"]}
-        </div>
-        """, unsafe_allow_html=True)
-        # clear after showing
-        st.session_state["auth_error"] = ""
-
-    if turn_on:
-        st.session_state["light_on"] = True
-        st.rerun()
-
-    if submit:
+    # ---- Process auth payload if present ----
+    payload = st.session_state.get("_auth_payload")
+    if payload:
+        st.session_state["_auth_payload"] = None
         users = load_users()
-        uname_raw = st.session_state.get("lamp_user", "").strip().lower()
+        uname_raw = str(payload.get("u", "")).strip()
         uname = sanitize_username(uname_raw)
-        pass_v = st.session_state.get("lamp_pass", "")
-        pass2_v = st.session_state.get("lamp_pass2", "")
-        mode = st.session_state.get("lamp_mode", "login")
+        pass_v = str(payload.get("p", ""))
+        pass2_v = str(payload.get("p2", ""))
+        mode = str(payload.get("m", "login"))
 
         if mode == "login":
             if uname == "" or pass_v == "":
                 st.session_state["auth_error"] = "Please fill all fields"
             elif uname not in users:
                 st.session_state["auth_error"] = "Username not found. Please signup."
-                st.session_state["light_on"] = True
             elif users[uname].get("password_hash") != hash_password(pass_v):
                 st.session_state["auth_error"] = "Incorrect password"
-                st.session_state["light_on"] = True
             else:
                 st.session_state["logged_in_user"] = uname
                 st.session_state["display_name"] = users[uname].get("display_name", uname)
                 st.session_state["page"] = "📊 Dashboard"
                 st.session_state["light_on"] = False
-                # clear
-                st.session_state["lamp_user"] = ""
-                st.session_state["lamp_pass"] = ""
-                st.session_state["lamp_pass2"] = ""
-                st.session_state["lamp_mode"] = ""
                 st.rerun()
-
-        else:  # signup
+        else:
             if uname == "" or pass_v == "" or pass2_v == "":
                 st.session_state["auth_error"] = "Please fill all fields"
             elif len(uname) < 3:
-                st.session_state["auth_error"] = "Username min 3 chars"
+                st.session_state["auth_error"] = "Username min 3 characters"
             elif len(uname) > 20:
-                st.session_state["auth_error"] = "Username max 20 chars"
+                st.session_state["auth_error"] = "Username max 20 characters"
             elif len(pass_v) < 4:
-                st.session_state["auth_error"] = "Password min 4 chars"
+                st.session_state["auth_error"] = "Password min 4 characters"
             elif pass_v != pass2_v:
                 st.session_state["auth_error"] = "Passwords do not match"
             elif uname in users:
@@ -1374,15 +1358,23 @@ if not st.session_state.get("logged_in_user"):
                 st.session_state["display_name"] = uname_raw
                 st.session_state["page"] = "📊 Dashboard"
                 st.session_state["light_on"] = False
-                st.session_state["lamp_user"] = ""
-                st.session_state["lamp_pass"] = ""
-                st.session_state["lamp_pass2"] = ""
-                st.session_state["lamp_mode"] = ""
                 st.rerun()
 
-        if st.session_state.get("auth_error"):
-            st.session_state["light_on"] = True
+        # If we got here, there was an error → keep light on
+        st.session_state["light_on"] = True
         st.rerun()
+
+    # ---- Show error if any ----
+    if st.session_state.get("auth_error"):
+        st.markdown(f"""
+        <div style="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);
+                    background:rgba(200,40,40,0.9);color:#fff;padding:10px 22px;
+                    border-radius:10px;font-weight:700;font-size:14px;z-index:2147483647;
+                    box-shadow:0 6px 20px rgba(0,0,0,0.6);">
+            ⚠️ {st.session_state["auth_error"]}
+        </div>
+        """, unsafe_allow_html=True)
+        st.session_state["auth_error"] = ""
 
     st.stop()
 
