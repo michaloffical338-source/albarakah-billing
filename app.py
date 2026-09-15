@@ -1,7 +1,8 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# + Multi-User Login System (Signup/Login + Per-User Data)
+# + Multi-User Login (Signup/Login + Per-User Data)
 # + Custom Products (Add Single / Bulk Upload)
+# + DSR (Daily Sales Report) with Return Boxes & Discounts
 # ============================================================
 
 import os
@@ -56,7 +57,8 @@ def default_blank_db():
         "load_forms": [], "bookers_salaries": {}, "salesmen_salaries": {},
         "product_prices": {}, "petrol_expenses": [], "lunch_expenses": [],
         "discount_packages": default_discount_packages(),
-        "custom_products": []
+        "custom_products": [],
+        "dsr_forms": []
     }
 
 # ============================================================
@@ -247,7 +249,7 @@ st.markdown("""
         padding: 22px; text-align: center; box-shadow: 0 3px 10px rgba(33,150,243,0.15);
     }
     .metric-card h3 { font-size: 13px !important; margin: 0 !important; font-weight: 700 !important; text-transform: uppercase; }
-    .metric-card h1 { font-size: 34px !important; margin: 10px 0 0 0 !important; font-weight: 800 !important; }
+    .metric-card h1 { font-size: 30px !important; margin: 10px 0 0 0 !important; font-weight: 800 !important; }
 
     .booker-row { background: #ffffff; border: 1px solid #90caf9; border-radius: 10px; padding: 12px 18px; margin-bottom: 8px; }
 
@@ -294,6 +296,8 @@ st.markdown("""
         text-align: center; min-width: 90px;
     }
     .lf-simple-card .lf-boxes small { display: block; font-size: 10px; font-weight: 500; opacity: 0.9; }
+    .lf-simple-card.dsr { border-left-color: #e65100; }
+    .lf-simple-card.dsr .lf-boxes { background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); }
 
     .sal-metric {
         display: inline-block; padding: 8px 14px; margin-right: 8px; margin-bottom: 6px;
@@ -355,11 +359,32 @@ st.markdown("""
         margin: 10px 0 18px 0;
         box-shadow: 0 6px 20px rgba(33,150,243,0.25);
     }
+    .full-bill-box.dsr { border-color: #f57c00; box-shadow: 0 6px 20px rgba(245,124,0,0.25); }
     .full-bill-title {
         font-size: 20px; font-weight: 800; color: #1976d2; margin-bottom: 8px;
     }
+    .full-bill-box.dsr .full-bill-title { color: #e65100; }
     .full-bill-meta {
         font-size: 13px; color: #0277bd; margin-bottom: 12px;
+    }
+
+    .badge-dsr {
+        background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        color: #ffffff !important; padding: 3px 10px; border-radius: 6px;
+        font-size: 11px; font-weight: 700; margin-left: 8px;
+    }
+    .badge-transferred {
+        background: #c8e6c9; color: #1b5e20 !important; padding: 3px 10px;
+        border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px;
+    }
+
+    .dsr-summary-line {
+        padding: 6px 12px; margin: 3px 0; border-radius: 6px;
+        background: #f5f5f5; font-size: 14px;
+    }
+    .dsr-summary-line.total {
+        background: #e8f5e9; font-weight: 800; font-size: 16px; color: #1b5e20 !important;
+        border: 2px solid #4caf50;
     }
 
     .auth-title {
@@ -696,7 +721,8 @@ def load_database(username):
         try:
             with open(fpath, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                for k in ["bookers", "salesmen", "load_forms", "petrol_expenses", "lunch_expenses", "custom_products"]:
+                for k in ["bookers", "salesmen", "load_forms", "petrol_expenses",
+                          "lunch_expenses", "custom_products", "dsr_forms"]:
                     if k not in data: data[k] = []
                 for k in ["bookers_salaries", "salesmen_salaries", "product_prices"]:
                     if k not in data: data[k] = {}
@@ -748,9 +774,12 @@ if "view_bill_key" not in st.session_state:
     st.session_state["view_bill_key"] = None
 if "view_lf_key" not in st.session_state:
     st.session_state["view_lf_key"] = None
+if "view_dsr_key" not in st.session_state:
+    st.session_state["view_dsr_key"] = None
 
 db = st.session_state.database
-for k in ["bookers", "salesmen", "load_forms", "petrol_expenses", "lunch_expenses", "custom_products"]:
+for k in ["bookers", "salesmen", "load_forms", "petrol_expenses",
+          "lunch_expenses", "custom_products", "dsr_forms"]:
     if k not in db: db[k] = []
 for k in ["bookers_salaries", "salesmen_salaries", "product_prices"]:
     if k not in db: db[k] = {}
@@ -764,7 +793,6 @@ for p in db["discount_packages"]:
 # HELPERS
 # ============================================================
 def get_all_products():
-    """Static PRODUCTS + user's custom_products merged, sorted by name."""
     try:
         custom = db.get("custom_products", [])
     except Exception:
@@ -939,6 +967,87 @@ def export_single_group_bill(shop, date_str, booker, salesman, items, bill_no):
         st.session_state["success_msg"] = f"✅ Excel ready | {shop}"
 
 # ============================================================
+# EXPORT DSR EXCEL
+# ============================================================
+def export_dsr_excel(dsr):
+    output = BytesIO()
+    wb = xlsxwriter.Workbook(output, {'in_memory': True})
+    ws = wb.add_worksheet("DSR")
+
+    title = wb.add_format({"bold":True, "font_size":16, "align":"center", "border":2, "bg_color":"#FFE0B2"})
+    header = wb.add_format({"bold":True, "font_size":11, "bg_color":"#BBDEFB", "align":"center", "border":2, "text_wrap": True})
+    cell_left = wb.add_format({"font_size":11, "border":1, "align":"left"})
+    cell_center = wb.add_format({"font_size":11, "border":1, "align":"center"})
+    cell_num = wb.add_format({"font_size":11, "border":1, "align":"right", "num_format": "#,##0"})
+    total_fmt = wb.add_format({"bold":True, "font_size":11, "bg_color":"#FFF2CC", "align":"center", "border":2})
+    highlight = wb.add_format({"bold":True, "font_size":12, "bg_color":"#E8F5E9", "align":"center", "border":2})
+
+    ws.set_column("A:A", 10); ws.set_column("B:B", 40); ws.set_column("C:C", 10)
+    ws.set_column("D:D", 12); ws.set_column("E:E", 14); ws.set_column("F:F", 10); ws.set_column("G:G", 14)
+
+    ws.merge_range("A1:G1", f"{COMPANY_NAME} — DSR #{dsr['id']}", title)
+    ws.write("A3", "Booker", header); ws.write("B3", dsr.get("booker",""), cell_left)
+    ws.write("C3", "Date", header); ws.write("D3", dsr.get("date",""), cell_center)
+    ws.write("E3", "Time", header); ws.write("F3", dsr.get("time",""), cell_center)
+
+    ws.write("A5", "Code", header); ws.write("B5", "Product", header)
+    ws.write("C5", "Boxes", header); ws.write("D5", "TP/Box", header)
+    ws.write("E5", "Total", header); ws.write("F5", "Return", header)
+    ws.write("G5", "Return Amt", header)
+
+    row = 5
+    for it in dsr.get("items", []):
+        ws.write(row, 0, str(it.get("Code","")), cell_center)
+        ws.write(row, 1, it.get("Product",""), cell_left)
+        ws.write(row, 2, int(it.get("Boxes",0)), cell_center)
+        ws.write(row, 3, float(it.get("TP/Box",0)), cell_num)
+        ws.write(row, 4, float(it.get("Total",0)), cell_num)
+        ws.write(row, 5, int(it.get("ReturnBoxes",0)), cell_center)
+        ws.write(row, 6, float(it.get("ReturnAmount",0)), cell_num)
+        row += 1
+
+    ws.write(row, 2, "TOTAL", total_fmt)
+    ws.write(row, 4, float(dsr.get("total_amount",0)), total_fmt)
+    ws.write(row, 5, int(dsr.get("total_return_boxes",0)), total_fmt)
+    ws.write(row, 6, float(dsr.get("total_return_amount",0)), total_fmt)
+
+    row += 2
+    ws.merge_range(row, 0, row, 4, "Stock Value (went out)", header)
+    ws.merge_range(row, 5, row, 6, f"Rs {float(dsr.get('total_amount',0)):,.0f}", cell_num)
+    row += 1
+    ws.merge_range(row, 0, row, 4, "(−) Total Returns", header)
+    ws.merge_range(row, 5, row, 6, f"Rs {float(dsr.get('total_return_amount',0)):,.0f}", cell_num)
+    row += 1
+    ws.merge_range(row, 0, row, 4, "(=) Net Stock", header)
+    ws.merge_range(row, 5, row, 6, f"Rs {float(dsr.get('net_amount',0)):,.0f}", cell_num)
+    row += 1
+    ws.merge_range(row, 0, row, 4, "(−) Total Discount", header)
+    ws.merge_range(row, 5, row, 6, f"Rs {float(dsr.get('total_discount',0)):,.0f}", cell_num)
+    row += 1
+    ws.merge_range(row, 0, row, 4, "💰 YE LENA HAI", highlight)
+    ws.merge_range(row, 5, row, 6, f"Rs {float(dsr.get('amount_to_collect',0)):,.0f}", highlight)
+    row += 2
+
+    # Shop discounts
+    ws.merge_range(row, 0, row, 6, "Shop-wise Discount", header); row += 1
+    ws.write(row, 0, "Shop", header); ws.write(row, 1, "Gross", header)
+    ws.write(row, 2, "Net", header); ws.write(row, 3, "Bill Disc", header)
+    ws.write(row, 4, "Pkg Disc", header); ws.write(row, 5, "Total Disc", header); row += 1
+    for s in dsr.get("shop_discounts", []):
+        ws.write(row, 0, s.get("shop",""), cell_left)
+        ws.write(row, 1, float(s.get("gross",0)), cell_num)
+        ws.write(row, 2, float(s.get("net",0)), cell_num)
+        ws.write(row, 3, float(s.get("individual_discount",0)), cell_num)
+        ws.write(row, 4, float(s.get("package_discount",0)), cell_num)
+        ws.write(row, 5, float(s.get("total_discount",0)), cell_num)
+        row += 1
+
+    wb.close(); output.seek(0)
+    fname = f"DSR_{dsr['id']}_{dsr.get('booker','')}.xlsx".replace("/","-").replace(" ","_")
+    st.session_state["download_file"] = (fname, output.getvalue())
+    st.session_state["success_msg"] = f"✅ DSR #{dsr['id']} Excel ready"
+
+# ============================================================
 # SIDEBAR
 # ============================================================
 with st.sidebar:
@@ -965,7 +1074,7 @@ with st.sidebar:
             "👤 Bookers", "💰 Bookers Salary",
             "🧑‍💼 Salesmen", "💰 Salesmen Salary",
             "💵 Daily Expense",
-            "📋 Bills List", "📦 Load Form",
+            "📋 Bills List", "📦 Load Form", "📋 DSR",
         ],
         key="page_selector",
         label_visibility="collapsed"
@@ -984,6 +1093,8 @@ with st.sidebar:
         <p>👤 Bookers: {len(db.get('bookers', []))}</p>
         <p>🧑‍💼 Salesmen: {len(db.get('salesmen', []))}</p>
         <p>🧾 Total Bills: {len(db['bills'])}</p>
+        <p>📦 Load Forms: {len(db.get('load_forms', []))}</p>
+        <p>📋 DSR Forms: {len(db.get('dsr_forms', []))}</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -1193,7 +1304,7 @@ def render_discount():
         st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
 
 # ============================================================
-# PAGE: ALL PRODUCTS (UPDATED: Add Single / Bulk Upload / Delete)
+# PAGE: ALL PRODUCTS
 # ============================================================
 def render_all_products():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🛒 All Products</h1>", unsafe_allow_html=True)
@@ -1205,7 +1316,6 @@ def render_all_products():
 
     all_products = get_all_products()
 
-    # ================= ADD NEW PRODUCT (SINGLE) =================
     with st.expander("➕ Naya Product Add Karo (Single)", expanded=False):
         c1, c2, c3, c4 = st.columns([1.5, 3.5, 1.5, 1])
         with c1:
@@ -1240,7 +1350,6 @@ def render_all_products():
                         st.session_state["success_msg"] = f"✅ '{name_s}' add ho gaya (Code {code_s})"
                         st.rerun()
 
-    # ================= BULK UPLOAD =================
     with st.expander("📤 Bulk Upload (Excel / CSV) — Ek saath kayi products add karo", expanded=False):
         st.markdown("""
         **File Format:** 3 columns hone chahiye — **Code**, **Name**, **Price**
@@ -1325,7 +1434,6 @@ def render_all_products():
             key="dl_sample_template"
         )
 
-    # ================= SEARCH & LIST =================
     st.markdown("### 🔍 Search / Manage Products")
     c1, c2 = st.columns([3, 2])
     with c1:
@@ -1879,7 +1987,7 @@ def render_daily_expense():
         st.error(st.session_state["error_msg"]); st.session_state["error_msg"] = None
 
 # ============================================================
-# PAGE: BILLING (UPDATED: get_all_products)
+# PAGE: BILLING
 # ============================================================
 def render_billing():
     st.markdown(f"<h2 style='color:#1976d2 !important;margin:0 0 6px 0;'>🧾 Billing</h2>", unsafe_allow_html=True)
@@ -2183,11 +2291,11 @@ def render_bills_list():
     show_auto_download()
 
 # ============================================================
-# PAGE: LOAD FORM (UPDATED: get_all_products)
+# PAGE: LOAD FORM  (with Transfer to DSR)
 # ============================================================
 def render_load_form():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📦 Load Forms</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#0277bd;font-weight:500;'>Saved load forms — 👁️ Eye button se poora load form dekho</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#0277bd;font-weight:500;'>Saved load forms — 👁️ Eye button se dekho · 📤 Transfer to DSR karo</p>", unsafe_allow_html=True)
     st.markdown("---")
 
     load_forms = db.get("load_forms", [])
@@ -2206,7 +2314,13 @@ def render_load_form():
     with c3: to_date = st.date_input("To Date:", value=today, key="lf_to_date")
 
     all_booker_names = sorted(set(lf["booker"] for lf in load_forms if lf.get("booker")))
-    booker_filter = st.selectbox("Filter by Booker:", options=["All"] + all_booker_names, key="lf_booker_filter")
+    c1, c2 = st.columns(2)
+    with c1:
+        booker_filter = st.selectbox("Filter by Booker:", options=["All"] + all_booker_names, key="lf_booker_filter")
+    with c2:
+        transfer_filter = st.selectbox("Transfer status:",
+            ["All", "🟢 Not Transferred", "✅ Transferred to DSR"],
+            key="lf_transfer_filter")
 
     filtered_lfs = []
     for lf in load_forms:
@@ -2219,6 +2333,10 @@ def render_load_form():
         elif filter_mode == "📆 Custom Date Range":
             if not (from_date <= lf_date <= to_date): continue
         if booker_filter != "All" and lf.get("booker") != booker_filter: continue
+        if transfer_filter == "🟢 Not Transferred" and lf.get("transferred_to_dsr"):
+            continue
+        if transfer_filter == "✅ Transferred to DSR" and not lf.get("transferred_to_dsr"):
+            continue
         filtered_lfs.append(lf)
 
     if not filtered_lfs:
@@ -2250,6 +2368,8 @@ def render_load_form():
         date_str = lf.get("date", ""); time_str = lf.get("time", "")
         total_boxes = lf.get("total_boxes", 0)
         items = lf.get("items", [])
+        is_transferred = lf.get("transferred_to_dsr", False)
+        dsr_id = lf.get("dsr_id", None)
 
         bill_items = []
         all_prods = get_all_products()
@@ -2271,12 +2391,17 @@ def render_load_form():
         wkey = f"lf_{lf_id}_{idx}"
         is_viewing = st.session_state.get("view_lf_key") == wkey
 
-        c1, c2, c3, c4 = st.columns([4, 0.7, 1, 1])
+        # Card
+        badge_html = ""
+        if is_transferred:
+            badge_html = f'<span class="badge-transferred">✅ DSR #{dsr_id}</span>'
+
+        c1, c2, c3, c4, c5 = st.columns([3.4, 0.6, 0.9, 1.3, 0.9])
         with c1:
             st.markdown(f"""
             <div class='lf-simple-card'>
                 <div class='lf-info'>
-                    <div class='lf-line1'>👤 {booker}</div>
+                    <div class='lf-line1'>👤 {booker} {badge_html}</div>
                     <div class='lf-line2'>📅 {date_str} &nbsp;·&nbsp; 🕐 {time_str} &nbsp;·&nbsp; 📦 {len(items)} products</div>
                 </div>
                 <div class='lf-boxes'>{total_boxes}<small>BOXES</small></div>
@@ -2296,7 +2421,15 @@ def render_load_form():
                 export_single_group_bill(booker + " Load", date_str, booker, "", bill_items, lf_id)
                 st.rerun()
         with c4:
-            if st.button("🗑 Delete", key=f"del_lf_{wkey}", use_container_width=True):
+            if is_transferred:
+                st.button(f"✅ DSR #{dsr_id}", key=f"already_transferred_{wkey}", use_container_width=True, disabled=True)
+            else:
+                if st.button("📤 Transfer to DSR", key=f"trf_dsr_{wkey}", use_container_width=True,
+                             help="Is load form ko DSR mein bhejo"):
+                    transfer_load_form_to_dsr(lf_id)
+                    st.rerun()
+        with c5:
+            if st.button("🗑", key=f"del_lf_{wkey}", use_container_width=True, help="Delete load form"):
                 db["load_forms"] = [x for x in db["load_forms"] if x.get("id") != lf_id]
                 save_database(db)
                 st.session_state["success_msg"] = f"🗑 Load Form deleted"
@@ -2330,9 +2463,9 @@ def render_load_form():
             with cc2:
                 st.markdown(f"<div class='metric-card'><h3>TOTAL BOXES</h3><h1>{total_boxes}</h1></div>", unsafe_allow_html=True)
             with cc3:
-                st.markdown(f"<div class='metric-card'><h3>NET TOTAL</h3><h1>Rs {total_net:,.0f}</h1></div>", unsafe_allow_html=True)
+                st.markdown(f"<div class='metric-card'><h3>STOCK VALUE</h3><h1>Rs {total_net:,.0f}</h1></div>", unsafe_allow_html=True)
 
-            close_c1, close_c2 = st.columns([1, 4])
+            close_c1, close_c2, close_c3 = st.columns([1, 1, 3])
             with close_c1:
                 if st.button("❌ Close View", key=f"close_view_lf_{wkey}", use_container_width=True):
                     st.session_state["view_lf_key"] = None
@@ -2341,6 +2474,14 @@ def render_load_form():
                 if st.button("⬇️ Download Excel", key=f"dl_from_view_lf_{wkey}", use_container_width=True, type="primary"):
                     export_single_group_bill(booker + " Load", date_str, booker, "", bill_items, lf_id)
                     st.rerun()
+            with close_c3:
+                if not is_transferred:
+                    if st.button("📤 Transfer this Load Form into DSR", key=f"trf_from_view_{wkey}",
+                                 use_container_width=True, type="primary"):
+                        transfer_load_form_to_dsr(lf_id)
+                        st.rerun()
+                else:
+                    st.markdown(f"<div class='hint-box' style='margin-top:8px;'>✅ Ye load form DSR #{dsr_id} mein transfer ho chuka hai.</div>", unsafe_allow_html=True)
 
             st.markdown("---")
 
@@ -2348,6 +2489,434 @@ def render_load_form():
         st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
 
     show_auto_download()
+
+# ============================================================
+# TRANSFER LOAD FORM → DSR
+# ============================================================
+def transfer_load_form_to_dsr(lf_id):
+    db = st.session_state.database
+    lf = next((x for x in db.get("load_forms", []) if x.get("id") == lf_id), None)
+    if not lf:
+        st.session_state["error_msg"] = "❌ Load Form not found"
+        return
+    if lf.get("transferred_to_dsr"):
+        st.session_state["error_msg"] = f"⚠️ Ye load form already DSR #{lf.get('dsr_id')} mein transfer ho chuka hai"
+        return
+
+    booker = lf.get("booker", "")
+    items = lf.get("items", [])
+    all_prods = get_all_products()
+
+    dsr_items = []
+    total_boxes = 0
+    total_amount = 0.0
+    for it in items:
+        code = str(it.get("Code", ""))
+        prod = next((p for p in all_prods if str(p["code"]) == code), None)
+        try:
+            price = get_price(code, prod["price"]) if prod else 0.0
+        except Exception:
+            price = 0.0
+        boxes = int(it.get("Boxes", 0))
+        line_total = boxes * float(price)
+        dsr_items.append({
+            "Code": code,
+            "Product": it.get("Product", ""),
+            "Boxes": boxes,
+            "TP/Box": float(price),
+            "Total": line_total,
+            "ReturnBoxes": 0,
+            "ReturnAmount": 0.0,
+        })
+        total_boxes += boxes
+        total_amount += line_total
+
+    booker_bills = [b for b in db.get("bills", []) if b.get("Order Booker", "").strip() == booker]
+    shop_groups = {}
+    for b in booker_bills:
+        shop = b.get("Shop", "-") or "-"
+        if shop not in shop_groups:
+            shop_groups[shop] = {
+                "shop": shop, "gross": 0.0, "net": 0.0,
+                "individual_discount": 0.0, "bill_nos": set()
+            }
+        gross = float(b.get("Gross", 0))
+        net = float(b.get("Net", 0))
+        shop_groups[shop]["gross"] += gross
+        shop_groups[shop]["net"] += net
+        shop_groups[shop]["individual_discount"] += (gross - net)
+        shop_groups[shop]["bill_nos"].add(b.get("Bill No", ""))
+
+    shop_discounts = []
+    total_discount = 0.0
+    for shop, g in shop_groups.items():
+        pkg_pct, pkg_name, _ = get_package_discount_pct(g["net"])
+        pkg_discount = g["net"] * pkg_pct / 100
+        shop_total_discount = g["individual_discount"] + pkg_discount
+        shop_discounts.append({
+            "shop": shop,
+            "gross": g["gross"],
+            "net": g["net"],
+            "individual_discount": g["individual_discount"],
+            "package_pct": pkg_pct,
+            "package_name": pkg_name or "",
+            "package_discount": pkg_discount,
+            "total_discount": shop_total_discount,
+            "bill_nos": sorted([str(x) for x in g["bill_nos"]]),
+        })
+        total_discount += shop_total_discount
+
+    if "dsr_forms" not in db: db["dsr_forms"] = []
+    next_id = 1
+    if db["dsr_forms"]:
+        next_id = max(x.get("id", 0) for x in db["dsr_forms"]) + 1
+
+    dsr_record = {
+        "id": next_id,
+        "source_load_form_id": lf_id,
+        "booker": booker,
+        "date": lf.get("date", ""),
+        "time": lf.get("time", ""),
+        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "items": dsr_items,
+        "total_boxes": total_boxes,
+        "total_amount": total_amount,
+        "total_return_boxes": 0,
+        "total_return_amount": 0.0,
+        "net_amount": total_amount,
+        "shop_discounts": shop_discounts,
+        "total_discount": total_discount,
+        "amount_to_collect": total_amount - total_discount,
+        "status": "open",
+        "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    }
+    db["dsr_forms"].append(dsr_record)
+
+    for x in db["load_forms"]:
+        if x.get("id") == lf_id:
+            x["transferred_to_dsr"] = True
+            x["dsr_id"] = next_id
+            break
+
+    save_database(db)
+    st.session_state["success_msg"] = f"✅ Load Form #{lf_id} → DSR #{next_id} transfer ho gaya | Stock: Rs {total_amount:,.0f} | To Collect: Rs {dsr_record['amount_to_collect']:,.0f}"
+
+# ============================================================
+# PAGE: DSR (Daily Sales Report)
+# ============================================================
+def render_dsr():
+    st.markdown(f"<h1 style='color:#1976d2 !important;'>📋 DSR — Daily Sales Report</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#0277bd;font-weight:500;'>Load Form se transfer kiye gaye DSR forms — return boxes daalo aur 'Ye Lena Hai' dekho</p>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    dsr_forms = db.get("dsr_forms", [])
+    if not dsr_forms:
+        st.info("❌ Abhi tak koi DSR nahi bana. '📦 Load Form' page pe jao aur kisi load form pe '📤 Transfer to DSR' button click karo.")
+        return
+
+    today = date.today()
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        filter_mode = st.selectbox("Filter Mode:",
+            ["📅 Aaj Ke DSR (Today)", "📆 Custom Date Range", "🗓️ Specific Date", "📋 All DSR"],
+            key="dsr_filter_mode")
+    with c2: from_date = st.date_input("From Date:", value=today - timedelta(days=7), key="dsr_from_date")
+    with c3: to_date = st.date_input("To Date:", value=today, key="dsr_to_date")
+
+    all_booker_names = sorted(set(d.get("booker", "") for d in dsr_forms if d.get("booker")))
+    booker_filter = st.selectbox("Filter by Booker:", options=["All"] + all_booker_names, key="dsr_booker_filter")
+
+    filtered = []
+    for d in dsr_forms:
+        d_date = parse_date(d.get("date", ""))
+        if d_date is None: continue
+        if filter_mode == "📅 Aaj Ke DSR (Today)":
+            if d_date != today: continue
+        elif filter_mode == "🗓️ Specific Date":
+            if d_date != from_date: continue
+        elif filter_mode == "📆 Custom Date Range":
+            if not (from_date <= d_date <= to_date): continue
+        if booker_filter != "All" and d.get("booker") != booker_filter: continue
+        filtered.append(d)
+
+    if not filtered:
+        st.warning("❌ Is filter ke hisaab se koi DSR nahi mila.")
+        return
+
+    total_dsr = len(filtered)
+    total_boxes = sum(d.get("total_boxes", 0) for d in filtered)
+    total_amt = sum(float(d.get("total_amount", 0)) for d in filtered)
+    total_ret_amt = sum(float(d.get("total_return_amount", 0)) for d in filtered)
+    total_disc = sum(float(d.get("total_discount", 0)) for d in filtered)
+    total_collect = sum(float(d.get("amount_to_collect", 0)) for d in filtered)
+
+    st.markdown(f"""
+    <div class='summary-box'>
+        <b style='color:#1976d2;font-size:16px;'>📊 Overall Summary</b><br>
+        <span style='color:#0277bd;'>
+            DSR Forms: <b>{total_dsr}</b> | Total Boxes: <b>{total_boxes}</b> |
+            Stock Value: <b>Rs {total_amt:,.0f}</b> |
+            Returns: <b>Rs {total_ret_amt:,.0f}</b> |
+            Total Discount: <b>Rs {total_disc:,.0f}</b> |
+            <b style='color:#c62828;font-size:15px;'>Ye Lena Hai: Rs {total_collect:,.0f}</b>
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.markdown(f"### 📋 DSR Forms ({len(filtered)})")
+    st.caption("👇 👁️ = Open karo, return boxes daalo | 📤 = Excel export | 🗑 = Delete")
+
+    sorted_dsr = sorted(filtered, key=lambda x: x.get("created_at", ""), reverse=True)
+
+    for idx, dsr in enumerate(sorted_dsr):
+        dsr_id = dsr.get("id", idx)
+        booker = dsr.get("booker", "Unknown")
+        date_str = dsr.get("date", "")
+        time_str = dsr.get("time", "")
+        total_b = dsr.get("total_boxes", 0)
+        total_a = float(dsr.get("total_amount", 0))
+        to_collect = float(dsr.get("amount_to_collect", 0))
+        ret_boxes = dsr.get("total_return_boxes", 0)
+
+        wkey = f"dsr_{dsr_id}_{idx}"
+        is_viewing = st.session_state.get("view_dsr_key") == wkey
+
+        c1, c2, c3, c4 = st.columns([4, 0.7, 1, 1])
+        with c1:
+            st.markdown(f"""
+            <div class='lf-simple-card dsr'>
+                <div class='lf-info'>
+                    <div class='lf-line1'>📋 DSR #{dsr_id} — {booker}</div>
+                    <div class='lf-line2'>📅 {date_str} &nbsp;·&nbsp; 🕐 {time_str} &nbsp;·&nbsp; 💰 Stock: Rs {total_a:,.0f} &nbsp;·&nbsp; ↩️ Returns: {ret_boxes} boxes &nbsp;·&nbsp; <b style="color:#c62828;">Lena: Rs {to_collect:,.0f}</b></div>
+                </div>
+                <div class='lf-boxes'>{total_b}<small>BOXES</small></div>
+            </div>
+            """, unsafe_allow_html=True)
+        with c2:
+            eye_icon = "🔽" if is_viewing else "👁️"
+            if st.button(eye_icon, key=f"eye_dsr_{wkey}", use_container_width=True,
+                         help="Open DSR & enter return boxes"):
+                if is_viewing:
+                    st.session_state["view_dsr_key"] = None
+                else:
+                    st.session_state["view_dsr_key"] = wkey
+                st.rerun()
+        with c3:
+            if st.button("📤 Excel", key=f"exp_dsr_{wkey}", use_container_width=True, type="primary"):
+                export_dsr_excel(dsr)
+                st.rerun()
+        with c4:
+            if st.button("🗑 Delete", key=f"del_dsr_{wkey}", use_container_width=True):
+                db["dsr_forms"] = [x for x in db["dsr_forms"] if x.get("id") != dsr_id]
+                # Optionally un-mark the load form
+                for x in db.get("load_forms", []):
+                    if x.get("dsr_id") == dsr_id:
+                        x["transferred_to_dsr"] = False
+                        x.pop("dsr_id", None)
+                save_database(db)
+                st.session_state["success_msg"] = f"🗑 DSR #{dsr_id} deleted"
+                st.session_state["view_dsr_key"] = None
+                st.rerun()
+
+        if is_viewing:
+            render_dsr_detail(dsr)
+            st.markdown("---")
+
+    if st.session_state.get("success_msg"):
+        st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
+    if st.session_state.get("error_msg"):
+        st.error(st.session_state["error_msg"]); st.session_state["error_msg"] = None
+
+    show_auto_download()
+
+def render_dsr_detail(dsr):
+    dsr_id = dsr["id"]
+
+    st.markdown(f"""
+    <div class='full-bill-box dsr'>
+        <div class='full-bill-title'>📋 DSR #{dsr_id} — {dsr.get('booker','')}</div>
+        <div class='full-bill-meta'>
+            📅 {dsr.get('date','')} &nbsp;·&nbsp; 🕐 {dsr.get('time','')} &nbsp;·&nbsp;
+            📦 {dsr.get('total_boxes',0)} boxes &nbsp;·&nbsp;
+            🔗 Source Load Form #{dsr.get('source_load_form_id','-')}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    cc1, cc2, cc3, cc4 = st.columns(4)
+    with cc1:
+        st.markdown(f"<div class='metric-card'><h3>STOCK VALUE</h3><h1>Rs {float(dsr.get('total_amount',0)):,.0f}</h1></div>", unsafe_allow_html=True)
+    with cc2:
+        st.markdown(f"<div class='metric-card'><h3>TOTAL DISCOUNT</h3><h1>Rs {float(dsr.get('total_discount',0)):,.0f}</h1></div>", unsafe_allow_html=True)
+    with cc3:
+        st.markdown(f"<div class='metric-card'><h3>RETURN AMOUNT</h3><h1>Rs {float(dsr.get('total_return_amount',0)):,.0f}</h1></div>", unsafe_allow_html=True)
+    with cc4:
+        st.markdown(f"<div class='metric-card'><h3>YE LENA HAI</h3><h1>Rs {float(dsr.get('amount_to_collect',0)):,.0f}</h1></div>", unsafe_allow_html=True)
+
+    # ============ ITEMS + RETURN BOXES INPUT ============
+    st.markdown("### 📦 Items — Return Boxes Daalo")
+    st.caption("👇 'Return' column mein return boxes daal ke 'Save Returns' button dabao")
+
+    df = pd.DataFrame([{
+        "Code": str(it.get("Code", "")),
+        "Product": it.get("Product", ""),
+        "Boxes": int(it.get("Boxes", 0)),
+        "TP/Box": float(it.get("TP/Box", 0)),
+        "Total": float(it.get("Total", 0)),
+        "Return": int(it.get("ReturnBoxes", 0)),
+    } for it in dsr.get("items", [])])
+
+    editor_key = f"dsr_editor_{dsr_id}"
+    try:
+        edited = st.data_editor(
+            df,
+            column_config={
+                "Code": st.column_config.TextColumn("Code", disabled=True, width="small"),
+                "Product": st.column_config.TextColumn("Product", disabled=True, width="large"),
+                "Boxes": st.column_config.NumberColumn("Boxes", disabled=True, width="small"),
+                "TP/Box": st.column_config.NumberColumn("TP/Box", disabled=True, format="Rs %d", width="small"),
+                "Total": st.column_config.NumberColumn("Total", disabled=True, format="Rs %d"),
+                "Return": st.column_config.NumberColumn("Return Boxes", min_value=0, step=1, width="small"),
+            },
+            hide_index=True,
+            use_container_width=True,
+            key=editor_key
+        )
+    except Exception:
+        # Fallback for older streamlit versions — plain dataframe + manual number inputs
+        st.dataframe(df, use_container_width=True, hide_index=True)
+        edited = None
+        st.warning("⚠️ Aapka Streamlit version purana hai. Neeche se return boxes manually daalo:")
+        for j, it in enumerate(dsr.get("items", [])):
+            key = f"fallback_return_{dsr_id}_{j}"
+            val = st.number_input(
+                f"Return: {it.get('Product','')} (max {it.get('Boxes',0)})",
+                min_value=0, max_value=int(it.get("Boxes", 0)),
+                value=int(it.get("ReturnBoxes", 0)),
+                step=1, key=key
+            )
+
+    sc1, sc2 = st.columns([1, 3])
+    with sc1:
+        if st.button("💾 Save Returns", key=f"save_returns_{dsr_id}", use_container_width=True, type="primary"):
+            total_ret_boxes = 0
+            total_ret_amt = 0.0
+            updated_items = []
+            if edited is not None:
+                for j, row in edited.iterrows():
+                    if j >= len(dsr["items"]): break
+                    orig = dsr["items"][j]
+                    orig_boxes = int(orig.get("Boxes", 0))
+                    try:
+                        ret_b = int(row.get("Return", 0) or 0)
+                    except Exception:
+                        ret_b = 0
+                    if ret_b < 0: ret_b = 0
+                    if ret_b > orig_boxes: ret_b = orig_boxes
+                    tp = float(orig.get("TP/Box", 0))
+                    ret_amt = ret_b * tp
+                    updated_items.append({
+                        **orig,
+                        "ReturnBoxes": ret_b,
+                        "ReturnAmount": ret_amt,
+                    })
+                    total_ret_boxes += ret_b
+                    total_ret_amt += ret_amt
+            else:
+                for j, orig in enumerate(dsr["items"]):
+                    key = f"fallback_return_{dsr_id}_{j}"
+                    ret_b = int(st.session_state.get(key, 0) or 0)
+                    orig_boxes = int(orig.get("Boxes", 0))
+                    if ret_b < 0: ret_b = 0
+                    if ret_b > orig_boxes: ret_b = orig_boxes
+                    tp = float(orig.get("TP/Box", 0))
+                    ret_amt = ret_b * tp
+                    updated_items.append({**orig, "ReturnBoxes": ret_b, "ReturnAmount": ret_amt})
+                    total_ret_boxes += ret_b
+                    total_ret_amt += ret_amt
+
+            dsr["items"] = updated_items
+            dsr["total_return_boxes"] = total_ret_boxes
+            dsr["total_return_amount"] = total_ret_amt
+            dsr["net_amount"] = float(dsr.get("total_amount", 0)) - total_ret_amt
+            dsr["amount_to_collect"] = dsr["net_amount"] - float(dsr.get("total_discount", 0))
+            dsr["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            save_database(db)
+            st.session_state["success_msg"] = (
+                f"✅ Returns saved | Return: {total_ret_boxes} boxes = Rs {total_ret_amt:,.0f} | "
+                f"Ye Lena Hai: Rs {dsr['amount_to_collect']:,.0f}"
+            )
+            st.rerun()
+    with sc2:
+        st.markdown(f"""
+        <div class='hint-box' style='margin-top:12px;'>
+            💡 Return boxes save karne ke baad 'Ye Lena Hai' amount update ho jaayega.
+            Returns ko TP/Box rate pe value kiya jaata hai.
+        </div>
+        """, unsafe_allow_html=True)
+
+    # ============ SHOP DISCOUNTS ============
+    st.markdown("### 🏪 Shop-wise Discount (kis shop ko kitna discount diya)")
+    shop_discs = dsr.get("shop_discounts", [])
+    if not shop_discs:
+        st.info("Koi shop discount available nahi (is booker ke liye koi bill nahi mila).")
+    else:
+        shop_rows = []
+        for s in shop_discs:
+            shop_rows.append({
+                "Shop": s.get("shop", "-"),
+                "Gross": f"Rs {float(s.get('gross',0)):,.0f}",
+                "Net": f"Rs {float(s.get('net',0)):,.0f}",
+                "Bill Disc": f"Rs {float(s.get('individual_discount',0)):,.0f}",
+                "Pkg Disc": f"Rs {float(s.get('package_discount',0)):,.0f} ({s.get('package_pct',0)}%)",
+                "Total Disc": f"Rs {float(s.get('total_discount',0)):,.0f}",
+            })
+        st.dataframe(pd.DataFrame(shop_rows), use_container_width=True, hide_index=True)
+        st.markdown(f"""
+        <div class='hint-box'>
+            💰 Saari Shops ka Total Discount: <b>Rs {float(dsr.get('total_discount',0)):,.0f}</b>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # ============ FINAL CALCULATION ============
+    st.markdown("### 🧮 Final Calculation")
+    st.markdown(f"""
+    <div class='summary-box'>
+        <div class='dsr-summary-line'>
+            <b>Stock Value (ye stock gaya tha):</b>
+            <span style='float:right; font-weight:700;'>Rs {float(dsr.get('total_amount',0)):,.0f}</span>
+        </div>
+        <div class='dsr-summary-line'>
+            <b style='color:#e65100;'>(−) Return Amount:</b>
+            <span style='float:right; color:#e65100; font-weight:700;'>Rs {float(dsr.get('total_return_amount',0)):,.0f}</span>
+        </div>
+        <div class='dsr-summary-line'>
+            <b>(=) Net Stock (return ke baad):</b>
+            <span style='float:right; font-weight:700;'>Rs {float(dsr.get('net_amount',0)):,.0f}</span>
+        </div>
+        <div class='dsr-summary-line'>
+            <b style='color:#c62828;'>(−) Total Discount (saari shops ko mila ke):</b>
+            <span style='float:right; color:#c62828; font-weight:700;'>Rs {float(dsr.get('total_discount',0)):,.0f}</span>
+        </div>
+        <div class='dsr-summary-line total'>
+            💰 <b>YE LENA HAI (Receivable):</b>
+            <span style='float:right; font-weight:800;'>Rs {float(dsr.get('amount_to_collect',0)):,.0f}</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ============ ACTION BUTTONS ============
+    st.markdown("---")
+    ac1, ac2 = st.columns([1, 1])
+    with ac1:
+        if st.button("❌ Close View", key=f"close_dsr_view_{dsr_id}", use_container_width=True):
+            st.session_state["view_dsr_key"] = None
+            st.rerun()
+    with ac2:
+        if st.button("📤 Download DSR Excel", key=f"dl_dsr_view_{dsr_id}", use_container_width=True, type="primary"):
+            export_dsr_excel(dsr)
+            st.rerun()
 
 # ============================================================
 # CALLBACKS
@@ -2522,7 +3091,8 @@ def export_load_form_from_billing_callback():
         "time": datetime.now().strftime("%H:%M"),
         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "booker": booker, "items": items,
-        "total_boxes": total_boxes, "total_products": len(items)
+        "total_boxes": total_boxes, "total_products": len(items),
+        "transferred_to_dsr": False,
     }
     db["load_forms"].append(lf_record); save_database(db)
     export_load_form_for_booker(booker, booker_bills)
@@ -2628,3 +3198,5 @@ elif st.session_state["page"] == "📋 Bills List":
     render_bills_list()
 elif st.session_state["page"] == "📦 Load Form":
     render_load_form()
+elif st.session_state["page"] == "📋 DSR":
+    render_dsr()
