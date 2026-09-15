@@ -1,6 +1,7 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
 # + Multi-User Login System (Signup/Login + Per-User Data)
+# + Custom Products (Add Single / Bulk Upload)
 # ============================================================
 
 import os
@@ -54,7 +55,8 @@ def default_blank_db():
         "next_bill_no": 1, "bills": [], "bookers": [], "salesmen": [],
         "load_forms": [], "bookers_salaries": {}, "salesmen_salaries": {},
         "product_prices": {}, "petrol_expenses": [], "lunch_expenses": [],
-        "discount_packages": default_discount_packages()
+        "discount_packages": default_discount_packages(),
+        "custom_products": []
     }
 
 # ============================================================
@@ -85,7 +87,7 @@ def default_discount_packages():
     ]
 
 # ============================================================
-# GLOBAL CSS (applies to login screen too)
+# GLOBAL CSS
 # ============================================================
 st.markdown("""
 <style>
@@ -360,7 +362,6 @@ st.markdown("""
         font-size: 13px; color: #0277bd; margin-bottom: 12px;
     }
 
-    /* Login screen */
     .auth-title {
         text-align: center;
         font-size: 36px;
@@ -391,7 +392,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# SIDEBAR TOGGLE (only after login)
+# SIDEBAR TOGGLE
 # ============================================================
 components.html("""
 <script>
@@ -431,7 +432,6 @@ components.html("""
     function attachToggle() {
         try {
             var doc = window.parent.document;
-            // Only show toggle if sidebar exists (logged in)
             if (!doc.querySelector('section[data-testid="stSidebar"]')) return;
 
             var old = doc.getElementById('custom-sidebar-toggle');
@@ -477,7 +477,7 @@ components.html("""
 COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
 
 # ============================================================
-# PRODUCT LIST
+# PRODUCT LIST (STATIC / DEFAULT)
 # ============================================================
 PRODUCTS = sorted([
     {"code":"51","name":"BOOMZ LIQUID MANGO","price":135},
@@ -601,7 +601,7 @@ PRODUCTS = sorted([
 PRODUCT_NAMES = [p["name"] for p in PRODUCTS]
 
 # ============================================================
-# AUTH SCREEN (Login + Signup)
+# AUTH SCREEN
 # ============================================================
 def render_auth_page():
     st.markdown(f"<div class='auth-title'>🧾 {COMPANY_NAME}</div>", unsafe_allow_html=True)
@@ -612,7 +612,6 @@ def render_auth_page():
         st.markdown("<div class='auth-card'>", unsafe_allow_html=True)
         tab1, tab2 = st.tabs(["🔐 Login", "📝 Signup"])
 
-        # ---------------- LOGIN TAB ----------------
         with tab1:
             st.markdown("### 🔐 Login")
             st.caption("Apna username aur password daalo")
@@ -636,7 +635,6 @@ def render_auth_page():
                     st.success(f"✅ Welcome {uname}!")
                     st.rerun()
 
-        # ---------------- SIGNUP TAB ----------------
         with tab2:
             st.markdown("### 📝 Signup")
             st.caption("Naya account banao — apna data apna hi rahega")
@@ -671,7 +669,6 @@ def render_auth_page():
                     }
                     save_users(users)
 
-                    # Create blank data file for this user
                     blank = default_blank_db()
                     with open(user_data_file(uname_safe), "w", encoding="utf-8") as f:
                         json.dump(blank, f, indent=4, ensure_ascii=False)
@@ -689,7 +686,7 @@ if "logged_in_user" not in st.session_state or not st.session_state["logged_in_u
     st.stop()
 
 # ============================================================
-# LOAD USER DATA (after login)
+# LOAD USER DATA
 # ============================================================
 CURRENT_USER = st.session_state["logged_in_user"]
 
@@ -699,7 +696,7 @@ def load_database(username):
         try:
             with open(fpath, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                for k in ["bookers", "salesmen", "load_forms", "petrol_expenses", "lunch_expenses"]:
+                for k in ["bookers", "salesmen", "load_forms", "petrol_expenses", "lunch_expenses", "custom_products"]:
                     if k not in data: data[k] = []
                 for k in ["bookers_salaries", "salesmen_salaries", "product_prices"]:
                     if k not in data: data[k] = {}
@@ -733,7 +730,6 @@ def parse_date(dstr):
 if "database" not in st.session_state:
     st.session_state.database = load_database(CURRENT_USER)
 
-# Also refresh if user changed
 if st.session_state.get("_db_user") != CURRENT_USER:
     st.session_state.database = load_database(CURRENT_USER)
     st.session_state["_db_user"] = CURRENT_USER
@@ -754,7 +750,7 @@ if "view_lf_key" not in st.session_state:
     st.session_state["view_lf_key"] = None
 
 db = st.session_state.database
-for k in ["bookers", "salesmen", "load_forms", "petrol_expenses", "lunch_expenses"]:
+for k in ["bookers", "salesmen", "load_forms", "petrol_expenses", "lunch_expenses", "custom_products"]:
     if k not in db: db[k] = []
 for k in ["bookers_salaries", "salesmen_salaries", "product_prices"]:
     if k not in db: db[k] = {}
@@ -767,6 +763,27 @@ for p in db["discount_packages"]:
 # ============================================================
 # HELPERS
 # ============================================================
+def get_all_products():
+    """Static PRODUCTS + user's custom_products merged, sorted by name."""
+    try:
+        custom = db.get("custom_products", [])
+    except Exception:
+        custom = []
+    merged = list(PRODUCTS)
+    seen_codes = {str(p["code"]) for p in merged}
+    for cp in custom:
+        code = str(cp.get("code", "")).strip()
+        name = str(cp.get("name", "")).strip()
+        if not code or not name or code in seen_codes:
+            continue
+        try:
+            price = float(cp.get("price", 0))
+        except Exception:
+            price = 0.0
+        merged.append({"code": code, "name": name, "price": price})
+        seen_codes.add(code)
+    return sorted(merged, key=lambda x: x["name"])
+
 def get_price(code, base_price):
     custom = db.get("product_prices", {})
     if str(code) in custom:
@@ -957,11 +974,13 @@ with st.sidebar:
 
     st.markdown("---")
     active_pkgs = get_all_active_packages()
+    all_prod_count = len(get_all_products())
+    custom_prod_count = len(db.get("custom_products", []))
     st.markdown(f"""
     <div style='padding:6px 10px; color:#0277bd !important; font-size:12px;'>
         <p>📅 {datetime.now().strftime('%d-%m-%Y')}</p>
         <p>🎁 Active Packages: <b>{len(active_pkgs)}</b></p>
-        <p>📦 Products: {len(PRODUCTS)}</p>
+        <p>📦 Products: {all_prod_count} <span style="color:#2e7d32;">(🆕 {custom_prod_count})</span></p>
         <p>👤 Bookers: {len(db.get('bookers', []))}</p>
         <p>🧑‍💼 Salesmen: {len(db.get('salesmen', []))}</p>
         <p>🧾 Total Bills: {len(db['bills'])}</p>
@@ -987,6 +1006,7 @@ def render_dashboard():
 
     bookers = db.get("bookers", [])
     salesmen = db.get("salesmen", [])
+    total_products = len(get_all_products())
 
     c1, c2, c3 = st.columns(3)
     with c1:
@@ -994,7 +1014,7 @@ def render_dashboard():
     with c2:
         st.markdown(f"<div class='metric-card'><h3>TOTAL SALESMEN</h3><h1>{len(salesmen)}</h1></div>", unsafe_allow_html=True)
     with c3:
-        st.markdown(f"<div class='metric-card'><h3>TOTAL PRODUCTS</h3><h1>{len(PRODUCTS)}</h1></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='metric-card'><h3>TOTAL PRODUCTS</h3><h1>{total_products}</h1></div>", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
     c1, c2 = st.columns(2)
@@ -1173,33 +1193,168 @@ def render_discount():
         st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
 
 # ============================================================
-# PAGE: ALL PRODUCTS
+# PAGE: ALL PRODUCTS (UPDATED: Add Single / Bulk Upload / Delete)
 # ============================================================
 def render_all_products():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🛒 All Products</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#0277bd;font-weight:500;'>Kisi bhi product ka price change karo</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#0277bd;font-weight:500;'>Naya product add karo (single ya bulk upload), price change karo</p>", unsafe_allow_html=True)
     st.markdown("---")
 
-    c1, c2 = st.columns([3, 1])
+    if "custom_products" not in db:
+        db["custom_products"] = []
+
+    all_products = get_all_products()
+
+    # ================= ADD NEW PRODUCT (SINGLE) =================
+    with st.expander("➕ Naya Product Add Karo (Single)", expanded=False):
+        c1, c2, c3, c4 = st.columns([1.5, 3.5, 1.5, 1])
+        with c1:
+            new_code = st.text_input("Code:", key="new_prod_code", placeholder="e.g. 200")
+        with c2:
+            new_name = st.text_input("Product Name:", key="new_prod_name", placeholder="Enter product name")
+        with c3:
+            new_price = st.number_input("Price (Rs):", min_value=0.0, step=1.0, key="new_prod_price", value=0.0)
+        with c4:
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("➕ Add", key="btn_add_new_product", use_container_width=True, type="primary"):
+                code_s = str(new_code).strip()
+                name_s = str(new_name).strip()
+                if not code_s:
+                    st.error("❌ Code daalo")
+                elif not name_s:
+                    st.error("❌ Product name daalo")
+                elif new_price <= 0:
+                    st.error("❌ Price daalo")
+                else:
+                    existing_codes = {str(p["code"]) for p in all_products}
+                    if code_s in existing_codes:
+                        st.error(f"❌ Code '{code_s}' already exists. Doosra code try karo.")
+                    else:
+                        db["custom_products"].append({
+                            "code": code_s,
+                            "name": name_s,
+                            "price": float(new_price),
+                            "added_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        })
+                        save_database(db)
+                        st.session_state["success_msg"] = f"✅ '{name_s}' add ho gaya (Code {code_s})"
+                        st.rerun()
+
+    # ================= BULK UPLOAD =================
+    with st.expander("📤 Bulk Upload (Excel / CSV) — Ek saath kayi products add karo", expanded=False):
+        st.markdown("""
+        **File Format:** 3 columns hone chahiye — **Code**, **Name**, **Price**
+
+        | Code | Name | Price |
+        |------|------|-------|
+        | 200 | NEW PRODUCT A | 150 |
+        | 201 | NEW PRODUCT B | 200 |
+        | 202 | NEW PRODUCT C | 250 |
+        """)
+
+        uploaded_file = st.file_uploader(
+            "Excel (.xlsx / .xls) ya CSV file upload karo:",
+            type=["xlsx", "xls", "csv"],
+            key="bulk_upload_file"
+        )
+
+        if uploaded_file is not None:
+            try:
+                if uploaded_file.name.lower().endswith(".csv"):
+                    df_upload = pd.read_csv(uploaded_file)
+                else:
+                    df_upload = pd.read_excel(uploaded_file)
+
+                df_upload.columns = [str(c).strip().lower() for c in df_upload.columns]
+
+                if "code" not in df_upload.columns or "name" not in df_upload.columns or "price" not in df_upload.columns:
+                    st.error("❌ File mein 'Code', 'Name', 'Price' columns hone chahiye (case-insensitive)")
+                else:
+                    st.success(f"✅ File loaded: **{len(df_upload)} rows**")
+                    st.markdown("**Preview (first 20 rows):**")
+                    st.dataframe(df_upload.head(20), use_container_width=True, hide_index=True)
+
+                    c1, c2 = st.columns([1, 3])
+                    with c1:
+                        if st.button("📥 Import All", key="btn_bulk_import", use_container_width=True, type="primary"):
+                            existing_codes = {str(p["code"]) for p in all_products}
+                            added = 0
+                            skipped = 0
+                            for _, row in df_upload.iterrows():
+                                try:
+                                    code_s = str(row["code"]).strip()
+                                    name_s = str(row["name"]).strip()
+                                    price_f = float(row["price"])
+                                except Exception:
+                                    skipped += 1
+                                    continue
+                                if not code_s or not name_s or price_f <= 0 or code_s in existing_codes:
+                                    skipped += 1
+                                    continue
+                                db["custom_products"].append({
+                                    "code": code_s,
+                                    "name": name_s,
+                                    "price": price_f,
+                                    "added_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                })
+                                existing_codes.add(code_s)
+                                added += 1
+                            save_database(db)
+                            st.session_state["success_msg"] = f"✅ {added} products imported | {skipped} skipped (duplicate/invalid)"
+                            st.rerun()
+                    with c2:
+                        st.caption(f"💡 Duplicate codes aur invalid rows automatically skip ho jaate hain.")
+            except Exception as e:
+                st.error(f"❌ File read error: {e}")
+
+        st.markdown("---")
+        sample_df = pd.DataFrame({
+            "Code": ["200", "201", "202"],
+            "Name": ["NEW PRODUCT A", "NEW PRODUCT B", "NEW PRODUCT C"],
+            "Price": [150, 200, 250]
+        })
+        sample_out = BytesIO()
+        with pd.ExcelWriter(sample_out, engine="xlsxwriter") as writer:
+            sample_df.to_excel(writer, index=False, sheet_name="Products")
+        sample_out.seek(0)
+        st.download_button(
+            "⬇️ Sample Template Download (Excel)",
+            data=sample_out.getvalue(),
+            file_name="product_upload_template.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key="dl_sample_template"
+        )
+
+    # ================= SEARCH & LIST =================
+    st.markdown("### 🔍 Search / Manage Products")
+    c1, c2 = st.columns([3, 2])
     with c1:
-        search = st.text_input("🔍 Search Product:", key="prod_search", placeholder="Type product name...")
+        search = st.text_input("🔍 Search Product:", key="prod_search", placeholder="Type product name or code...")
     with c2:
-        show_only_edited = st.checkbox("Sirf edited prices", key="prod_only_edited")
+        sc1, sc2 = st.columns(2)
+        with sc1:
+            show_only_edited = st.checkbox("Sirf edited prices", key="prod_only_edited")
+        with sc2:
+            show_only_custom = st.checkbox("Sirf custom products 🆕", key="prod_only_custom")
 
     search_upper = search.strip().upper()
     edited_prices = db.get("product_prices", {})
+    custom_codes = {str(cp.get("code", "")) for cp in db.get("custom_products", [])}
 
     shown = []
-    for p in PRODUCTS:
-        if search_upper and search_upper not in p["name"].upper(): continue
+    for p in all_products:
+        if search_upper and (search_upper not in p["name"].upper() and search_upper != str(p["code"])):
+            continue
         if show_only_edited and str(p["code"]) not in edited_prices: continue
+        if show_only_custom and str(p["code"]) not in custom_codes: continue
         shown.append(p)
 
     st.markdown(f"""
     <div class='summary-box'>
         <b style='color:#1976d2;font-size:16px;'>📊 Summary</b><br>
         <span style='color:#0277bd;'>
-            Total Products: <b>{len(PRODUCTS)}</b> &nbsp;|&nbsp;
+            Total Products: <b>{len(all_products)}</b> &nbsp;|&nbsp;
+            🆕 Custom: <b>{len(db.get('custom_products', []))}</b> &nbsp;|&nbsp;
             Showing: <b>{len(shown)}</b> &nbsp;|&nbsp;
             Edited Prices: <b>{len(edited_prices)}</b>
         </span>
@@ -1218,14 +1373,17 @@ def render_all_products():
     st.markdown("---")
     if not shown:
         st.info("Is filter ke hisaab se koi product nahi mila.")
+        if st.session_state.get("success_msg"):
+            st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
         return
 
     st.markdown(f"### 📋 Products ({len(shown)})")
-    hc1, hc2, hc3, hc4 = st.columns([1, 4, 2, 2])
+    hc1, hc2, hc3, hc4, hc5 = st.columns([1, 4, 2, 2, 0.7])
     with hc1: st.markdown("**Code**")
     with hc2: st.markdown("**Product**")
     with hc3: st.markdown("**Current Price**")
     with hc4: st.markdown("**Change / Reset**")
+    with hc5: st.markdown("**Del**")
     st.markdown("<hr style='margin:6px 0;'>", unsafe_allow_html=True)
 
     for p in shown:
@@ -1233,14 +1391,17 @@ def render_all_products():
         base = float(p["price"])
         current = get_price(code, base)
         is_edited = code in edited_prices
+        is_custom = code in custom_codes
 
-        c1, c2, c3, c4 = st.columns([1, 4, 2, 2])
+        c1, c2, c3, c4, c5 = st.columns([1, 4, 2, 2, 0.7])
         with c1:
             st.markdown(f"<div style='padding-top:8px;color:#1976d2;font-weight:700;'>{code}</div>", unsafe_allow_html=True)
         with c2:
-            edited_mark = " ✏️" if is_edited else ""
-            color = "#c62828" if is_edited else "#1976d2"
-            st.markdown(f"<div style='padding-top:6px;color:{color};font-weight:600;font-size:14px;'>{p['name']}{edited_mark}</div>", unsafe_allow_html=True)
+            marks = ""
+            if is_custom: marks += " 🆕"
+            if is_edited: marks += " ✏️"
+            color = "#c62828" if is_edited else ("#2e7d32" if is_custom else "#1976d2")
+            st.markdown(f"<div style='padding-top:6px;color:{color};font-weight:600;font-size:14px;'>{p['name']}{marks}</div>", unsafe_allow_html=True)
         with c3:
             new_price = st.number_input("Price", value=float(current), min_value=0.0, step=1.0,
                                         key=f"price_{code}", label_visibility="collapsed")
@@ -1264,6 +1425,16 @@ def render_all_products():
                         save_database(db)
                         st.session_state["success_msg"] = f"↩️ {p['name']}: original price (Rs {base:,.0f})"
                         st.rerun()
+        with c5:
+            if is_custom:
+                if st.button("🗑", key=f"del_custom_{code}", use_container_width=True, help="Delete custom product"):
+                    db["custom_products"] = [cp for cp in db["custom_products"] if str(cp.get("code", "")) != code]
+                    db.get("product_prices", {}).pop(code, None)
+                    save_database(db)
+                    st.session_state["success_msg"] = f"🗑 '{p['name']}' delete ho gaya"
+                    st.rerun()
+            else:
+                st.markdown("<div style='text-align:center;color:#bbb;padding-top:8px;'>—</div>", unsafe_allow_html=True)
 
     if st.session_state.get("success_msg"):
         st.success(st.session_state["success_msg"])
@@ -1708,7 +1879,7 @@ def render_daily_expense():
         st.error(st.session_state["error_msg"]); st.session_state["error_msg"] = None
 
 # ============================================================
-# PAGE: BILLING
+# PAGE: BILLING (UPDATED: get_all_products)
 # ============================================================
 def render_billing():
     st.markdown(f"<h2 style='color:#1976d2 !important;margin:0 0 6px 0;'>🧾 Billing</h2>", unsafe_allow_html=True)
@@ -1748,15 +1919,16 @@ def render_billing():
     with c1:
         search_text = st.text_input("🔍 Search:", key="search_text", placeholder="Type name...")
     with c2:
+        all_products = get_all_products()
         search_upper = search_text.strip().upper()
-        filtered_names = [p["name"] for p in PRODUCTS if search_upper in p["name"].upper()] if search_upper else PRODUCT_NAMES
+        filtered_names = [p["name"] for p in all_products if search_upper in p["name"].upper()] if search_upper else [p["name"] for p in all_products]
         if st.session_state.get("product_sel") and st.session_state["product_sel"] not in filtered_names:
             st.session_state["product_sel"] = ""
         product_sel = st.selectbox("Select Product:", options=[""] + filtered_names, key="product_sel")
 
     selected_product = None
     if product_sel:
-        for p in PRODUCTS:
+        for p in get_all_products():
             if p["name"] == product_sel:
                 selected_product = p; break
 
@@ -2011,7 +2183,7 @@ def render_bills_list():
     show_auto_download()
 
 # ============================================================
-# PAGE: LOAD FORM
+# PAGE: LOAD FORM (UPDATED: get_all_products)
 # ============================================================
 def render_load_form():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📦 Load Forms</h1>", unsafe_allow_html=True)
@@ -2080,10 +2252,11 @@ def render_load_form():
         items = lf.get("items", [])
 
         bill_items = []
+        all_prods = get_all_products()
         for it in items:
             code = it.get("Code", "")
             base_price = 0.0
-            for p in PRODUCTS:
+            for p in all_prods:
                 if str(p["code"]) == str(code):
                     base_price = get_price(p["code"], p["price"])
                     break
@@ -2191,7 +2364,7 @@ def add_bill_callback():
     if boxes_v <= 0:
         st.session_state["error_msg"] = "❌ Enter Boxes"; return
 
-    sel = next((p for p in PRODUCTS if p["name"] == product_sel), None)
+    sel = next((p for p in get_all_products() if p["name"] == product_sel), None)
     if not sel:
         st.session_state["error_msg"] = "❌ Invalid Product"; return
 
