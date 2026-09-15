@@ -1164,142 +1164,241 @@ if "auth_error" not in st.session_state:
     st.session_state["auth_error"] = ""
 
 # ============================================================
-# PROFESSIONAL LAMP LOGIN — RELIABLE NATIVE STREAMLIT FLOW
+# PROFESSIONAL LAMP LOGIN — CLEAN, CENTERED, NATIVE STREAMLIT
 # ============================================================
 if not st.session_state.get("logged_in_user"):
-    # ========================================================
-    # PREMIUM LAMP LOGIN — 100% NATIVE STREAMLIT INTERACTION
-    # One real Streamlit button is used as the pull cord.
-    # OFF  -> click cord -> lamp ON + form appears
-    # ON   -> fill form + click cord -> validate + lamp OFF + dashboard
-    # ========================================================
     st.markdown("""
     <style>
+    /* Hide Streamlit chrome on authentication screen */
     section[data-testid="stSidebar"], header[data-testid="stHeader"],
     [data-testid="stToolbar"], [data-testid="stDecoration"],
     [data-testid="stStatusWidget"], #MainMenu, footer,
     .stAppDeployButton, [data-testid="manage-app-button"] { display:none !important; }
-    html, body, .stApp { background:#0d0d0e !important; color:#eee !important; overflow:hidden !important; }
-    .block-container { padding:0 !important; max-width:100% !important; }
 
-    .login-scene { position:fixed; inset:0; z-index:0; overflow:hidden;
-      background:
-        radial-gradient(ellipse at 50% 28%,rgba(220,174,82,.12),transparent 25%),
-        radial-gradient(ellipse at 50% 68%,rgba(174,120,38,.055),transparent 44%),
-        linear-gradient(180deg,#171717 0%,#111112 58%,#0b0b0c 100%); }
-    .login-scene:before { content:""; position:absolute; inset:0; pointer-events:none;
-      background:linear-gradient(90deg,rgba(255,255,255,.015),transparent 25%,transparent 75%,rgba(255,255,255,.015)); }
+    html, body, .stApp {
+        margin:0 !important;
+        background:#0b0c0d !important;
+        color:#f3efe7 !important;
+        overflow:hidden !important;
+    }
+    .block-container {
+        padding:0 !important;
+        max-width:none !important;
+        margin:0 !important;
+    }
 
-    .ceiling-mount { position:absolute; top:0; left:50%; transform:translateX(-50%); width:76px; height:12px;
-      border-radius:0 0 9px 9px; background:linear-gradient(180deg,#3a3a3a,#161616); box-shadow:0 5px 18px rgba(0,0,0,.65); }
-    .main-wire { position:absolute; top:10px; left:50%; transform:translateX(-50%); width:2px; height:145px;
-      background:linear-gradient(180deg,#454545,#7a7a7a 55%,#242424); box-shadow:0 0 3px rgba(255,255,255,.12); }
+    /* ===== BACKGROUND ===== */
+    .login-scene {
+        position:fixed; inset:0; z-index:0; overflow:hidden;
+        background:
+          radial-gradient(circle at 50% 22%, rgba(225,178,82,.10), transparent 19%),
+          radial-gradient(circle at 50% 68%, rgba(194,143,50,.045), transparent 43%),
+          linear-gradient(180deg,#17191a 0%,#101112 58%,#090a0b 100%);
+    }
+    .login-scene:after {
+        content:""; position:absolute; inset:0; pointer-events:none;
+        background:linear-gradient(90deg,rgba(255,255,255,.018),transparent 24%,transparent 76%,rgba(255,255,255,.018));
+    }
 
-    .pendant { position:absolute; top:135px; left:50%; transform:translateX(-50%); width:230px; height:132px; }
-    .shade { position:absolute; left:0; top:0; width:230px; height:102px;
-      border-radius:115px 115px 28px 28px / 75px 75px 25px 25px;
-      background:radial-gradient(ellipse at 50% 15%,rgba(255,221,159,.22),transparent 34%),
-      linear-gradient(180deg,#4a3520 0%,#241a10 48%,#0c0b0a 100%);
-      box-shadow:inset 0 2px 10px rgba(255,220,160,.10),inset 0 -14px 25px rgba(0,0,0,.65),0 18px 38px rgba(0,0,0,.65);
-      animation:shadeFloat 5s ease-in-out infinite; }
-    @keyframes shadeFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(3px)} }
-    .shade:after { content:""; position:absolute; left:40px; right:40px; bottom:7px; height:10px; border-radius:50%; background:rgba(0,0,0,.55); filter:blur(4px); }
-    .bulb { position:absolute; left:50%; top:69px; transform:translateX(-50%); width:42px; height:42px; border-radius:50%;
-      background:radial-gradient(circle at 35% 30%,#fff,#fff0bd 30%,#ffd45c 58%,#d58d27 100%);
-      box-shadow:0 0 14px 5px rgba(255,211,107,.72),0 0 65px 22px rgba(226,161,55,.30),0 0 125px 45px rgba(207,145,40,.13);
-      animation:bulbPulse 2.8s ease-in-out infinite; }
-    @keyframes bulbPulse { 0%,100%{filter:brightness(.94)} 50%{filter:brightness(1.08)} }
-    .light-cone { position:absolute; top:212px; left:50%; transform:translateX(-50%); width:min(850px,78vw); height:470px;
-      pointer-events:none; background:linear-gradient(180deg,rgba(255,207,104,.15),rgba(255,184,62,.035) 48%,transparent 78%);
-      clip-path:polygon(39% 0,61% 0,100% 100%,0 100%); filter:blur(8px); }
-    .floor-glow { position:absolute; top:610px; left:50%; transform:translateX(-50%); width:620px; height:160px; border-radius:50%;
-      background:radial-gradient(ellipse,rgba(218,162,62,.08),transparent 70%); filter:blur(15px); }
+    /* ===== PREMIUM PENDANT ===== */
+    .ceiling-mount {
+        position:absolute; top:0; left:50%; transform:translateX(-50%);
+        width:74px; height:11px; border-radius:0 0 8px 8px;
+        background:linear-gradient(180deg,#3b3d3e,#141516);
+        box-shadow:0 4px 16px rgba(0,0,0,.65);
+    }
+    .main-wire {
+        position:absolute; top:10px; left:50%; transform:translateX(-50%);
+        width:2px; height:94px;
+        background:linear-gradient(180deg,#454748,#77797a 55%,#252627);
+    }
+    .pendant {
+        position:absolute; top:98px; left:50%; transform:translateX(-50%);
+        width:190px; height:112px;
+        animation:floatLamp 5s ease-in-out infinite;
+    }
+    @keyframes floatLamp { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(2px)} }
+    .shade {
+        position:absolute; inset:0 0 auto 0; height:86px;
+        border-radius:96px 96px 24px 24px / 62px 62px 21px 21px;
+        background:
+          radial-gradient(ellipse at 50% 12%,rgba(255,222,164,.24),transparent 35%),
+          linear-gradient(180deg,#503a24 0%,#2b2116 45%,#100d09 100%);
+        box-shadow:
+          inset 0 2px 10px rgba(255,225,170,.10),
+          inset 0 -14px 24px rgba(0,0,0,.70),
+          0 15px 35px rgba(0,0,0,.70);
+    }
+    .shade:after {
+        content:""; position:absolute; left:34px; right:34px; bottom:3px; height:9px;
+        border-radius:50%; background:rgba(0,0,0,.65); filter:blur(3px);
+    }
+    .bulb {
+        position:absolute; top:61px; left:50%; transform:translateX(-50%);
+        width:38px; height:38px; border-radius:50%;
+        background:radial-gradient(circle at 35% 28%,#fff,#fff1bd 30%,#ffd45b 60%,#d48a25 100%);
+        box-shadow:0 0 13px 4px rgba(255,215,112,.78),0 0 48px 18px rgba(225,163,57,.28),0 0 92px 34px rgba(205,143,39,.12);
+        animation:bulbPulse 2.8s ease-in-out infinite;
+    }
+    @keyframes bulbPulse { 0%,100%{filter:brightness(.96)} 50%{filter:brightness(1.10)} }
+    .light-cone {
+        position:absolute; top:178px; left:50%; transform:translateX(-50%);
+        width:min(720px,78vw); height:430px; pointer-events:none;
+        background:linear-gradient(180deg,rgba(255,211,119,.13),rgba(255,185,65,.025) 55%,transparent 80%);
+        clip-path:polygon(43% 0,57% 0,100% 100%,0 100%); filter:blur(7px);
+    }
 
-    .pull-cord-visual { position:absolute; top:188px; left:calc(50% + 49px); width:2px; height:150px; z-index:4;
-      background:linear-gradient(180deg,#555,#aaa 48%,#2b2b2b); box-shadow:1px 0 3px rgba(0,0,0,.7); }
-    .pull-bead { position:absolute; left:50%; bottom:-18px; transform:translateX(-50%); width:25px; height:30px; border-radius:50% 50% 46% 46%;
-      background:radial-gradient(circle at 34% 27%,#f0c77b 0%,#ae7130 35%,#4a2912 78%,#1c1008 100%);
-      box-shadow:0 5px 12px rgba(0,0,0,.75),0 0 18px rgba(232,164,61,.24),inset 0 -4px 5px rgba(0,0,0,.4); }
-    .pull-bead:after { content:""; position:absolute; top:6px; left:6px; width:6px; height:6px; border-radius:50%; background:#fff1c7; box-shadow:0 0 8px #fff1c7; }
+    /* ===== PULL CORD ===== */
+    .pull-cord-visual {
+        position:absolute; top:145px; left:calc(50% + 43px);
+        width:2px; height:104px; z-index:20;
+        background:linear-gradient(180deg,#4c4d4e,#b0b0b0 48%,#272829);
+    }
+    .pull-bead {
+        position:absolute; left:50%; bottom:-15px; transform:translateX(-50%);
+        width:22px; height:27px; border-radius:50% 50% 46% 46%;
+        background:radial-gradient(circle at 34% 27%,#f0c77b 0%,#ae7130 35%,#4a2912 78%,#1c1008 100%);
+        box-shadow:0 4px 10px rgba(0,0,0,.75),0 0 15px rgba(232,164,61,.20),inset 0 -4px 5px rgba(0,0,0,.4);
+    }
+    .pull-bead:after {
+        content:""; position:absolute; top:5px; left:5px; width:5px; height:5px;
+        border-radius:50%; background:#fff1c7; box-shadow:0 0 7px #fff1c7;
+    }
 
-    /* The single native Streamlit button is ALWAYS the pull cord.
-       It is deliberately transparent and sits above the visual bead. */
-    div[data-testid="stButton"] { position:fixed !important; top:322px !important; left:calc(50% + 9px) !important;
-      transform:translateX(-50%) !important; width:82px !important; height:82px !important; z-index:1000 !important; margin:0 !important; }
-    div[data-testid="stButton"] button { width:82px !important; height:82px !important; min-height:82px !important;
-      opacity:0 !important; background:transparent !important; border:0 !important; cursor:pointer !important; padding:0 !important; }
-    div[data-testid="stButton"] button p { display:none !important; }
+    /* One transparent native button controls the cord. */
+    div[data-testid="stButton"]:has(button p) {
+        position:fixed !important; top:229px !important; left:calc(50% + 5px) !important;
+        transform:translateX(-50%) !important; width:68px !important; height:68px !important;
+        z-index:100 !important; margin:0 !important; padding:0 !important;
+    }
+    div[data-testid="stButton"]:has(button p) button {
+        width:68px !important; height:68px !important; min-height:68px !important;
+        opacity:0 !important; background:transparent !important; border:0 !important;
+        cursor:pointer !important; padding:0 !important;
+    }
+    div[data-testid="stButton"]:has(button p) button p { display:none !important; }
 
-    /* Authentication card */
-    .auth-shell { position:fixed; top:385px; left:50%; transform:translateX(-50%); width:430px; z-index:40; padding:27px 30px 25px;
-      border-radius:20px; background:linear-gradient(145deg,rgba(31,31,30,.985),rgba(19,19,19,.985));
-      border:1px solid rgba(221,174,84,.30); box-shadow:0 28px 75px rgba(0,0,0,.72),0 0 75px rgba(209,157,55,.08),inset 0 1px 0 rgba(255,255,255,.07); pointer-events:none; }
-    .auth-shell:before { content:""; position:absolute; top:0; left:26px; right:26px; height:1px; background:linear-gradient(90deg,transparent,#e4ba69,transparent); opacity:.7; }
-    .brand-title { text-align:center; color:#efc66d; font-size:24px; font-weight:850; letter-spacing:5px; margin:0; }
-    .brand-sub { text-align:center; color:#82745d; font-size:9px; font-weight:700; letter-spacing:4px; margin:5px 0 20px; }
-    .auth-divider { height:1px; background:linear-gradient(90deg,transparent,rgba(220,174,85,.28),transparent); margin-bottom:16px; }
+    /* ===== LOGIN CARD ===== */
+    .auth-shell {
+        position:fixed; top:275px; left:50%; transform:translateX(-50%);
+        width:390px; height:320px; z-index:30;
+        border-radius:18px;
+        background:linear-gradient(145deg,rgba(29,30,30,.985),rgba(16,17,17,.985));
+        border:1px solid rgba(224,181,93,.30);
+        box-shadow:0 28px 70px rgba(0,0,0,.72),0 0 55px rgba(209,157,55,.07),inset 0 1px 0 rgba(255,255,255,.06);
+        pointer-events:none;
+    }
+    .auth-shell:before {
+        content:""; position:absolute; top:0; left:28px; right:28px; height:1px;
+        background:linear-gradient(90deg,transparent,#e7bf72,transparent); opacity:.72;
+    }
+    .brand-title {
+        position:absolute; top:22px; left:0; width:100%; text-align:center;
+        color:#f0c66c; font-size:22px; font-weight:850; letter-spacing:5px;
+    }
+    .brand-sub {
+        position:absolute; top:51px; left:0; width:100%; text-align:center;
+        color:#81735c; font-size:8px; font-weight:800; letter-spacing:3.5px;
+    }
+    .auth-divider {
+        position:absolute; top:72px; left:30px; right:30px; height:1px;
+        background:linear-gradient(90deg,transparent,rgba(220,174,85,.25),transparent);
+    }
 
-    div[data-testid="stRadio"] { position:fixed !important; top:486px !important; left:50% !important; transform:translateX(-50%) !important; width:370px !important; z-index:80 !important; }
+    /* Keep all native controls inside the card. */
+    div[data-testid="stRadio"] {
+        position:fixed !important; top:360px !important; left:50% !important;
+        transform:translateX(-50%) !important; width:330px !important; z-index:60 !important;
+        margin:0 !important;
+    }
     div[data-testid="stRadio"] > label { display:none !important; }
-    div[data-testid="stRadio"] [role="radiogroup"] { display:flex !important; gap:4px !important; padding:4px !important; background:#0d0d0d !important; border:1px solid rgba(255,255,255,.07) !important; border-radius:10px !important; }
-    div[data-testid="stRadio"] [role="radio"] { flex:1 !important; justify-content:center !important; padding:8px !important; border-radius:7px !important; color:#777168 !important; font-size:11px !important; font-weight:800 !important; letter-spacing:1.4px !important; }
-    div[data-testid="stRadio"] [role="radio"][aria-checked="true"] { background:linear-gradient(135deg,#3a2d1a,#241c11) !important; color:#efc66d !important; box-shadow:inset 0 0 0 1px rgba(220,174,84,.25) !important; }
+    div[data-testid="stRadio"] [role="radiogroup"] {
+        display:flex !important; gap:3px !important; padding:3px !important;
+        background:#0b0c0c !important; border:1px solid rgba(255,255,255,.07) !important;
+        border-radius:9px !important;
+    }
+    div[data-testid="stRadio"] [role="radio"] {
+        flex:1 !important; justify-content:center !important; padding:7px 5px !important;
+        border-radius:6px !important; color:#8b8171 !important;
+        font-size:10px !important; font-weight:800 !important; letter-spacing:1.3px !important;
+    }
+    div[data-testid="stRadio"] [role="radio"][aria-checked="true"] {
+        background:linear-gradient(135deg,#3b2e19,#241b10) !important;
+        color:#efc66d !important; box-shadow:inset 0 0 0 1px rgba(220,174,84,.26) !important;
+    }
     div[data-testid="stRadio"] [role="radio"] > div:first-child { display:none !important; }
+    div[data-testid="stRadio"] [role="radio"] p { color:inherit !important; }
 
-    div[data-testid="stTextInput"] { position:fixed !important; left:50% !important; transform:translateX(-50%) !important; width:370px !important; z-index:80 !important; }
-    div[data-testid="stTextInput"]:has(input[aria-label="USERNAME"]) { top:545px !important; }
-    div[data-testid="stTextInput"]:has(input[aria-label="PASSWORD"]) { top:619px !important; }
-    div[data-testid="stTextInput"]:has(input[aria-label="CONFIRM PASSWORD"]) { top:693px !important; }
-    div[data-testid="stTextInput"] label, div[data-testid="stTextInput"] label p { color:#9d8968 !important; font-size:9px !important; font-weight:800 !important; letter-spacing:2px !important; margin-bottom:5px !important; }
-    div[data-testid="stTextInput"] input { height:42px !important; border-radius:9px !important; background:#0c0c0d !important; color:#f7f1e5 !important; -webkit-text-fill-color:#f7f1e5 !important; border:1px solid rgba(255,255,255,.09) !important; }
-    div[data-testid="stTextInput"] input:focus { border-color:rgba(225,179,88,.68) !important; box-shadow:0 0 0 2px rgba(225,179,88,.08),0 0 18px rgba(225,179,88,.08) !important; }
+    div[data-testid="stTextInput"] {
+        position:fixed !important; left:50% !important; transform:translateX(-50%) !important;
+        width:330px !important; z-index:60 !important; margin:0 !important;
+    }
+    div[data-testid="stTextInput"]:has(input[aria-label="USERNAME"]) { top:410px !important; }
+    div[data-testid="stTextInput"]:has(input[aria-label="PASSWORD"]) { top:477px !important; }
+    div[data-testid="stTextInput"]:has(input[aria-label="CONFIRM PASSWORD"]) { top:544px !important; }
+    div[data-testid="stTextInput"] label, div[data-testid="stTextInput"] label p {
+        color:#9d8968 !important; font-size:8px !important; font-weight:800 !important;
+        letter-spacing:1.8px !important; margin-bottom:4px !important;
+    }
+    div[data-testid="stTextInput"] input {
+        height:38px !important; min-height:38px !important; border-radius:8px !important;
+        background:#0b0c0c !important; color:#f7f1e5 !important; -webkit-text-fill-color:#f7f1e5 !important;
+        border:1px solid rgba(255,255,255,.10) !important; font-size:13px !important;
+    }
+    div[data-testid="stTextInput"] input:focus {
+        border-color:rgba(225,179,88,.70) !important;
+        box-shadow:0 0 0 2px rgba(225,179,88,.07) !important;
+    }
 
-    .cord-label { position:fixed; top:410px; left:50%; transform:translateX(-50%); z-index:30; color:#82745d;
-      font-size:9px; font-weight:700; letter-spacing:2.5px; text-align:center; width:460px; pointer-events:none; }
-    .auth-error { position:fixed; top:770px; left:50%; transform:translateX(-50%); color:#ffaaa0; background:rgba(71,24,20,.96);
-      border:1px solid rgba(255,100,80,.22); border-radius:8px; padding:8px 14px; font-size:11px; font-weight:700; width:390px; text-align:center; z-index:200; }
+    /* Cord action button */
+    .submit-caption {
+        position:fixed; top:575px; left:50%; transform:translateX(-50%); z-index:35;
+        color:#82745d; font-size:8px; font-weight:800; letter-spacing:2px; pointer-events:none;
+        width:390px; text-align:center;
+    }
+    .auth-error {
+        position:fixed; top:605px; left:50%; transform:translateX(-50%); z-index:90;
+        width:350px; text-align:center; padding:7px 10px; border-radius:8px;
+        color:#ffb1a7; background:rgba(69,25,21,.96); border:1px solid rgba(255,105,82,.22);
+        font-size:10px; font-weight:700;
+    }
 
     @media(max-width:600px){
-      .pendant{transform:translateX(-50%) scale(.78); transform-origin:top center;}
-      .main-wire{height:112px;} .pull-cord-visual{top:164px;height:120px;}
-      .pull-bead{width:23px;height:28px;}
-      .light-cone{top:195px;width:110vw;}
-      div[data-testid="stButton"]{top:292px !important;left:calc(50% + 5px) !important;width:76px !important;height:76px !important;}
-      div[data-testid="stButton"] button{width:76px !important;height:76px !important;}
-      .auth-shell{width:calc(100vw - 28px);top:330px;padding:23px 18px;}
-      div[data-testid="stRadio"],div[data-testid="stTextInput"]{width:calc(100vw - 58px) !important;}
-      div[data-testid="stRadio"]{top:424px !important;}
-      div[data-testid="stTextInput"]:has(input[aria-label="USERNAME"]){top:482px !important;}
-      div[data-testid="stTextInput"]:has(input[aria-label="PASSWORD"]){top:556px !important;}
-      div[data-testid="stTextInput"]:has(input[aria-label="CONFIRM PASSWORD"]){top:630px !important;}
-      .cord-label{width:90vw;top:402px;}
-      .auth-error{width:calc(100vw - 40px);top:720px;}
+        .main-wire{height:80px}.pendant{top:84px;transform:translateX(-50%) scale(.82);transform-origin:top center}
+        .pull-cord-visual{top:125px;height:90px;left:calc(50% + 35px)}
+        .light-cone{top:160px;width:115vw}
+        div[data-testid="stButton"]:has(button p){top:201px !important;left:calc(50% + 4px) !important;width:64px !important;height:64px !important}
+        div[data-testid="stButton"]:has(button p) button{width:64px !important;height:64px !important}
+        .auth-shell{top:235px;width:calc(100vw - 28px);height:350px}
+        div[data-testid="stRadio"],div[data-testid="stTextInput"]{width:calc(100vw - 68px) !important}
+        div[data-testid="stRadio"]{top:315px !important}
+        div[data-testid="stTextInput"]:has(input[aria-label="USERNAME"]){top:365px !important}
+        div[data-testid="stTextInput"]:has(input[aria-label="PASSWORD"]){top:432px !important}
+        div[data-testid="stTextInput"]:has(input[aria-label="CONFIRM PASSWORD"]){top:499px !important}
+        .submit-caption{top:570px;width:90vw}
+        .auth-error{top:600px;width:calc(100vw - 50px)}
     }
     </style>
     """, unsafe_allow_html=True)
 
-    # Pure visual lamp. It does not handle authentication itself.
     st.markdown("""
     <div class="login-scene">
       <div class="ceiling-mount"></div>
       <div class="main-wire"></div>
       <div class="pendant"><div class="shade"></div><div class="bulb"></div></div>
-      <div class="light-cone"></div><div class="floor-glow"></div>
+      <div class="light-cone"></div>
       <div class="pull-cord-visual"><div class="pull-bead"></div></div>
     </div>
     """, unsafe_allow_html=True)
 
     if not st.session_state["light_on"]:
-        # Pull once: lamp ON and immediately show login form.
         pull_cord = st.button("__PULL_CORD__", key="lamp_cord_off")
         if pull_cord:
             st.session_state["light_on"] = True
             st.session_state["auth_error"] = ""
             st.rerun()
-        st.markdown('<div class="cord-label">PULL THE CORD TO TURN ON THE LIGHT</div>', unsafe_allow_html=True)
+        st.markdown('<div class="submit-caption">PULL THE CORD TO TURN ON THE LIGHT</div>', unsafe_allow_html=True)
     else:
-        # The form is now visible. Pulling the same cord submits it and turns
-        # the lamp OFF after successful authentication.
         st.markdown("""
         <div class="auth-shell">
           <div class="brand-title">AL-BARAKAH</div>
@@ -1309,12 +1408,12 @@ if not st.session_state.get("logged_in_user"):
         """, unsafe_allow_html=True)
 
         mode = st.radio("MODE", ["LOGIN", "SIGNUP"], horizontal=True, key="auth_mode", label_visibility="collapsed")
-        st.text_input("USERNAME", key="auth_username", placeholder="Enter your username")
-        st.text_input("PASSWORD", key="auth_password", type="password", placeholder="Enter your password")
+        st.text_input("USERNAME", key="auth_username", placeholder="Enter username")
+        st.text_input("PASSWORD", key="auth_password", type="password", placeholder="Enter password")
         if mode == "SIGNUP":
-            st.text_input("CONFIRM PASSWORD", key="auth_password2", type="password", placeholder="Repeat your password")
+            st.text_input("CONFIRM PASSWORD", key="auth_password2", type="password", placeholder="Repeat password")
 
-        st.markdown('<div class="cord-label">PULL THE CORD TO SIGN IN</div>', unsafe_allow_html=True)
+        st.markdown('<div class="submit-caption">PULL THE CORD TO SUBMIT • LIGHT TURNS OFF ON SUCCESS</div>', unsafe_allow_html=True)
         pull_cord = st.button("__PULL_TO_SUBMIT__", key="lamp_cord_on")
 
         if pull_cord:
@@ -1328,7 +1427,7 @@ if not st.session_state.get("logged_in_user"):
                 st.session_state["auth_error"] = "Please enter your username and password."
             elif mode == "LOGIN":
                 if uname not in users:
-                    st.session_state["auth_error"] = "Username not found. Please create an account first."
+                    st.session_state["auth_error"] = "Username not found. Please use SIGNUP first."
                 elif users[uname].get("password_hash") != hash_password(pass_v):
                     st.session_state["auth_error"] = "Incorrect password. Please try again."
                 else:
