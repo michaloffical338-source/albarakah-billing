@@ -1,12 +1,11 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# + Premium Animated Lamp Login (iframe-based) + Multi-User
+# + Multi-User Login System (Signup/Login + Per-User Data)
 # ============================================================
 
 import os
 import json
 import hashlib
-import random
 import pandas as pd
 from datetime import datetime, date, timedelta
 import streamlit as st
@@ -50,18 +49,6 @@ def sanitize_username(u):
 def user_data_file(username):
     return f"billing_database_{username}.json"
 
-def default_discount_packages():
-    return [
-        {"id": 1, "name": "Package 1", "tier1_amount": 1200.0, "tier1_pct": 1.0,
-         "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
-        {"id": 2, "name": "Package 2", "tier1_amount": 1200.0, "tier1_pct": 1.0,
-         "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
-        {"id": 3, "name": "Package 3", "tier1_amount": 1200.0, "tier1_pct": 1.0,
-         "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
-        {"id": 4, "name": "Package 4", "tier1_amount": 1200.0, "tier1_pct": 1.0,
-         "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
-    ]
-
 def default_blank_db():
     return {
         "next_bill_no": 1, "bills": [], "bookers": [], "salesmen": [],
@@ -71,643 +58,34 @@ def default_blank_db():
     }
 
 # ============================================================
-# SESSION STATE
+# DEFAULT DISCOUNT PACKAGES
 # ============================================================
-if "light_on" not in st.session_state:
-    st.session_state["light_on"] = False
-if "auth_error" not in st.session_state:
-    st.session_state["auth_error"] = ""
-
-# ============================================================
-# LAMP LOGIN IFRAME HTML TEMPLATE
-# ============================================================
-LAMP_HTML = r"""
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  html, body {
-    width:100%; height:100vh; background:#050506; overflow:hidden;
-    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    user-select:none;
-  }
-  .scene {
-    position:relative; width:100%; height:100vh; overflow:hidden;
-    background: radial-gradient(ellipse at 50% 15%, #14100a 0%, #08070a 45%, #030304 80%);
-    transition: background 1.5s ease;
-  }
-  .scene.lit {
-    background: radial-gradient(ellipse at 50% 18%, #2a1b09 0%, #120c06 40%, #050505 80%);
-  }
-
-  /* Ceiling */
-  .ceiling {
-    position:absolute; top:0; left:50%; transform:translateX(-50%);
-    width:90px; height:14px;
-    background: linear-gradient(180deg,#262829,#0a0b0c);
-    border-radius:0 0 8px 8px;
-    box-shadow:0 3px 15px rgba(0,0,0,.8); z-index:10;
-  }
-  .ceiling::after {
-    content:""; position:absolute; top:0; left:50%; transform:translateX(-50%);
-    width:34px; height:5px; background:#333537; border-radius:2px;
-  }
-
-  /* Wire */
-  .wire {
-    position:absolute; top:14px; left:50%; transform:translateX(-50%);
-    width:2px; height:96px;
-    background: linear-gradient(180deg,#3f4243,#8a8c8e 45%,#1a1b1c);
-    z-index:9;
-  }
-
-  /* Shade */
-  .shade {
-    position:absolute; top:110px; left:50%; transform:translateX(-50%);
-    width:210px; height:110px;
-    border-radius:105px 105px 18px 18px / 90px 90px 18px 18px;
-    background:
-      radial-gradient(ellipse at 50% 0%, rgba(200,150,80,.12), transparent 45%),
-      linear-gradient(180deg,#4a3520 0%,#2a1c0e 50%,#0a0603 100%);
-    box-shadow:
-      inset 0 -22px 40px rgba(0,0,0,.9),
-      inset 0 4px 12px rgba(140,95,45,.25),
-      0 15px 35px rgba(0,0,0,.75);
-    transition: box-shadow 1s ease; z-index:8;
-  }
-  .scene.lit .shade {
-    box-shadow:
-      inset 0 -22px 40px rgba(0,0,0,.9),
-      inset 0 4px 12px rgba(220,160,80,.45),
-      0 15px 35px rgba(0,0,0,.75),
-      0 0 70px 18px rgba(255,200,85,.18);
-  }
-
-  /* Bulb */
-  .bulb {
-    position:absolute; top:178px; left:50%; transform:translateX(-50%);
-    width:46px; height:44px;
-    border-radius:50% 50% 42% 42% / 55% 55% 45% 45%;
-    background: radial-gradient(circle at 50% 38%, #1e1e1e 0%, #070707 80%);
-    box-shadow: inset 0 -8px 14px rgba(0,0,0,.9);
-    transition: all 1s cubic-bezier(.2,.9,.3,1); z-index:12;
-  }
-  .scene.lit .bulb {
-    background: radial-gradient(circle at 50% 32%, #fff 0%, #fff8e1 20%, #ffd54f 55%, #ff9800 100%);
-    box-shadow:
-      0 0 25px 10px rgba(255,235,160,1),
-      0 0 60px 24px rgba(255,200,80,.65),
-      0 0 120px 50px rgba(255,170,40,.3),
-      inset 0 0 14px rgba(255,255,220,.9);
-  }
-
-  /* Beam */
-  .beam {
-    position:absolute; top:205px; left:50%; transform:translateX(-50%);
-    width:950px; height:900px;
-    background: radial-gradient(ellipse 380px 500px at 50% 0%,
-      rgba(255,240,180,.5) 0%,
-      rgba(255,220,130,.22) 25%,
-      rgba(255,200,80,.06) 55%,
-      transparent 78%);
-    opacity:0; transition: opacity 1.5s ease;
-    pointer-events:none; filter:blur(12px); z-index:2;
-  }
-  .scene.lit .beam { opacity:1; }
-
-  /* Dust */
-  .dust {
-    position:absolute; top:220px; left:50%; transform:translateX(-50%);
-    width:800px; height:800px;
-    pointer-events:none; opacity:0;
-    transition: opacity 2s ease .4s; z-index:3;
-  }
-  .scene.lit .dust { opacity:1; }
-  .dust span {
-    position:absolute;
-    background: radial-gradient(circle, #fff8e1, #ffd54f 60%, transparent);
-    border-radius:50%; box-shadow:0 0 4px #ffd54f;
-    animation: drift linear infinite;
-  }
-  @keyframes drift {
-    0%   { transform: translate(0,0); opacity:0; }
-    15%  { opacity:.9; }
-    85%  { opacity:.85; }
-    100% { transform: translate(35px,260px); opacity:0; }
-  }
-
-  /* Cord */
-  .cord {
-    position:absolute; top:130px; left:calc(50% + 62px);
-    width:2px; height:195px;
-    background: linear-gradient(180deg,#3a3a3a,#b0b0b0 42%,#222);
-    box-shadow:1px 0 2px rgba(0,0,0,.6);
-    cursor:pointer; z-index:25;
-    transition: transform .4s ease;
-    transform-origin: top center;
-  }
-  .cord-bead {
-    position:absolute; bottom:-15px; left:50%; transform:translateX(-50%);
-    width:22px; height:26px;
-    border-radius:50% 50% 45% 45% / 60% 60% 40% 40%;
-    background: radial-gradient(circle at 35% 28%, #e8c480 0%, #a87030 42%, #3a2210 100%);
-    box-shadow: 0 3px 8px rgba(0,0,0,.85), 0 0 14px rgba(255,190,90,.35), inset 0 -2px 4px rgba(0,0,0,.5);
-    transition: all .4s ease;
-  }
-  .cord-bead::after {
-    content:""; position:absolute; top:5px; left:5px;
-    width:5px; height:5px; border-radius:50%;
-    background: rgba(255,245,200,.85); filter:blur(1px);
-  }
-  .scene.lit .cord-bead {
-    box-shadow: 0 3px 8px rgba(0,0,0,.85), 0 0 26px 8px rgba(255,200,100,.75), inset 0 -2px 4px rgba(0,0,0,.5);
-  }
-  .cord:hover .cord-bead { transform: translateX(-50%) scale(1.12); }
-  .cord.pulled { animation: pullCord .55s cubic-bezier(.34,1.56,.64,1); }
-  @keyframes pullCord {
-    0%   { transform: scaleY(1); }
-    45%  { transform: scaleY(1.5); }
-    70%  { transform: scaleY(.92); }
-    100% { transform: scaleY(1); }
-  }
-
-  /* Auth Card */
-  .auth-card {
-    position:absolute; top:380px; left:50%; transform:translateX(-50%);
-    width:400px; height:__CARD_H__px;
-    border-radius:18px;
-    background: linear-gradient(145deg, rgba(24,22,20,.94), rgba(12,11,10,.96));
-    border:1px solid rgba(230,190,100,.28);
-    box-shadow:
-      0 25px 70px rgba(0,0,0,.75),
-      0 0 60px rgba(210,160,60,.08),
-      inset 0 1px 0 rgba(255,240,200,.08);
-    backdrop-filter: blur(12px);
-    opacity:0; pointer-events:none;
-    transition: opacity .9s ease .3s;
-    z-index:30;
-  }
-  .auth-card::before {
-    content:""; position:absolute; top:0; left:30px; right:30px; height:1px;
-    background: linear-gradient(90deg, transparent, #e7bf72, transparent);
-    opacity:.7;
-  }
-  .scene.lit .auth-card { opacity:1; pointer-events:auto; }
-
-  .brand {
-    position:absolute; top:22px; left:0; width:100%; text-align:center;
-    color:#f0c66c; font-size:22px; font-weight:900; letter-spacing:5px;
-    text-shadow:0 0 20px rgba(240,198,108,.4);
-  }
-  .brand-sub {
-    position:absolute; top:50px; left:0; width:100%; text-align:center;
-    color:#8c7c5e; font-size:9px; font-weight:800; letter-spacing:3.5px;
-  }
-  .divider {
-    position:absolute; top:74px; left:30px; right:30px; height:1px;
-    background: linear-gradient(90deg, transparent, rgba(220,174,85,.25), transparent);
-  }
-
-  .tabs {
-    position:absolute; top:88px; left:30px; right:30px;
-    display:flex; gap:3px; padding:4px;
-    background:#0b0c0e;
-    border:1px solid rgba(255,220,130,.14);
-    border-radius:10px;
-  }
-  .tab {
-    flex:1; text-align:center; padding:8px 6px; border-radius:7px;
-    color:#8a7c60; font-size:11px; font-weight:800; letter-spacing:1.4px;
-    cursor:pointer; border:none; background:transparent; font-family:inherit;
-    transition: all .3s ease;
-  }
-  .tab.active {
-    background: linear-gradient(135deg, #3b2e19, #241b10);
-    color:#efc66d;
-    box-shadow: inset 0 0 0 1px rgba(220,174,84,.28);
-  }
-
-  .f-field {
-    position:absolute; left:30px; right:30px;
-  }
-  .f-field.f1 { top:145px; }
-  .f-field.f2 { top:213px; }
-  .f-field.f3 { top:281px; }
-  .f-field.hidden { display:none; }
-
-  .f-field label {
-    display:block; color:#9d8a66; font-size:9px; font-weight:800;
-    letter-spacing:2px; margin-bottom:5px;
-  }
-  .f-field input {
-    width:100%; height:40px; padding:0 12px;
-    background:#0b0c0e; color:#f7f1e5;
-    border:1px solid rgba(255,220,130,.16); border-radius:9px;
-    font-size:14px; font-family:inherit; outline:none;
-    transition: all .3s ease; caret-color:#efc66d;
-  }
-  .f-field input::placeholder {
-    color:#6a5a3c; font-style:italic;
-  }
-  .f-field input:focus {
-    border-color: rgba(232,190,100,.7);
-    box-shadow: 0 0 0 3px rgba(232,190,100,.08);
-  }
-
-  .hint-msg {
-    position:absolute; bottom:18px; left:0; width:100%; text-align:center;
-    color:#8c7c5e; font-size:10px; font-weight:700; letter-spacing:1.5px;
-  }
-
-  .bottom-hint {
-    position:absolute; bottom:55px; left:50%; transform:translateX(-50%);
-    width:420px; text-align:center;
-    color:#6a5a3c; font-size:12px; font-weight:700; letter-spacing:5px;
-    text-transform:uppercase;
-    animation: pulseHint 2.6s ease-in-out infinite;
-    pointer-events:none; z-index:35;
-  }
-  .scene.lit .bottom-hint {
-    color:#8c7c5e; letter-spacing:3px; font-size:11px;
-    animation:none; opacity:.85;
-  }
-  @keyframes pulseHint {
-    0%,100% { opacity:.35; }
-    50%     { opacity:.95; }
-  }
-
-  .error-msg {
-    position:absolute; bottom:20px; left:50%; transform:translateX(-50%);
-    width:360px; padding:8px 12px; border-radius:8px;
-    text-align:center;
-    color:#ffb1a7; background: rgba(69,25,21,.95);
-    border:1px solid rgba(255,105,82,.25);
-    font-size:11px; font-weight:700;
-    display:none; z-index:80;
-  }
-  .error-msg.show { display:block; }
-</style>
-</head>
-<body>
-<div class="scene __LIT__" id="scene">
-  <div class="ceiling"></div>
-  <div class="wire"></div>
-  <div class="shade"></div>
-  <div class="bulb"></div>
-  <div class="beam"></div>
-  <div class="dust">__DUST__</div>
-  <div class="cord" id="cord"><div class="cord-bead"></div></div>
-
-  <div class="auth-card">
-    <div class="brand">AL-BARAKAH</div>
-    <div class="brand-sub">ENTERPRISES · SECURE ACCESS</div>
-    <div class="divider"></div>
-    <div class="tabs">
-      <button class="tab active" data-mode="LOGIN" type="button">LOGIN</button>
-      <button class="tab" data-mode="SIGNUP" type="button">SIGNUP</button>
-    </div>
-    <div class="f-field f1">
-      <label>USERNAME</label>
-      <input type="text" id="fUser" placeholder="enter username" autocomplete="off" spellcheck="false">
-    </div>
-    <div class="f-field f2">
-      <label>PASSWORD</label>
-      <input type="password" id="fPass" placeholder="enter password" autocomplete="off">
-    </div>
-    <div class="f-field f3 hidden" id="fPass2Wrap">
-      <label>CONFIRM PASSWORD</label>
-      <input type="password" id="fPass2" placeholder="repeat password" autocomplete="off">
-    </div>
-    <div class="hint-msg" id="hintMsg">Pull the cord to submit</div>
-  </div>
-
-  <div class="bottom-hint" id="bottomHint">▼ PULL THE CORD TO TURN ON THE LIGHT ▼</div>
-  <div class="error-msg" id="errorMsg">__ERROR__</div>
-</div>
-
-<script>
-(function(){
-  var scene      = document.getElementById('scene');
-  var cord       = document.getElementById('cord');
-  var hintMsg    = document.getElementById('hintMsg');
-  var bottomHint = document.getElementById('bottomHint');
-  var errorMsg   = document.getElementById('errorMsg');
-  var fUser      = document.getElementById('fUser');
-  var fPass      = document.getElementById('fPass');
-  var fPass2     = document.getElementById('fPass2');
-  var fPass2Wrap = document.getElementById('fPass2Wrap');
-  var tabs       = document.querySelectorAll('.tab');
-  var mode       = 'LOGIN';
-  var pulled     = false;
-
-  /* Tab switching */
-  tabs.forEach(function(t){
-    t.addEventListener('click', function(){
-      tabs.forEach(function(x){ x.classList.remove('active'); });
-      t.classList.add('active');
-      mode = t.getAttribute('data-mode');
-      if (mode === 'SIGNUP') {
-        fPass2Wrap.classList.remove('hidden');
-        hintMsg.textContent = 'Pull the cord again to create account';
-      } else {
-        fPass2Wrap.classList.add('hidden');
-        hintMsg.textContent = 'Pull the cord again to sign in';
-      }
-    });
-  });
-
-  /* Native value setter for React-controlled inputs */
-  function setNativeValue(el, value) {
-    try {
-      var setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-      setter.call(el, value);
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-    } catch(e) {}
-  }
-
-  function getParentInputByKey(key) {
-    try {
-      var pd = window.parent.document;
-      var wrap = pd.querySelector('.st-key-' + key);
-      if (wrap) {
-        var inp = wrap.querySelector('input');
-        if (inp) return inp;
-      }
-    } catch(e) {}
-    return null;
-  }
-
-  function getParentButtonByKey(key) {
-    try {
-      var pd = window.parent.document;
-      var wrap = pd.querySelector('.st-key-' + key);
-      if (wrap) {
-        var btn = wrap.querySelector('button');
-        if (btn) return btn;
-      }
-    } catch(e) {}
-    return null;
-  }
-
-  function pushToParent(action, user, pass, m) {
-    var uIn = getParentInputByKey('bridge_user');
-    var pIn = getParentInputByKey('bridge_pass');
-    var mIn = getParentInputByKey('bridge_mode');
-    var aIn = getParentInputByKey('bridge_action');
-    if (uIn) setNativeValue(uIn, user || '');
-    if (pIn) setNativeValue(pIn, pass || '');
-    if (mIn) setNativeValue(mIn, m || '');
-    if (aIn) setNativeValue(aIn, action || '');
-    setTimeout(function(){
-      var submitBtn = getParentButtonByKey('bridge_submit_btn');
-      if (submitBtn) submitBtn.click();
-    }, 180);
-  }
-
-  function showError(msg) {
-    errorMsg.textContent = msg;
-    errorMsg.classList.add('show');
-    setTimeout(function(){ errorMsg.classList.remove('show'); }, 2500);
-  }
-
-  /* Cord click */
-  cord.addEventListener('click', function(){
-    if (pulled) return;
-    pulled = true;
-    cord.classList.add('pulled');
-    setTimeout(function(){ cord.classList.remove('pulled'); pulled = false; }, 600);
-
-    var isLit = scene.classList.contains('lit');
-
-    if (!isLit) {
-      /* Turn ON — user is ready to see form */
-      setTimeout(function(){
-        pushToParent('TURN_ON', '', '', '');
-      }, 250);
-    } else {
-      /* Submit */
-      var user  = (fUser.value || '').trim();
-      var pass  = fPass.value || '';
-      var pass2 = fPass2.value || '';
-
-      if (!user || !pass) {
-        showError('⚠️ Please fill username and password');
-        return;
-      }
-      if (mode === 'SIGNUP' && pass !== pass2) {
-        showError('⚠️ Passwords do not match');
-        return;
-      }
-      setTimeout(function(){
-        pushToParent('SUBMIT', user, pass, mode);
-      }, 200);
-    }
-  });
-
-  /* Autofocus when lit */
-  if (scene.classList.contains('lit')) {
-    setTimeout(function(){ try { fUser.focus(); } catch(e){} }, 600);
-  }
-
-  /* Show error passed from server (if any) */
-  var initialError = errorMsg.textContent.trim();
-  if (initialError && initialError !== '__ERROR__') {
-    setTimeout(function(){ errorMsg.classList.add('show'); }, 500);
-    setTimeout(function(){ errorMsg.classList.remove('show'); }, 4000);
-  }
-})();
-</script>
-</body>
-</html>
-"""
+def default_discount_packages():
+    return [
+        {"id": 1, "name": "Package 1",
+         "tier1_amount": 1200.0, "tier1_pct": 1.0,
+         "tier2_amount": 2100.0, "tier2_pct": 2.0,
+         "tier3_amount": 3100.0, "tier3_pct": 3.0,
+         "active": True},
+        {"id": 2, "name": "Package 2",
+         "tier1_amount": 1200.0, "tier1_pct": 1.0,
+         "tier2_amount": 2100.0, "tier2_pct": 2.0,
+         "tier3_amount": 3100.0, "tier3_pct": 3.0,
+         "active": True},
+        {"id": 3, "name": "Package 3",
+         "tier1_amount": 1200.0, "tier1_pct": 1.0,
+         "tier2_amount": 2100.0, "tier2_pct": 2.0,
+         "tier3_amount": 3100.0, "tier3_pct": 3.0,
+         "active": True},
+        {"id": 4, "name": "Package 4",
+         "tier1_amount": 1200.0, "tier1_pct": 1.0,
+         "tier2_amount": 2100.0, "tier2_pct": 2.0,
+         "tier3_amount": 3100.0, "tier3_pct": 3.0,
+         "active": True},
+    ]
 
 # ============================================================
-# LAMP LOGIN — iframe based, 100% reliable
-# ============================================================
-if not st.session_state.get("logged_in_user"):
-
-    light_on = st.session_state.get("light_on", False)
-    auth_error = st.session_state.get("auth_error", "")
-    card_h = 380 if not light_on else 380
-
-    # ---------- Hide chrome + hide bridge widgets ----------
-    st.markdown("""
-    <style>
-    /* Hide Streamlit chrome */
-    section[data-testid="stSidebar"],
-    header[data-testid="stHeader"],
-    [data-testid="stToolbar"],
-    [data-testid="stDecoration"],
-    [data-testid="stStatusWidget"],
-    [data-testid="stAppDeployButton"],
-    [data-testid="manage-app-button"],
-    [data-testid="stCloudAppManageButton"],
-    .stAppDeployButton,
-    #MainMenu, footer { display: none !important; visibility: hidden !important; }
-
-    html, body, .stApp {
-        background: #050506 !important;
-        overflow: hidden !important;
-        margin: 0 !important; padding: 0 !important;
-    }
-    .block-container {
-        padding: 0 !important; margin: 0 !important;
-        max-width: 100vw !important;
-    }
-
-    /* Hide bridge widgets (still functional for JS) */
-    .st-key-bridge_user,
-    .st-key-bridge_pass,
-    .st-key-bridge_mode,
-    .st-key-bridge_action,
-    .st-key-bridge_submit_btn {
-        position: fixed !important;
-        left: -10000px !important;
-        top: -10000px !important;
-        width: 1px !important;
-        height: 1px !important;
-        overflow: hidden !important;
-        opacity: 0.001 !important;
-        pointer-events: none !important;
-    }
-
-    /* Fullscreen iframe */
-    .st-key-lamp_wrap,
-    .st-key-lamp_wrap > div,
-    .st-key-lamp_wrap [data-testid="stVerticalBlock"],
-    .st-key-lamp_wrap iframe {
-        position: fixed !important;
-        top: 0 !important; left: 0 !important;
-        width: 100vw !important;
-        height: 100vh !important;
-        max-width: 100vw !important;
-        max-height: 100vh !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        border: none !important;
-        z-index: 9998 !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    # ---------- Build iframe HTML ----------
-    dust_spans = "".join(
-        f'<span style="left:{10 + random.random()*80:.2f}%;top:{random.random()*60:.2f}%;'
-        f'width:{1 + random.random()*2:.2f}px;height:{1 + random.random()*2:.2f}px;'
-        f'animation-duration:{5 + random.random()*6:.2f}s;'
-        f'animation-delay:{random.random()*5:.2f}s;"></span>'
-        for _ in range(24)
-    )
-    lit_class = "lit" if light_on else ""
-    err_txt = auth_error if auth_error else ""
-
-    html = (LAMP_HTML
-            .replace("__LIT__", lit_class)
-            .replace("__DUST__", dust_spans)
-            .replace("__ERROR__", err_txt)
-            .replace("__CARD_H__", str(card_h)))
-
-    # ---------- Bridge widgets (hidden) ----------
-    st.text_input("__BRIDGE_USER__", key="bridge_user", label_visibility="hidden")
-    st.text_input("__BRIDGE_PASS__", key="bridge_pass", type="password", label_visibility="hidden")
-    st.text_input("__BRIDGE_MODE__", key="bridge_mode", label_visibility="hidden")
-    st.text_input("__BRIDGE_ACTION__", key="bridge_action", label_visibility="hidden")
-    bridge_submit = st.button("__BRIDGE_SUBMIT__", key="bridge_submit_btn")
-
-    # ---------- Handle bridge submit ----------
-    if bridge_submit:
-        action = st.session_state.get("bridge_action", "")
-        if action == "TURN_ON":
-            st.session_state["light_on"] = True
-            st.session_state["auth_error"] = ""
-            st.rerun()
-        elif action == "SUBMIT":
-            users = load_users()
-            uname_raw = st.session_state.get("bridge_user", "").strip()
-            uname = sanitize_username(uname_raw)
-            pass_v = st.session_state.get("bridge_pass", "")
-            mode_now = st.session_state.get("bridge_mode", "LOGIN")
-
-            if not uname or not pass_v:
-                st.session_state["auth_error"] = "Please enter username and password."
-            elif mode_now == "LOGIN":
-                if uname not in users:
-                    st.session_state["auth_error"] = "Username not found. Please SIGNUP first."
-                elif users[uname].get("password_hash") != hash_password(pass_v):
-                    st.session_state["auth_error"] = "Incorrect password."
-                else:
-                    st.session_state["logged_in_user"] = uname
-                    st.session_state["display_name"] = users[uname].get("display_name", uname)
-                    st.session_state["page"] = "📊 Dashboard"
-                    st.session_state["light_on"] = False
-                    st.session_state["auth_error"] = ""
-                    st.rerun()
-            else:  # SIGNUP
-                pass2_v = st.session_state.get("bridge_pass2", "")
-                if len(uname) < 3:
-                    st.session_state["auth_error"] = "Username must be at least 3 characters."
-                elif len(pass_v) < 4:
-                    st.session_state["auth_error"] = "Password must be at least 4 characters."
-                elif uname in users:
-                    st.session_state["auth_error"] = f"Username '{uname}' already exists."
-                else:
-                    users[uname] = {
-                        "username": uname,
-                        "display_name": uname_raw,
-                        "password_hash": hash_password(pass_v),
-                        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    }
-                    save_users(users)
-                    with open(user_data_file(uname), "w", encoding="utf-8") as f:
-                        json.dump(default_blank_db(), f, indent=4, ensure_ascii=False)
-                    st.session_state["logged_in_user"] = uname
-                    st.session_state["display_name"] = uname_raw
-                    st.session_state["page"] = "📊 Dashboard"
-                    st.session_state["light_on"] = False
-                    st.session_state["auth_error"] = ""
-                    st.rerun()
-
-    # ---------- Fullscreen iframe with lamp ----------
-    with st.container(key="lamp_wrap"):
-        components.html(html, height=900, scrolling=False)
-
-    # ---------- Kill Manage app button (belt & suspenders) ----------
-    components.html("""
-    <script>
-    (function(){
-        function kill(){
-            try {
-                var pd = window.parent.document;
-                var sels = ['[data-testid="stAppDeployButton"]',
-                    '[data-testid="manage-app-button"]',
-                    '[data-testid="stCloudAppManageButton"]',
-                    '[data-testid="stToolbar"]',
-                    '.stAppDeployButton',
-                    'iframe[title="streamlit_cloud_status"]'];
-                sels.forEach(function(s){
-                    pd.querySelectorAll(s).forEach(function(el){
-                        el.style.setProperty('display','none','important');
-                        el.style.setProperty('visibility','hidden','important');
-                        el.style.setProperty('height','0','important');
-                    });
-                });
-            } catch(e){}
-        }
-        kill();
-        setTimeout(kill, 500);
-        setTimeout(kill, 1500);
-        setInterval(kill, 2000);
-    })();
-    </script>
-    """, height=0)
-
-    st.stop()
-
-# ============================================================
-# GLOBAL CSS (post-login app styles)
+# GLOBAL CSS (applies to login screen too)
 # ============================================================
 st.markdown("""
 <style>
@@ -968,12 +346,44 @@ st.markdown("""
     }
 
     .full-bill-box {
-        background: #ffffff; border: 3px solid #2196f3; border-radius: 14px;
-        padding: 18px 22px; margin: 10px 0 18px 0;
+        background: #ffffff;
+        border: 3px solid #2196f3;
+        border-radius: 14px;
+        padding: 18px 22px;
+        margin: 10px 0 18px 0;
         box-shadow: 0 6px 20px rgba(33,150,243,0.25);
     }
-    .full-bill-title { font-size: 20px; font-weight: 800; color: #1976d2; margin-bottom: 8px; }
-    .full-bill-meta { font-size: 13px; color: #0277bd; margin-bottom: 12px; }
+    .full-bill-title {
+        font-size: 20px; font-weight: 800; color: #1976d2; margin-bottom: 8px;
+    }
+    .full-bill-meta {
+        font-size: 13px; color: #0277bd; margin-bottom: 12px;
+    }
+
+    /* Login screen */
+    .auth-title {
+        text-align: center;
+        font-size: 36px;
+        font-weight: 900;
+        color: #1976d2;
+        margin-bottom: 6px;
+        margin-top: 20px;
+    }
+    .auth-subtitle {
+        text-align: center;
+        font-size: 14px;
+        color: #0277bd;
+        margin-bottom: 24px;
+        font-weight: 600;
+    }
+    .auth-card {
+        background: #ffffff;
+        border: 3px solid #90caf9;
+        border-radius: 16px;
+        padding: 28px 32px;
+        box-shadow: 0 8px 24px rgba(33,150,243,0.2);
+        margin: 0 auto;
+    }
 
     .stAlert { border-radius: 10px !important; }
     hr { border-color: #90caf9 !important; opacity: 0.6 !important; }
@@ -981,68 +391,90 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# SIDEBAR TOGGLE (post-login)
+# SIDEBAR TOGGLE (only after login)
 # ============================================================
-def inject_sidebar_toggle():
-    components.html("""
-    <script>
-    (function(){
-        function killManageApp() {
-            try {
-                var doc = window.parent.document;
-                var sel = ['[data-testid="manage-app-button"]','[data-testid="stAppDeployButton"]',
-                    '[data-testid="stCloudAppManageButton"]','.stAppDeployButton',
-                    'iframe[title="streamlit_cloud_status"]'];
-                sel.forEach(function(s){
-                    doc.querySelectorAll(s).forEach(function(el){
+components.html("""
+<script>
+(function(){
+    function killManageApp() {
+        try {
+            var doc = window.parent.document;
+            var sel = [
+                '[data-testid="manage-app-button"]',
+                '[data-testid="stAppDeployButton"]',
+                '[data-testid="stCloudAppManageButton"]',
+                '.stAppDeployButton',
+                'iframe[title="streamlit_cloud_status"]',
+                'div[class*="manageApp"]',
+                'div[class*="ManageApp"]',
+                'button[class*="manageApp"]',
+                'button[class*="ManageApp"]'
+            ];
+            sel.forEach(function(s){
+                doc.querySelectorAll(s).forEach(function(el){
+                    el.style.setProperty('display','none','important');
+                    el.style.setProperty('visibility','hidden','important');
+                    el.style.setProperty('opacity','0','important');
+                });
+            });
+            doc.querySelectorAll('button, a').forEach(function(el){
+                try {
+                    var t = (el.textContent || '').trim();
+                    if (t === 'Manage app' || t === 'Manage App') {
                         el.style.setProperty('display','none','important');
-                    });
-                });
-                doc.querySelectorAll('button, a').forEach(function(el){
-                    try {
-                        var t = (el.textContent || '').trim();
-                        if (t === 'Manage app' || t === 'Manage App') el.style.setProperty('display','none','important');
-                    } catch(e){}
-                });
-            } catch(e) {}
-        }
-        function attachToggle() {
-            try {
-                var doc = window.parent.document;
-                if (!doc.querySelector('section[data-testid="stSidebar"]')) return;
-                var old = doc.getElementById('custom-sidebar-toggle');
-                if (old) old.parentNode.removeChild(old);
-                var btn = doc.createElement('button');
-                btn.id = 'custom-sidebar-toggle';
-                btn.title = 'Sidebar';
-                btn.innerHTML = '\\u2630';
-                var s = {
-                    'position':'fixed','top':'14px','left':'14px','z-index':'2147483647',
-                    'background':'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
-                    'color':'#fff','border':'none','border-radius':'10px','padding':'8px 14px',
-                    'font-size':'20px','font-weight':'bold','cursor':'pointer',
-                    'box-shadow':'0 3px 10px rgba(33,150,243,0.5)'
-                };
-                for (var k in s) btn.style.setProperty(k, s[k], 'important');
-                btn.onclick = function() {
-                    var targets = ['[data-testid="stSidebarCollapseButton"] button',
-                        '[data-testid="stSidebarCollapsedControl"] button',
-                        '[data-testid="collapsedControl"] button',
-                        '[data-testid="stExpandSidebarButton"] button'];
-                    for (var i = 0; i < targets.length; i++) {
-                        var el = doc.querySelector(targets[i]);
-                        if (el) { el.click(); return; }
                     }
-                };
-                if (doc.body) doc.body.appendChild(btn);
-            } catch(e) {}
-        }
-        function tick() { killManageApp(); attachToggle(); }
-        setTimeout(tick, 300); setTimeout(tick, 1000); setTimeout(tick, 2000);
-        setInterval(tick, 1500);
-    })();
-    </script>
-    """, height=0)
+                } catch(e){}
+            });
+        } catch(e) {}
+    }
+
+    function attachToggle() {
+        try {
+            var doc = window.parent.document;
+            // Only show toggle if sidebar exists (logged in)
+            if (!doc.querySelector('section[data-testid="stSidebar"]')) return;
+
+            var old = doc.getElementById('custom-sidebar-toggle');
+            if (old) old.parentNode.removeChild(old);
+            var btn = doc.createElement('button');
+            btn.id = 'custom-sidebar-toggle';
+            btn.title = 'Sidebar Open/Close';
+            btn.innerHTML = '\\u2630';
+            var s = {
+                'position':'fixed','top':'14px','left':'14px','z-index':'2147483647',
+                'background':'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
+                'color':'#fff','border':'none','border-radius':'10px','padding':'8px 14px',
+                'font-size':'20px','font-weight':'bold','cursor':'pointer',
+                'box-shadow':'0 3px 10px rgba(33,150,243,0.5)'
+            };
+            for (var k in s) btn.style.setProperty(k, s[k], 'important');
+            btn.onclick = function() {
+                var targets = [
+                    '[data-testid="stSidebarCollapseButton"] button',
+                    '[data-testid="stSidebarCollapsedControl"] button',
+                    '[data-testid="collapsedControl"] button',
+                    '[data-testid="stExpandSidebarButton"] button',
+                    'button[kind="headerNoPadding"]'
+                ];
+                for (var i = 0; i < targets.length; i++) {
+                    var el = doc.querySelector(targets[i]);
+                    if (el) { el.click(); return; }
+                }
+            };
+            if (doc.body) doc.body.appendChild(btn);
+        } catch(e) {}
+    }
+
+    function tick() { killManageApp(); attachToggle(); }
+    setTimeout(tick, 300);
+    setTimeout(tick, 1000);
+    setTimeout(tick, 2000);
+    setInterval(tick, 1500);
+})();
+</script>
+""", height=0)
+
+COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
 
 # ============================================================
 # PRODUCT LIST
@@ -1136,7 +568,7 @@ PRODUCTS = sorted([
     {"code":"87","name":"KIMS – CHOKOZO STRAWBERRY","price":129},
     {"code":"88","name":"KIMS – CHOKOZO CHOCOLATE CREAM","price":129},
     {"code":"89","name":"KIMS – CHOKOZO MILK MAZA","price":129},
-    {"code":"90","name":"KIMS – SIR STRAWBERRY","price":328},
+    {"code":"90","name":"KIMS – SIP STRAWBERRY","price":328},
     {"code":"91","name":"KIMS – CHAMPION DELICIOUS MILK CHOCOLATE JAR","price":269},
     {"code":"92","name":"KIMS – CHOCO DELIGHT CREAMY CHOCOLATE","price":219},
     {"code":"93","name":"KIMS – NUT KHUT CHOCOLATE","price":135},
@@ -1167,10 +599,97 @@ PRODUCTS = sorted([
 ], key=lambda x: x["name"])
 
 PRODUCT_NAMES = [p["name"] for p in PRODUCTS]
-COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
 
 # ============================================================
-# LOAD USER DATA
+# AUTH SCREEN (Login + Signup)
+# ============================================================
+def render_auth_page():
+    st.markdown(f"<div class='auth-title'>🧾 {COMPANY_NAME}</div>", unsafe_allow_html=True)
+    st.markdown("<div class='auth-subtitle'>Billing Software 2026 — Login ya Signup Karo</div>", unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([1, 1.2, 1])
+    with col2:
+        st.markdown("<div class='auth-card'>", unsafe_allow_html=True)
+        tab1, tab2 = st.tabs(["🔐 Login", "📝 Signup"])
+
+        # ---------------- LOGIN TAB ----------------
+        with tab1:
+            st.markdown("### 🔐 Login")
+            st.caption("Apna username aur password daalo")
+            login_user = st.text_input("Username:", key="login_username", placeholder="username")
+            login_pass = st.text_input("Password:", key="login_password", type="password", placeholder="password")
+            login_btn = st.button("🔓 Login Karo", key="btn_login", use_container_width=True, type="primary")
+
+            if login_btn:
+                users = load_users()
+                uname = login_user.strip().lower()
+                if uname == "" or login_pass == "":
+                    st.error("❌ Username aur password dono daalo")
+                elif uname not in users:
+                    st.error("❌ Ye username exist nahi karta. Pehle Signup karo.")
+                elif users[uname].get("password_hash") != hash_password(login_pass):
+                    st.error("❌ Password galat hai")
+                else:
+                    st.session_state["logged_in_user"] = uname
+                    st.session_state["display_name"] = users[uname].get("display_name", uname)
+                    st.session_state["page"] = "📊 Dashboard"
+                    st.success(f"✅ Welcome {uname}!")
+                    st.rerun()
+
+        # ---------------- SIGNUP TAB ----------------
+        with tab2:
+            st.markdown("### 📝 Signup")
+            st.caption("Naya account banao — apna data apna hi rahega")
+            su_user = st.text_input("Naya Username:", key="su_username", placeholder="sirf letters/numbers (3-20)")
+            su_pass = st.text_input("Naya Password:", key="su_password", type="password", placeholder="min 4 characters")
+            su_pass2 = st.text_input("Confirm Password:", key="su_password2", type="password", placeholder="same password")
+            su_btn = st.button("✅ Signup Karo", key="btn_signup", use_container_width=True)
+
+            if su_btn:
+                users = load_users()
+                uname = su_user.strip().lower()
+                uname_safe = sanitize_username(uname)
+
+                if uname_safe == "":
+                    st.error("❌ Username khali hai ya invalid characters hain")
+                elif len(uname_safe) < 3:
+                    st.error("❌ Username kam se kam 3 characters ka ho")
+                elif len(uname_safe) > 20:
+                    st.error("❌ Username 20 characters se zyada nahi ho sakta")
+                elif len(su_pass) < 4:
+                    st.error("❌ Password kam se kam 4 characters ka ho")
+                elif su_pass != su_pass2:
+                    st.error("❌ Dono passwords match nahi kar rahe")
+                elif uname_safe in users:
+                    st.error(f"❌ Username '{uname_safe}' pehle se exist karta hai. Doosra try karo.")
+                else:
+                    users[uname_safe] = {
+                        "username": uname_safe,
+                        "display_name": uname,
+                        "password_hash": hash_password(su_pass),
+                        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    }
+                    save_users(users)
+
+                    # Create blank data file for this user
+                    blank = default_blank_db()
+                    with open(user_data_file(uname_safe), "w", encoding="utf-8") as f:
+                        json.dump(blank, f, indent=4, ensure_ascii=False)
+
+                    st.success(f"✅ Account ban gaya! Ab 'Login' tab se login karo — username: **{uname_safe}**")
+                    st.info("💡 Yaad rakho: aapka data sirf aapko dikhega.")
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+# ============================================================
+# CHECK LOGIN
+# ============================================================
+if "logged_in_user" not in st.session_state or not st.session_state["logged_in_user"]:
+    render_auth_page()
+    st.stop()
+
+# ============================================================
+# LOAD USER DATA (after login)
 # ============================================================
 CURRENT_USER = st.session_state["logged_in_user"]
 
@@ -1214,6 +733,7 @@ def parse_date(dstr):
 if "database" not in st.session_state:
     st.session_state.database = load_database(CURRENT_USER)
 
+# Also refresh if user changed
 if st.session_state.get("_db_user") != CURRENT_USER:
     st.session_state.database = load_database(CURRENT_USER)
     st.session_state["_db_user"] = CURRENT_USER
@@ -1243,8 +763,6 @@ if "discount_packages" not in db or not db["discount_packages"]:
 for p in db["discount_packages"]:
     if "tier3_amount" not in p: p["tier3_amount"] = 0.0
     if "tier3_pct" not in p: p["tier3_pct"] = 0.0
-
-inject_sidebar_toggle()
 
 # ============================================================
 # HELPERS
@@ -1309,6 +827,9 @@ def show_auto_download():
         </script>
         """, height=0)
 
+# ============================================================
+# EXPORT SINGLE GROUP BILL
+# ============================================================
 def export_single_group_bill(shop, date_str, booker, salesman, items, bill_no):
     bill_total_net = sum(float(it.get("Net", 0)) for it in items)
     pkg_pct, pkg_name, tier_label = get_package_discount_pct(bill_total_net)
@@ -1350,7 +871,8 @@ def export_single_group_bill(shop, date_str, booker, salesman, items, bill_no):
 
     gross_total = 0; total_boxes = 0; net_total = 0; after_disc_total = 0; saved_total = 0
     for it in items:
-        b_net = float(it.get("Net", 0)); b_gross = float(it.get("Gross", 0))
+        b_net = float(it.get("Net", 0))
+        b_gross = float(it.get("Gross", 0))
         b_boxes = int(it.get("Boxes", 0))
         after_net = b_net - (b_net * pkg_pct / 100)
         saved = b_net - after_net
@@ -1452,7 +974,6 @@ with st.sidebar:
         st.session_state["display_name"] = None
         st.session_state["database"] = None
         st.session_state["_db_user"] = None
-        st.session_state["light_on"] = False
         st.session_state["page"] = "📊 Dashboard"
         st.rerun()
 
@@ -2187,259 +1708,6 @@ def render_daily_expense():
         st.error(st.session_state["error_msg"]); st.session_state["error_msg"] = None
 
 # ============================================================
-# BILLING CALLBACKS
-# ============================================================
-def add_bill_callback():
-    db = st.session_state.database
-    product_sel = st.session_state.get("product_sel", "")
-    boxes_v = st.session_state.get("boxes", 0)
-    tp_v = st.session_state.get("tp_box", 0.0)
-    disc_v = st.session_state.get("discount", 0.0)
-
-    if not product_sel:
-        st.session_state["error_msg"] = "❌ Please Select Product from dropdown"; return
-    if boxes_v <= 0:
-        st.session_state["error_msg"] = "❌ Enter Boxes"; return
-
-    sel = next((p for p in PRODUCTS if p["name"] == product_sel), None)
-    if not sel:
-        st.session_state["error_msg"] = "❌ Invalid Product"; return
-
-    gross_v = boxes_v * tp_v
-    net_v = gross_v - (gross_v * disc_v / 100)
-
-    bill = {
-        "Bill No": db["next_bill_no"], "Date": datetime.now().strftime("%d-%m-%Y"),
-        "Shop": st.session_state.get("shop_name", "").strip(),
-        "Order Booker": st.session_state.get("order_booker", "").strip(),
-        "Salesman": st.session_state.get("salesman", "").strip(),
-        "Delivery Man": "",
-        "Code": sel["code"], "Product": sel["name"],
-        "Boxes": boxes_v, "TP/Box": tp_v, "Discount %": disc_v,
-        "Gross": gross_v, "Net": net_v
-    }
-
-    db["bills"].append(bill); save_database(db)
-    st.session_state["last_bill_no"] = db["next_bill_no"]
-    st.session_state["success_msg"] = f"✅ Bill Added | Bill No: {db['next_bill_no']} | Total: {len(db['bills'])}"
-    for k in ["search_text", "product_sel"]: st.session_state[k] = ""
-    st.session_state["_prev_prod"] = None
-    for k in ["boxes", "tp_box", "discount"]: st.session_state[k] = 0
-
-def refresh_callback():
-    for k in ["search_text", "product_sel"]: st.session_state[k] = ""
-    st.session_state["_prev_prod"] = None
-    for k in ["boxes", "tp_box", "discount"]: st.session_state[k] = 0
-    st.session_state["success_msg"] = "✅ Ready For Next Product"
-
-def export_bill_callback():
-    db = st.session_state.database
-    if len(db["bills"]) == 0:
-        st.session_state["error_msg"] = "❌ No Bills Found"; return
-
-    shop = st.session_state.get("shop_name", "").strip() or "Bill"
-    for ch in ['\\','/',':','*','?','"','<','>','|']: shop = shop.replace(ch, "")
-
-    shop_bills = [b for b in db["bills"] if b["Shop"].strip() == shop]
-    if not shop_bills:
-        st.session_state["error_msg"] = "❌ Is shop ke liye koi bill nahi mila"; return
-
-    bill_total_net = sum(float(b.get("Net", 0)) for b in shop_bills)
-    pkg_pct, pkg_name, tier_label = get_package_discount_pct(bill_total_net)
-
-    output = BytesIO()
-    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
-    worksheet = workbook.add_worksheet("Bill")
-    worksheet.set_paper(9); worksheet.set_portrait(); worksheet.fit_to_pages(1, 1)
-    worksheet.set_column("A:A", 42.86); worksheet.set_column("B:B", 12.71)
-    worksheet.set_column("C:C", 10.71); worksheet.set_column("D:D", 10.71)
-    worksheet.set_column("E:E", 11.71); worksheet.set_column("F:F", 11.14)
-    worksheet.set_column("G:G", 11.14); worksheet.set_column("H:H", 12.14)
-    worksheet.set_column("I:I", 13.14); worksheet.set_column("J:J", 13.14)
-
-    title = workbook.add_format({"bold":True, "font_size":18, "align":"center", "border":2})
-    header = workbook.add_format({"bold":True, "font_size":11, "bg_color":"#BBDEFB", "align":"center", "border":2, "text_wrap": True})
-    cell_left = workbook.add_format({"font_size":12, "border":1, "align":"left"})
-    cell_center = workbook.add_format({"font_size":12, "border":1, "align":"center"})
-    total = workbook.add_format({"bold":True, "font_size":12, "bg_color":"#FFF2CC", "align":"center", "border":2})
-    disc_hl = workbook.add_format({"font_size":12, "border":1, "align":"center", "bg_color":"#E8F5E9", "bold": True})
-    pkg_info = workbook.add_format({"font_size":10, "italic": True, "align":"left", "font_color":"#1b5e20"})
-
-    worksheet.merge_range("A1:J1", COMPANY_NAME, title)
-    worksheet.write("A3","Shop Name",header); worksheet.write("B3", shop, cell_center)
-    worksheet.write("D3","Booker",header); worksheet.write("E3", st.session_state.get("order_booker", ""), cell_center)
-    worksheet.write("G3","Bill No",header)
-    last_bill = st.session_state.get("last_bill_no") or (db["next_bill_no"] - 1)
-    worksheet.write("H3", last_bill, cell_center)
-    worksheet.write("I3","Date",header); worksheet.write("J3", datetime.now().strftime("%d-%m-%Y"), cell_center)
-
-    if pkg_pct > 0:
-        worksheet.merge_range("A4:J4", f"🎁 Best Discount Applied: {pkg_name} | {tier_label} | {pkg_pct}% on each product", pkg_info)
-    else:
-        worksheet.merge_range("A4:J4", "💡 Koi discount apply nahi hua", pkg_info)
-
-    start_row = 6
-    headers = ["Product", "Code", "Boxes", "TP/Box", "Gross", "Disc %", "Net", "Pkg Disc %", "After Disc Net", "Saved"]
-    for col, h in enumerate(headers):
-        worksheet.write(start_row, col, h, header)
-    row = start_row + 1
-
-    gross_total = 0; total_boxes = 0; net_total = 0; after_disc_total = 0; saved_total = 0
-    for bill in shop_bills:
-        b_net = float(bill.get("Net", 0)); b_gross = float(bill.get("Gross", 0))
-        b_boxes = int(bill.get("Boxes", 0))
-        after_net = b_net - (b_net * pkg_pct / 100)
-        saved = b_net - after_net
-
-        worksheet.write(row, 0, bill["Product"], cell_left)
-        worksheet.write(row, 1, bill["Code"], cell_center)
-        worksheet.write(row, 2, b_boxes, cell_center)
-        worksheet.write(row, 3, bill.get("TP/Box", 0), cell_center)
-        worksheet.write(row, 4, b_gross, cell_center)
-        worksheet.write(row, 5, bill.get("Discount %", 0), cell_center)
-        worksheet.write(row, 6, b_net, cell_center)
-        if pkg_pct > 0:
-            worksheet.write(row, 7, pkg_pct, disc_hl)
-            worksheet.write(row, 8, after_net, disc_hl)
-            worksheet.write(row, 9, saved, disc_hl)
-        else:
-            worksheet.write(row, 7, 0, cell_center)
-            worksheet.write(row, 8, b_net, cell_center)
-            worksheet.write(row, 9, 0, cell_center)
-
-        gross_total += b_gross; total_boxes += b_boxes
-        net_total += b_net; after_disc_total += after_net; saved_total += saved
-        row += 1
-
-    worksheet.write(row, 1, "TOTAL", total)
-    worksheet.write(row, 2, total_boxes, total)
-    worksheet.write(row, 4, gross_total, total)
-    worksheet.write(row, 6, net_total, total)
-    worksheet.write(row, 7, "", total)
-    worksheet.write(row, 8, after_disc_total, total)
-    worksheet.write(row, 9, saved_total, total)
-
-    row += 2
-    worksheet.merge_range(row, 0, row, 6, "NET AMOUNT (After Package Discount)", header)
-    worksheet.merge_range(row, 7, row, 9, f"Rs {after_disc_total:,.0f}", total)
-    row += 1
-    if pkg_pct > 0:
-        worksheet.merge_range(row, 0, row, 6, "TOTAL SAVED BY DISCOUNT", header)
-        worksheet.merge_range(row, 7, row, 9, f"Rs {saved_total:,.0f}", total)
-
-    workbook.close(); output.seek(0)
-    st.session_state["download_file"] = (f"{shop}.xlsx", output.getvalue())
-    db["next_bill_no"] += 1; save_database(db)
-    st.session_state["last_bill_no"] = None
-    if pkg_pct > 0:
-        st.session_state["success_msg"] = f"✅ Bill Exported | {pkg_name} {tier_label} | {pkg_pct}% | Net: Rs {after_disc_total:,.0f} (Saved Rs {saved_total:,.0f})"
-    else:
-        st.session_state["success_msg"] = f"✅ Bill Exported | Next Bill No: {db['next_bill_no']}"
-
-def export_load_form_from_billing_callback():
-    db = st.session_state.database
-    booker = st.session_state.get("order_booker", "").strip()
-    if not booker:
-        st.session_state["error_msg"] = "❌ Please select Order Booker first"; return
-    booker_bills = [b for b in db["bills"] if b["Order Booker"].strip() == booker]
-    if not booker_bills:
-        st.session_state["error_msg"] = f"❌ No bills found for booker: {booker}"; return
-    summary = {}
-    for b in booker_bills:
-        code = b["Code"]
-        if code not in summary: summary[code] = {"Code": code, "Product": b["Product"], "Boxes": 0}
-        summary[code]["Boxes"] += b["Boxes"]
-    items = list(summary.values()); total_boxes = sum(it["Boxes"] for it in items)
-    if "load_forms" not in db: db["load_forms"] = []
-    next_id = 1
-    if db["load_forms"]: next_id = max(lf.get("id", 0) for lf in db["load_forms"]) + 1
-    lf_record = {
-        "id": next_id, "date": datetime.now().strftime("%d-%m-%Y"),
-        "time": datetime.now().strftime("%H:%M"),
-        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "booker": booker, "items": items,
-        "total_boxes": total_boxes, "total_products": len(items)
-    }
-    db["load_forms"].append(lf_record); save_database(db)
-    export_load_form_for_booker(booker, booker_bills)
-    st.session_state["success_msg"] = f"✅ Load Form #{next_id} saved & exported | {len(items)} products, {total_boxes} boxes"
-
-def export_load_form_for_booker(booker, booker_bills=None):
-    db = st.session_state.database
-    if booker_bills is None:
-        booker_bills = [b for b in db["bills"] if b["Order Booker"].strip() == booker]
-    if not booker_bills:
-        st.session_state["error_msg"] = "❌ No Bills Found for this Booker"; return
-    summary = {}
-    for bill in booker_bills:
-        code = bill["Code"]
-        if code not in summary: summary[code] = {"Product": bill["Product"], "Boxes": 0}
-        summary[code]["Boxes"] += bill["Boxes"]
-    output = BytesIO()
-    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
-    worksheet = workbook.add_worksheet("Load Form")
-    title = workbook.add_format({"bold":True, "font_size":16, "align":"center", "border":2})
-    header = workbook.add_format({"bold":True, "font_size":12, "bg_color":"#BBDEFB", "align":"center", "border":2})
-    cell_left = workbook.add_format({"font_size":14, "border":1, "align":"left"})
-    cell_center = workbook.add_format({"font_size":14, "border":1, "align":"center"})
-    total = workbook.add_format({"bold":True, "font_size":14, "bg_color":"#FFF2CC", "align":"center", "border":2})
-    worksheet.set_column("A:A", 47.86); worksheet.set_column("B:B", 12.71)
-    worksheet.merge_range("A1:B1", COMPANY_NAME, title)
-    worksheet.write("A3","Order Booker",header); worksheet.write("B3",booker,cell_center)
-    worksheet.write("A5","Product",header); worksheet.write("B5","Boxes",header)
-    row = 5; total_boxes = 0
-    for item in summary.values():
-        worksheet.write(row, 0, item["Product"], cell_left)
-        worksheet.write(row, 1, item["Boxes"], cell_center)
-        total_boxes += item["Boxes"]; row += 1
-    worksheet.write(row, 0, "TOTAL", total); worksheet.write(row, 1, total_boxes, total)
-    workbook.close(); output.seek(0)
-    st.session_state["download_file"] = (f"{booker}_Load_Form.xlsx", output.getvalue())
-
-def export_all_filtered_load_forms(filtered_lfs):
-    if not filtered_lfs:
-        st.session_state["error_msg"] = "❌ No Load Forms to export"; return
-    output = BytesIO(); wb = xlsxwriter.Workbook(output, {'in_memory': True})
-    title_fmt = wb.add_format({"bold": True, "font_size": 14, "align": "center", "border": 2, "bg_color": "#BBDEFB"})
-    header_fmt = wb.add_format({"bold": True, "bg_color": "#E3F2FD", "border": 1, "align": "center"})
-    cell_fmt = wb.add_format({"border": 1}); cell_center = wb.add_format({"border": 1, "align": "center"})
-    total_fmt = wb.add_format({"bold": True, "bg_color": "#FFF2CC", "border": 1, "align": "center"})
-    for lf in filtered_lfs:
-        booker = lf.get("booker", "Unknown"); date_str = lf.get("date", ""); time_str = lf.get("time", "")
-        sheet_name = f"{booker}_{date_str}".replace("/", "-")[:31] or f"LF_{lf.get('id')}"
-        base_name = sheet_name; counter = 1; existing = wb.sheetnames
-        while sheet_name in existing:
-            sheet_name = f"{base_name[:28]}_{counter}"; counter += 1
-        ws = wb.add_worksheet(sheet_name)
-        ws.set_column("A:A", 45); ws.set_column("B:B", 10); ws.set_column("C:C", 10)
-        ws.merge_range("A1:C1", f"{COMPANY_NAME} - Load Form", title_fmt)
-        ws.write("A3", "Booker", header_fmt); ws.write("B3", booker, cell_fmt)
-        ws.write("A4", "Date", header_fmt); ws.write("B4", f"{date_str} {time_str}", cell_fmt)
-        ws.write("A6", "Product", header_fmt); ws.write("B6", "Code", header_fmt); ws.write("C6", "Boxes", header_fmt)
-        row = 6; total_boxes = 0
-        for it in lf.get("items", []):
-            ws.write(row, 0, it["Product"], cell_fmt)
-            ws.write(row, 1, it["Code"], cell_center)
-            ws.write(row, 2, it["Boxes"], cell_center)
-            total_boxes += it["Boxes"]; row += 1
-        ws.write(row, 0, "TOTAL", total_fmt); ws.write(row, 1, "", total_fmt); ws.write(row, 2, total_boxes, total_fmt)
-    wb.close(); output.seek(0)
-    fname = f"Load_Forms_{datetime.now().strftime('%d-%m-%Y_%H%M')}.xlsx"
-    st.session_state["download_file"] = (fname, output.getvalue())
-
-def refresh_load_form_callback():
-    db = st.session_state.database
-    booker = st.session_state.get("order_booker", "").strip()
-    if not booker:
-        st.session_state["error_msg"] = "❌ Please Enter Order Booker"; return
-    db["bills"] = [b for b in db["bills"] if b["Order Booker"].strip() != booker]
-    save_database(db)
-    for k in ["search_text", "product_sel"]: st.session_state[k] = ""
-    st.session_state["_prev_prod"] = None
-    for k in ["boxes", "tp_box", "discount"]: st.session_state[k] = 0
-    st.session_state["success_msg"] = f"✅ Load Form Cleared | Booker: {booker}"
-
-# ============================================================
 # PAGE: BILLING
 # ============================================================
 def render_billing():
@@ -2583,14 +1851,22 @@ def render_bills_list():
         key = (b.get("Shop",""), b.get("Date",""), b.get("Order Booker",""))
         if key not in groups:
             groups[key] = {
-                "shop": b.get("Shop",""), "date": b.get("Date",""),
-                "booker": b.get("Order Booker",""), "salesman": b.get("Salesman",""),
-                "items": [], "orig_indices": [], "bill_no": b.get("Bill No",""),
+                "shop": b.get("Shop",""),
+                "date": b.get("Date",""),
+                "booker": b.get("Order Booker",""),
+                "salesman": b.get("Salesman",""),
+                "items": [],
+                "orig_indices": [],
+                "bill_no": b.get("Bill No",""),
             }
         groups[key]["items"].append({
-            "Code": b.get("Code"), "Product": b.get("Product"),
-            "Boxes": b.get("Boxes"), "TP/Box": b.get("TP/Box"),
-            "Discount %": b.get("Discount %"), "Gross": b.get("Gross"), "Net": b.get("Net"),
+            "Code": b.get("Code"),
+            "Product": b.get("Product"),
+            "Boxes": b.get("Boxes"),
+            "TP/Box": b.get("TP/Box"),
+            "Discount %": b.get("Discount %"),
+            "Gross": b.get("Gross"),
+            "Net": b.get("Net"),
         })
         groups[key]["orig_indices"].append(orig_idx)
 
@@ -2624,9 +1900,12 @@ def render_bills_list():
 
     for idx, key in enumerate(sorted_keys):
         g = groups[key]
-        shop = g["shop"] or "-"; date_str = g["date"] or "-"
-        booker = g["booker"] or "-"; salesman = g["salesman"] or "-"
-        bill_no = g["bill_no"]; items = g["items"]
+        shop = g["shop"] or "-"
+        date_str = g["date"] or "-"
+        booker = g["booker"] or "-"
+        salesman = g["salesman"] or "-"
+        bill_no = g["bill_no"]
+        items = g["items"]
         total_b = sum(int(it.get("Boxes",0)) for it in items)
         total_n = sum(float(it.get("Net",0)) for it in items)
 
@@ -2646,9 +1925,12 @@ def render_bills_list():
             """, unsafe_allow_html=True)
         with c2:
             eye_icon = "🔽" if is_viewing else "👁️"
-            if st.button(eye_icon, key=f"eye_bill_{wkey}", use_container_width=True, help="Poora bill dekho"):
-                if is_viewing: st.session_state["view_bill_key"] = None
-                else: st.session_state["view_bill_key"] = wkey
+            if st.button(eye_icon, key=f"eye_bill_{wkey}", use_container_width=True,
+                         help="Poora bill dekho"):
+                if is_viewing:
+                    st.session_state["view_bill_key"] = None
+                else:
+                    st.session_state["view_bill_key"] = wkey
                 st.rerun()
         with c3:
             if st.button("⬇️ Excel", key=f"dl_bill_{wkey}", use_container_width=True, type="primary"):
@@ -2829,9 +2111,12 @@ def render_load_form():
             """, unsafe_allow_html=True)
         with c2:
             eye_icon = "🔽" if is_viewing else "👁️"
-            if st.button(eye_icon, key=f"eye_lf_{wkey}", use_container_width=True, help="Poora load form dekho"):
-                if is_viewing: st.session_state["view_lf_key"] = None
-                else: st.session_state["view_lf_key"] = wkey
+            if st.button(eye_icon, key=f"eye_lf_{wkey}", use_container_width=True,
+                         help="Poora load form dekho"):
+                if is_viewing:
+                    st.session_state["view_lf_key"] = None
+                else:
+                    st.session_state["view_lf_key"] = wkey
                 st.rerun()
         with c3:
             if st.button("⬇️ Excel", key=f"dl_lf_{wkey}", use_container_width=True, type="primary"):
@@ -2864,6 +2149,7 @@ def render_load_form():
 
             total_net = sum(float(it.get("Net", 0)) for it in bill_items)
             pkg_pct_preview, pkg_name_preview, _tier = get_package_discount_pct(total_net)
+            after_disc = total_net - (total_net * pkg_pct_preview / 100)
 
             cc1, cc2, cc3 = st.columns(3)
             with cc1:
@@ -2889,6 +2175,260 @@ def render_load_form():
         st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
 
     show_auto_download()
+
+# ============================================================
+# CALLBACKS
+# ============================================================
+def add_bill_callback():
+    db = st.session_state.database
+    product_sel = st.session_state.get("product_sel", "")
+    boxes_v = st.session_state.get("boxes", 0)
+    tp_v = st.session_state.get("tp_box", 0.0)
+    disc_v = st.session_state.get("discount", 0.0)
+
+    if not product_sel:
+        st.session_state["error_msg"] = "❌ Please Select Product from dropdown"; return
+    if boxes_v <= 0:
+        st.session_state["error_msg"] = "❌ Enter Boxes"; return
+
+    sel = next((p for p in PRODUCTS if p["name"] == product_sel), None)
+    if not sel:
+        st.session_state["error_msg"] = "❌ Invalid Product"; return
+
+    gross_v = boxes_v * tp_v
+    net_v = gross_v - (gross_v * disc_v / 100)
+
+    bill = {
+        "Bill No": db["next_bill_no"], "Date": datetime.now().strftime("%d-%m-%Y"),
+        "Shop": st.session_state.get("shop_name", "").strip(),
+        "Order Booker": st.session_state.get("order_booker", "").strip(),
+        "Salesman": st.session_state.get("salesman", "").strip(),
+        "Delivery Man": "",
+        "Code": sel["code"], "Product": sel["name"],
+        "Boxes": boxes_v, "TP/Box": tp_v, "Discount %": disc_v,
+        "Gross": gross_v, "Net": net_v
+    }
+
+    db["bills"].append(bill); save_database(db)
+    st.session_state["last_bill_no"] = db["next_bill_no"]
+    st.session_state["success_msg"] = f"✅ Bill Added | Bill No: {db['next_bill_no']} | Total: {len(db['bills'])}"
+    for k in ["search_text", "product_sel"]: st.session_state[k] = ""
+    st.session_state["_prev_prod"] = None
+    for k in ["boxes", "tp_box", "discount"]: st.session_state[k] = 0
+
+def refresh_callback():
+    for k in ["search_text", "product_sel"]: st.session_state[k] = ""
+    st.session_state["_prev_prod"] = None
+    for k in ["boxes", "tp_box", "discount"]: st.session_state[k] = 0
+    st.session_state["success_msg"] = "✅ Ready For Next Product"
+
+def export_bill_callback():
+    db = st.session_state.database
+    if len(db["bills"]) == 0:
+        st.session_state["error_msg"] = "❌ No Bills Found"; return
+
+    shop = st.session_state.get("shop_name", "").strip() or "Bill"
+    for ch in ['\\','/',':','*','?','"','<','>','|']: shop = shop.replace(ch, "")
+
+    shop_bills = [b for b in db["bills"] if b["Shop"].strip() == shop]
+    if not shop_bills:
+        st.session_state["error_msg"] = "❌ Is shop ke liye koi bill nahi mila"; return
+
+    bill_total_net = sum(float(b.get("Net", 0)) for b in shop_bills)
+    pkg_pct, pkg_name, tier_label = get_package_discount_pct(bill_total_net)
+
+    output = BytesIO()
+    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+    worksheet = workbook.add_worksheet("Bill")
+    worksheet.set_paper(9); worksheet.set_portrait(); worksheet.fit_to_pages(1, 1)
+    worksheet.set_column("A:A", 42.86); worksheet.set_column("B:B", 12.71)
+    worksheet.set_column("C:C", 10.71); worksheet.set_column("D:D", 10.71)
+    worksheet.set_column("E:E", 11.71); worksheet.set_column("F:F", 11.14)
+    worksheet.set_column("G:G", 11.14); worksheet.set_column("H:H", 12.14)
+    worksheet.set_column("I:I", 13.14); worksheet.set_column("J:J", 13.14)
+
+    title = workbook.add_format({"bold":True, "font_size":18, "align":"center", "border":2})
+    header = workbook.add_format({"bold":True, "font_size":11, "bg_color":"#BBDEFB", "align":"center", "border":2, "text_wrap": True})
+    cell_left = workbook.add_format({"font_size":12, "border":1, "align":"left"})
+    cell_center = workbook.add_format({"font_size":12, "border":1, "align":"center"})
+    total = workbook.add_format({"bold":True, "font_size":12, "bg_color":"#FFF2CC", "align":"center", "border":2})
+    disc_hl = workbook.add_format({"font_size":12, "border":1, "align":"center", "bg_color":"#E8F5E9", "bold": True})
+    pkg_info = workbook.add_format({"font_size":10, "italic": True, "align":"left", "font_color":"#1b5e20"})
+
+    worksheet.merge_range("A1:J1", COMPANY_NAME, title)
+    worksheet.write("A3","Shop Name",header); worksheet.write("B3", shop, cell_center)
+    worksheet.write("D3","Booker",header); worksheet.write("E3", st.session_state.get("order_booker", ""), cell_center)
+    worksheet.write("G3","Bill No",header)
+    last_bill = st.session_state.get("last_bill_no") or (db["next_bill_no"] - 1)
+    worksheet.write("H3", last_bill, cell_center)
+    worksheet.write("I3","Date",header); worksheet.write("J3", datetime.now().strftime("%d-%m-%Y"), cell_center)
+
+    if pkg_pct > 0:
+        worksheet.merge_range("A4:J4", f"🎁 Best Discount Applied: {pkg_name} | {tier_label} | {pkg_pct}% on each product", pkg_info)
+    else:
+        worksheet.merge_range("A4:J4", "💡 Koi discount apply nahi hua", pkg_info)
+
+    start_row = 6
+    headers = ["Product", "Code", "Boxes", "TP/Box", "Gross", "Disc %", "Net", "Pkg Disc %", "After Disc Net", "Saved"]
+    for col, h in enumerate(headers):
+        worksheet.write(start_row, col, h, header)
+    row = start_row + 1
+
+    gross_total = 0; total_boxes = 0; net_total = 0; after_disc_total = 0; saved_total = 0
+    for bill in shop_bills:
+        b_net = float(bill.get("Net", 0))
+        b_gross = float(bill.get("Gross", 0))
+        b_boxes = int(bill.get("Boxes", 0))
+        after_net = b_net - (b_net * pkg_pct / 100)
+        saved = b_net - after_net
+
+        worksheet.write(row, 0, bill["Product"], cell_left)
+        worksheet.write(row, 1, bill["Code"], cell_center)
+        worksheet.write(row, 2, b_boxes, cell_center)
+        worksheet.write(row, 3, bill.get("TP/Box", 0), cell_center)
+        worksheet.write(row, 4, b_gross, cell_center)
+        worksheet.write(row, 5, bill.get("Discount %", 0), cell_center)
+        worksheet.write(row, 6, b_net, cell_center)
+        if pkg_pct > 0:
+            worksheet.write(row, 7, pkg_pct, disc_hl)
+            worksheet.write(row, 8, after_net, disc_hl)
+            worksheet.write(row, 9, saved, disc_hl)
+        else:
+            worksheet.write(row, 7, 0, cell_center)
+            worksheet.write(row, 8, b_net, cell_center)
+            worksheet.write(row, 9, 0, cell_center)
+
+        gross_total += b_gross; total_boxes += b_boxes
+        net_total += b_net; after_disc_total += after_net; saved_total += saved
+        row += 1
+
+    worksheet.write(row, 1, "TOTAL", total)
+    worksheet.write(row, 2, total_boxes, total)
+    worksheet.write(row, 4, gross_total, total)
+    worksheet.write(row, 6, net_total, total)
+    worksheet.write(row, 7, "", total)
+    worksheet.write(row, 8, after_disc_total, total)
+    worksheet.write(row, 9, saved_total, total)
+
+    row += 2
+    worksheet.merge_range(row, 0, row, 6, "NET AMOUNT (After Package Discount)", header)
+    worksheet.merge_range(row, 7, row, 9, f"Rs {after_disc_total:,.0f}", total)
+    row += 1
+    if pkg_pct > 0:
+        worksheet.merge_range(row, 0, row, 6, "TOTAL SAVED BY DISCOUNT", header)
+        worksheet.merge_range(row, 7, row, 9, f"Rs {saved_total:,.0f}", total)
+
+    workbook.close(); output.seek(0)
+    st.session_state["download_file"] = (f"{shop}.xlsx", output.getvalue())
+    db["next_bill_no"] += 1; save_database(db)
+    st.session_state["last_bill_no"] = None
+    if pkg_pct > 0:
+        st.session_state["success_msg"] = f"✅ Bill Exported | {pkg_name} {tier_label} | {pkg_pct}% | Net: Rs {after_disc_total:,.0f} (Saved Rs {saved_total:,.0f})"
+    else:
+        st.session_state["success_msg"] = f"✅ Bill Exported | Next Bill No: {db['next_bill_no']}"
+
+def export_load_form_from_billing_callback():
+    db = st.session_state.database
+    booker = st.session_state.get("order_booker", "").strip()
+    if not booker:
+        st.session_state["error_msg"] = "❌ Please select Order Booker first"; return
+    booker_bills = [b for b in db["bills"] if b["Order Booker"].strip() == booker]
+    if not booker_bills:
+        st.session_state["error_msg"] = f"❌ No bills found for booker: {booker}"; return
+    summary = {}
+    for b in booker_bills:
+        code = b["Code"]
+        if code not in summary: summary[code] = {"Code": code, "Product": b["Product"], "Boxes": 0}
+        summary[code]["Boxes"] += b["Boxes"]
+    items = list(summary.values()); total_boxes = sum(it["Boxes"] for it in items)
+    if "load_forms" not in db: db["load_forms"] = []
+    next_id = 1
+    if db["load_forms"]: next_id = max(lf.get("id", 0) for lf in db["load_forms"]) + 1
+    lf_record = {
+        "id": next_id, "date": datetime.now().strftime("%d-%m-%Y"),
+        "time": datetime.now().strftime("%H:%M"),
+        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "booker": booker, "items": items,
+        "total_boxes": total_boxes, "total_products": len(items)
+    }
+    db["load_forms"].append(lf_record); save_database(db)
+    export_load_form_for_booker(booker, booker_bills)
+    st.session_state["success_msg"] = f"✅ Load Form #{next_id} saved & exported | {len(items)} products, {total_boxes} boxes"
+
+def export_load_form_for_booker(booker, booker_bills=None):
+    db = st.session_state.database
+    if booker_bills is None:
+        booker_bills = [b for b in db["bills"] if b["Order Booker"].strip() == booker]
+    if not booker_bills:
+        st.session_state["error_msg"] = "❌ No Bills Found for this Booker"; return
+    summary = {}
+    for bill in booker_bills:
+        code = bill["Code"]
+        if code not in summary: summary[code] = {"Product": bill["Product"], "Boxes": 0}
+        summary[code]["Boxes"] += bill["Boxes"]
+    output = BytesIO()
+    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+    worksheet = workbook.add_worksheet("Load Form")
+    title = workbook.add_format({"bold":True, "font_size":16, "align":"center", "border":2})
+    header = workbook.add_format({"bold":True, "font_size":12, "bg_color":"#BBDEFB", "align":"center", "border":2})
+    cell_left = workbook.add_format({"font_size":14, "border":1, "align":"left"})
+    cell_center = workbook.add_format({"font_size":14, "border":1, "align":"center"})
+    total = workbook.add_format({"bold":True, "font_size":14, "bg_color":"#FFF2CC", "align":"center", "border":2})
+    worksheet.set_column("A:A", 47.86); worksheet.set_column("B:B", 12.71)
+    worksheet.merge_range("A1:B1", COMPANY_NAME, title)
+    worksheet.write("A3","Order Booker",header); worksheet.write("B3",booker,cell_center)
+    worksheet.write("A5","Product",header); worksheet.write("B5","Boxes",header)
+    row = 5; total_boxes = 0
+    for item in summary.values():
+        worksheet.write(row, 0, item["Product"], cell_left)
+        worksheet.write(row, 1, item["Boxes"], cell_center)
+        total_boxes += item["Boxes"]; row += 1
+    worksheet.write(row, 0, "TOTAL", total); worksheet.write(row, 1, total_boxes, total)
+    workbook.close(); output.seek(0)
+    st.session_state["download_file"] = (f"{booker}_Load_Form.xlsx", output.getvalue())
+
+def export_all_filtered_load_forms(filtered_lfs):
+    if not filtered_lfs:
+        st.session_state["error_msg"] = "❌ No Load Forms to export"; return
+    output = BytesIO(); wb = xlsxwriter.Workbook(output, {'in_memory': True})
+    title_fmt = wb.add_format({"bold": True, "font_size": 14, "align": "center", "border": 2, "bg_color": "#BBDEFB"})
+    header_fmt = wb.add_format({"bold": True, "bg_color": "#E3F2FD", "border": 1, "align": "center"})
+    cell_fmt = wb.add_format({"border": 1}); cell_center = wb.add_format({"border": 1, "align": "center"})
+    total_fmt = wb.add_format({"bold": True, "bg_color": "#FFF2CC", "border": 1, "align": "center"})
+    for lf in filtered_lfs:
+        booker = lf.get("booker", "Unknown"); date_str = lf.get("date", ""); time_str = lf.get("time", "")
+        sheet_name = f"{booker}_{date_str}".replace("/", "-")[:31] or f"LF_{lf.get('id')}"
+        base_name = sheet_name; counter = 1; existing = wb.sheetnames
+        while sheet_name in existing:
+            sheet_name = f"{base_name[:28]}_{counter}"; counter += 1
+        ws = wb.add_worksheet(sheet_name)
+        ws.set_column("A:A", 45); ws.set_column("B:B", 10); ws.set_column("C:C", 10)
+        ws.merge_range("A1:C1", f"{COMPANY_NAME} - Load Form", title_fmt)
+        ws.write("A3", "Booker", header_fmt); ws.write("B3", booker, cell_fmt)
+        ws.write("A4", "Date", header_fmt); ws.write("B4", f"{date_str} {time_str}", cell_fmt)
+        ws.write("A6", "Product", header_fmt); ws.write("B6", "Code", header_fmt); ws.write("C6", "Boxes", header_fmt)
+        row = 6; total_boxes = 0
+        for it in lf.get("items", []):
+            ws.write(row, 0, it["Product"], cell_fmt)
+            ws.write(row, 1, it["Code"], cell_center)
+            ws.write(row, 2, it["Boxes"], cell_center)
+            total_boxes += it["Boxes"]; row += 1
+        ws.write(row, 0, "TOTAL", total_fmt); ws.write(row, 1, "", total_fmt); ws.write(row, 2, total_boxes, total_fmt)
+    wb.close(); output.seek(0)
+    fname = f"Load_Forms_{datetime.now().strftime('%d-%m-%Y_%H%M')}.xlsx"
+    st.session_state["download_file"] = (fname, output.getvalue())
+
+def refresh_load_form_callback():
+    db = st.session_state.database
+    booker = st.session_state.get("order_booker", "").strip()
+    if not booker:
+        st.session_state["error_msg"] = "❌ Please Enter Order Booker"; return
+    db["bills"] = [b for b in db["bills"] if b["Order Booker"].strip() != booker]
+    save_database(db)
+    for k in ["search_text", "product_sel"]: st.session_state[k] = ""
+    st.session_state["_prev_prod"] = None
+    for k in ["boxes", "tp_box", "discount"]: st.session_state[k] = 0
+    st.session_state["success_msg"] = f"✅ Load Form Cleared | Booker: {booker}"
 
 # ============================================================
 # RENDER SELECTED PAGE
