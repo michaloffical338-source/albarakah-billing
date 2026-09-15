@@ -78,7 +78,7 @@ if "auth_error" not in st.session_state:
     st.session_state["auth_error"] = ""
 
 # ============================================================
-# LAMP LOGIN  —  OFF → PULL → ON (animation) → FORM → PULL → LOGIN
+# LAMP LOGIN — OFF → PULL → ON (animation) → FORM → PULL → LOGIN
 # ============================================================
 if not st.session_state.get("logged_in_user"):
 
@@ -86,7 +86,6 @@ if not st.session_state.get("logged_in_user"):
     auth_mode_now = st.session_state.get("auth_mode", "LOGIN")
     lit_cls = "lit" if light_on else ""
     card_h = 470 if (light_on and auth_mode_now == "SIGNUP") else (385 if light_on else 0)
-    submit_hint_top = 735 if auth_mode_now == "SIGNUP" else 665
 
     import random as _rnd
     dust_spans = "".join(
@@ -97,9 +96,39 @@ if not st.session_state.get("logged_in_user"):
         for _ in range(24)
     )
 
+    # ---------- 1. GLOBAL RESET + CSS ----------
     st.markdown(f"""
     <style>
-    /* -------- HIDE ALL STREAMLIT CHROME -------- */
+    /* NUCLEAR RESET ON ALL STREAMLIT WRAPPERS */
+    html, body,
+    #root, .stApp,
+    [data-testid="stAppViewContainer"],
+    [data-testid="stAppViewBlockContainer"],
+    [data-testid="stMain"],
+    section.main, .main,
+    .stMainBlockContainer,
+    .block-container,
+    [data-testid="stVerticalBlock"],
+    [data-testid="stVerticalBlockBorderWrapper"],
+    .element-container,
+    .stMarkdown,
+    [data-testid="stMarkdownContainer"] {{
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100vw !important;
+        width: 100% !important;
+        transform: none !important;
+        filter: none !important;
+        perspective: none !important;
+        contain: none !important;
+    }}
+    html, body {{
+        margin: 0 !important; padding: 0 !important;
+        background: #050506 !important;
+        overflow: hidden !important;
+    }}
+
+    /* HIDE ALL STREAMLIT CHROME */
     section[data-testid="stSidebar"],
     header[data-testid="stHeader"],
     [data-testid="stToolbar"],
@@ -110,54 +139,44 @@ if not st.session_state.get("logged_in_user"):
     [data-testid="stCloudAppManageButton"],
     .stAppDeployButton,
     #MainMenu, footer,
-    iframe[title="streamlit_cloud_status"],
-    div[class*="ManageApp"], div[class*="manageApp"],
-    button[kind="header"], button[kind="headerNoPadding"] {{
-        display: none !important; visibility: hidden !important;
+    iframe[title="streamlit_cloud_status"] {{
+        display: none !important;
+        visibility: hidden !important;
         height: 0 !important; width: 0 !important; opacity: 0 !important;
     }}
 
-    html, body, .stApp {{
+    /* SCENE */
+    #albarakah-scene {{
+        position: fixed !important;
+        top: 0 !important; left: 0 !important;
+        width: 100vw !important; height: 100vh !important;
         margin: 0 !important; padding: 0 !important;
-        background: #06070a !important; overflow: hidden !important;
-    }}
-    .block-container {{ padding: 0 !important; max-width: 100% !important; margin: 0 !important; }}
-
-    /* ============ SCENE ============ */
-    .lamp-scene {{
-        position: fixed; inset: 0; overflow: hidden;
+        z-index: 1 !important;
         background: radial-gradient(ellipse at 50% 15%, #14100a 0%, #08070a 45%, #030304 80%);
         transition: background 1.5s ease;
+        overflow: hidden;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }}
-    .lamp-scene.lit {{
+    #albarakah-scene.lit {{
         background: radial-gradient(ellipse at 50% 18%, #2a1b09 0%, #120c06 40%, #050505 80%);
     }}
-
-    /* Ceiling mount */
-    .ceiling {{
+    #albarakah-scene .ceiling {{
         position: absolute; top: 0; left: 50%; transform: translateX(-50%);
         width: 90px; height: 14px;
         background: linear-gradient(180deg, #262829, #0a0b0c);
         border-radius: 0 0 8px 8px;
         box-shadow: 0 3px 15px rgba(0,0,0,.8);
-        z-index: 10;
     }}
-    .ceiling::after {{
+    #albarakah-scene .ceiling::after {{
         content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
         width: 34px; height: 5px; background: #333537; border-radius: 2px;
     }}
-
-    /* Wire */
-    .wire {{
+    #albarakah-scene .wire {{
         position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
         width: 2px; height: 96px;
         background: linear-gradient(180deg, #3f4243, #8a8c8e 45%, #1a1b1c);
-        z-index: 9;
     }}
-
-    /* Shade */
-    .shade {{
+    #albarakah-scene .shade {{
         position: absolute; top: 110px; left: 50%; transform: translateX(-50%);
         width: 210px; height: 110px;
         border-radius: 105px 105px 18px 18px / 90px 90px 18px 18px;
@@ -169,27 +188,23 @@ if not st.session_state.get("logged_in_user"):
             inset 0 4px 12px rgba(140,95,45,.25),
             0 15px 35px rgba(0,0,0,.75);
         transition: box-shadow 1s ease;
-        z-index: 8;
     }}
-    .lamp-scene.lit .shade {{
+    #albarakah-scene.lit .shade {{
         box-shadow:
             inset 0 -22px 40px rgba(0,0,0,.9),
             inset 0 4px 12px rgba(220,160,80,.45),
             0 15px 35px rgba(0,0,0,.75),
             0 0 70px 18px rgba(255,200,85,.18);
     }}
-
-    /* Bulb */
-    .bulb {{
+    #albarakah-scene .bulb {{
         position: absolute; top: 178px; left: 50%; transform: translateX(-50%);
         width: 46px; height: 44px;
         border-radius: 50% 50% 42% 42% / 55% 55% 45% 45%;
         background: radial-gradient(circle at 50% 38%, #1e1e1e 0%, #070707 80%);
         box-shadow: inset 0 -8px 14px rgba(0,0,0,.9);
         transition: all 1s cubic-bezier(.2,.9,.3,1);
-        z-index: 12;
     }}
-    .lamp-scene.lit .bulb {{
+    #albarakah-scene.lit .bulb {{
         background: radial-gradient(circle at 50% 32%, #fff 0%, #fff8e1 20%, #ffd54f 55%, #ff9800 100%);
         box-shadow:
             0 0 25px 10px rgba(255,235,160,1),
@@ -197,9 +212,7 @@ if not st.session_state.get("logged_in_user"):
             0 0 120px 50px rgba(255,170,40,.3),
             inset 0 0 14px rgba(255,255,220,.9);
     }}
-
-    /* Beam (soft radial) */
-    .beam {{
+    #albarakah-scene .beam {{
         position: absolute; top: 205px; left: 50%; transform: translateX(-50%);
         width: 950px; height: 900px;
         background: radial-gradient(ellipse 380px 500px at 50% 0%,
@@ -209,19 +222,16 @@ if not st.session_state.get("logged_in_user"):
             transparent 78%);
         opacity: 0; transition: opacity 1.5s ease;
         pointer-events: none; filter: blur(12px);
-        z-index: 2;
     }}
-    .lamp-scene.lit .beam {{ opacity: 1; }}
-
-    /* Dust */
-    .dust {{
+    #albarakah-scene.lit .beam {{ opacity: 1; }}
+    #albarakah-scene .dust {{
         position: absolute; top: 220px; left: 50%; transform: translateX(-50%);
         width: 800px; height: 800px;
         pointer-events: none; opacity: 0;
-        transition: opacity 2s ease .4s; z-index: 3;
+        transition: opacity 2s ease .4s;
     }}
-    .lamp-scene.lit .dust {{ opacity: 1; }}
-    .dust span {{
+    #albarakah-scene.lit .dust {{ opacity: 1; }}
+    #albarakah-scene .dust span {{
         position: absolute;
         background: radial-gradient(circle, #fff8e1, #ffd54f 60%, transparent);
         border-radius: 50%;
@@ -234,16 +244,14 @@ if not st.session_state.get("logged_in_user"):
         85%  {{ opacity: .85; }}
         100% {{ transform: translate(35px,260px); opacity: 0; }}
     }}
-
-    /* Cord */
-    .cord {{
+    #albarakah-scene .cord {{
         position: absolute; top: 130px; left: calc(50% + 62px);
         width: 2px; height: 195px;
         background: linear-gradient(180deg, #3a3a3a, #b0b0b0 42%, #222);
         box-shadow: 1px 0 2px rgba(0,0,0,.6);
-        z-index: 25;
+        pointer-events: none;
     }}
-    .cord-bead {{
+    #albarakah-scene .cord-bead {{
         position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%);
         width: 22px; height: 26px;
         border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
@@ -251,45 +259,16 @@ if not st.session_state.get("logged_in_user"):
         box-shadow: 0 3px 8px rgba(0,0,0,.85), 0 0 14px rgba(255,190,90,.35), inset 0 -2px 4px rgba(0,0,0,.5);
         transition: all .4s ease;
     }}
-    .cord-bead::after {{
+    #albarakah-scene .cord-bead::after {{
         content: ""; position: absolute; top: 5px; left: 5px;
         width: 5px; height: 5px; border-radius: 50%;
         background: rgba(255,245,200,.85); filter: blur(1px);
     }}
-    .lamp-scene.lit .cord-bead {{
+    #albarakah-scene.lit .cord-bead {{
         box-shadow: 0 3px 8px rgba(0,0,0,.85), 0 0 26px 8px rgba(255,200,100,.75), inset 0 -2px 4px rgba(0,0,0,.5);
     }}
-
-    /* Invisible cord button (Streamlit widget) */
-    .st-key-lamp_cord_off, .st-key-lamp_cord_on,
-    div[data-testid="stButton"]:has(button p) {{
-        position: fixed !important;
-        top: 318px !important;
-        left: calc(50% + 62px) !important;
-        transform: translateX(-50%) !important;
-        width: 60px !important; height: 60px !important;
-        z-index: 200 !important;
-        margin: 0 !important; padding: 0 !important;
-    }}
-    .st-key-lamp_cord_off button, .st-key-lamp_cord_on button,
-    div[data-testid="stButton"]:has(button p) button {{
-        width: 100% !important; height: 100% !important;
-        min-height: 100% !important; padding: 0 !important;
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        color: transparent !important;
-        cursor: pointer !important;
-    }}
-    .st-key-lamp_cord_off button p, .st-key-lamp_cord_on button p,
-    div[data-testid="stButton"]:has(button p) button p {{
-        color: transparent !important; opacity: 0 !important; display: none !important;
-    }}
-
-    /* Form card */
-    .auth-card {{
-        position: fixed;
-        top: 380px; left: 50%; transform: translateX(-50%);
+    #albarakah-scene .auth-card {{
+        position: absolute; top: 380px; left: 50%; transform: translateX(-50%);
         width: 400px; height: {card_h}px;
         border-radius: 18px;
         background: linear-gradient(145deg, rgba(24,22,20,.92), rgba(12,11,10,.94));
@@ -299,34 +278,50 @@ if not st.session_state.get("logged_in_user"):
             0 0 60px rgba(210,160,60,.08),
             inset 0 1px 0 rgba(255,240,200,.08);
         backdrop-filter: blur(12px);
-        z-index: 30;
         pointer-events: none;
     }}
-    .auth-card::before {{
+    #albarakah-scene .auth-card::before {{
         content: ""; position: absolute; top: 0; left: 30px; right: 30px; height: 1px;
         background: linear-gradient(90deg, transparent, #e7bf72, transparent);
         opacity: .7;
     }}
-    .auth-brand {{
-        position: fixed;
-        top: 402px; left: 0; width: 100%;
+    #albarakah-scene .auth-brand {{
+        position: absolute; top: 402px; left: 0; width: 100%;
         text-align: center;
         color: #f0c66c; font-size: 22px; font-weight: 900; letter-spacing: 5px;
         text-shadow: 0 0 20px rgba(240,198,108,.4);
-        z-index: 40; pointer-events: none;
+        pointer-events: none;
     }}
-    .auth-sub {{
-        position: fixed;
-        top: 430px; left: 0; width: 100%;
+    #albarakah-scene .auth-sub {{
+        position: absolute; top: 430px; left: 0; width: 100%;
         text-align: center;
         color: #8c7c5e; font-size: 9px; font-weight: 800; letter-spacing: 3.5px;
-        z-index: 40; pointer-events: none;
+        pointer-events: none;
+    }}
+    #albarakah-scene .hint-msg {{
+        position: absolute; left: 50%; transform: translateX(-50%);
+        width: 420px; text-align: center;
+        color: #907f5e; font-size: 10px; font-weight: 700;
+        letter-spacing: 2px; pointer-events: none;
+    }}
+    #albarakah-scene .hint-msg.pull {{
+        bottom: 55px; font-size: 12px; letter-spacing: 5px;
+        color: #6a5a3c;
+        animation: pulseHint 2.6s ease-in-out infinite;
+    }}
+    @keyframes pulseHint {{
+        0%,100% {{ opacity: .35; }}
+        50%     {{ opacity: .95; }}
+    }}
+    #albarakah-scene .hint-msg.submit {{
+        top: 700px; color: #8c7c5e;
     }}
 
-    /* Radio */
+    /* STREAMLIT WIDGETS */
     div[data-testid="stRadio"] {{
         position: fixed !important;
-        top: 465px !important; left: 50% !important;
+        top: 465px !important;
+        left: 50vw !important;
         transform: translateX(-50%) !important;
         width: 340px !important;
         z-index: 60 !important;
@@ -353,10 +348,9 @@ if not st.session_state.get("logged_in_user"):
     div[data-testid="stRadio"] [role="radio"] > div:first-child {{ display: none !important; }}
     div[data-testid="stRadio"] [role="radio"] p {{ color: inherit !important; font-size: inherit !important; }}
 
-    /* Text inputs */
     div[data-testid="stTextInput"] {{
         position: fixed !important;
-        left: 50% !important;
+        left: 50vw !important;
         transform: translateX(-50%) !important;
         width: 340px !important;
         z-index: 60 !important;
@@ -388,64 +382,53 @@ if not st.session_state.get("logged_in_user"):
         font-style: italic;
     }}
 
-    /* Hints */
-    .hint-msg {{
-        position: fixed; left: 50%; transform: translateX(-50%);
-        width: 420px; text-align: center;
-        color: #907f5e; font-size: 10px; font-weight: 700;
-        letter-spacing: 2px; z-index: 65; pointer-events: none;
+    .st-key-lamp_cord_off,
+    .st-key-lamp_cord_on {{
+        position: fixed !important;
+        top: 297px !important;
+        left: calc(50vw + 62px) !important;
+        transform: translateX(-50%) !important;
+        width: 60px !important;
+        height: 60px !important;
+        z-index: 200 !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }}
-    .hint-msg.pull {{
-        bottom: 55px; font-size: 12px; letter-spacing: 5px;
-        color: #6a5a3c;
-        animation: pulseHint 2.6s ease-in-out infinite;
+    .st-key-lamp_cord_off button,
+    .st-key-lamp_cord_on button {{
+        width: 100% !important; height: 100% !important;
+        min-height: 100% !important; padding: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        color: transparent !important;
+        cursor: pointer !important;
     }}
-    @keyframes pulseHint {{
-        0%,100% {{ opacity: .35; }}
-        50%     {{ opacity: .95; }}
+    .st-key-lamp_cord_off button p,
+    .st-key-lamp_cord_on button p {{
+        display: none !important;
     }}
-    .hint-msg.submit {{ top: {submit_hint_top}px; color: #8c7c5e; }}
 
     .auth-error {{
-        position: fixed; left: 50%; transform: translateX(-50%);
-        top: 780px; width: 360px; text-align: center;
+        position: fixed; left: 50vw; transform: translateX(-50%);
+        top: 720px; width: 360px; text-align: center;
         padding: 8px 12px; border-radius: 8px;
         color: #ffb1a7; background: rgba(69,25,21,.95);
         border: 1px solid rgba(255,105,82,.25);
         font-size: 11px; font-weight: 700;
         z-index: 90;
     }}
-
-    @media (max-width: 600px) {{
-        .wire {{ height: 78px; }}
-        .shade {{ top: 90px; width: 170px; height: 90px; }}
-        .bulb {{ top: 152px; width: 38px; height: 36px; }}
-        .cord {{ top: 108px; height: 160px; left: calc(50% + 50px); }}
-        .st-key-lamp_cord_off, .st-key-lamp_cord_on,
-        div[data-testid="stButton"]:has(button p) {{
-            top: 262px !important; left: calc(50% + 50px) !important;
-        }}
-        .auth-card {{ top: 315px; width: calc(100vw - 30px); }}
-        .auth-brand {{ top: 335px; font-size: 18px; }}
-        .auth-sub {{ top: 360px; }}
-        div[data-testid="stRadio"],
-        div[data-testid="stTextInput"] {{ width: calc(100vw - 70px) !important; }}
-        div[data-testid="stRadio"] {{ top: 400px !important; }}
-        div[data-testid="stTextInput"]:has(input[aria-label="USERNAME"]) {{ top: 455px !important; }}
-        div[data-testid="stTextInput"]:has(input[aria-label="PASSWORD"]) {{ top: 523px !important; }}
-        div[data-testid="stTextInput"]:has(input[aria-label="CONFIRM PASSWORD"]) {{ top: 591px !important; }}
-        .auth-error {{ top: 690px; width: calc(100vw - 40px); }}
-    }}
     </style>
     """, unsafe_allow_html=True)
 
-    # ---------- SCENE MARKUP ----------
+    # ---------- 2. Scene markup ----------
     card_html = '<div class="auth-card"></div>' if light_on else ""
+    brand_html = '<div class="auth-brand">AL-BARAKAH</div><div class="auth-sub">ENTERPRISES · SECURE ACCESS</div>' if light_on else ""
     hint_txt = "PULL THE CORD TO SUBMIT" if light_on else "▼  PULL THE CORD TO TURN ON THE LIGHT  ▼"
     hint_cls = "submit" if light_on else "pull"
 
     st.markdown(f"""
-    <div class="lamp-scene {lit_cls}">
+    <div id="albarakah-scene" class="{lit_cls}">
       <div class="ceiling"></div>
       <div class="wire"></div>
       <div class="shade"></div>
@@ -454,24 +437,82 @@ if not st.session_state.get("logged_in_user"):
       <div class="dust">{dust_spans}</div>
       <div class="cord"><div class="cord-bead"></div></div>
       {card_html}
+      {brand_html}
       <div class="hint-msg {hint_cls}">{hint_txt}</div>
     </div>
     """, unsafe_allow_html=True)
 
-    # ---------- STATE 1: LIGHT OFF ----------
+    # ---------- 3. JS: move scene to body + kill Manage app + reset ancestors ----------
+    components.html("""
+    <script>
+    (function(){
+        function tick() {
+            try {
+                var pd = window.parent.document;
+
+                // Move scene to body to escape Streamlit's container transforms
+                var scene = pd.getElementById('albarakah-scene');
+                if (scene && scene.parentElement !== pd.body) {
+                    pd.body.appendChild(scene);
+                }
+
+                // Kill Manage app button
+                var sels = ['[data-testid="stAppDeployButton"]',
+                    '[data-testid="manage-app-button"]',
+                    '[data-testid="stCloudAppManageButton"]',
+                    '[data-testid="stToolbar"]',
+                    '.stAppDeployButton',
+                    'iframe[title="streamlit_cloud_status"]',
+                    'div[class*="ManageApp"]',
+                    'div[class*="manageApp"]',
+                    'button[class*="ManageApp"]'];
+                sels.forEach(function(s){
+                    pd.querySelectorAll(s).forEach(function(el){
+                        el.style.setProperty('display','none','important');
+                        el.style.setProperty('visibility','hidden','important');
+                        el.style.setProperty('opacity','0','important');
+                        el.style.setProperty('height','0','important');
+                        el.style.setProperty('width','0','important');
+                    });
+                });
+
+                // Reset transforms on ancestors of our fixed widgets
+                var widgets = pd.querySelectorAll(
+                    '[data-testid="stRadio"], [data-testid="stTextInput"], ' +
+                    '.st-key-lamp_cord_off, .st-key-lamp_cord_on'
+                );
+                widgets.forEach(function(w){
+                    var n = w.parentElement, depth = 0;
+                    while (n && n !== pd.body && depth < 20) {
+                        if (n.style) {
+                            n.style.setProperty('transform', 'none', 'important');
+                            n.style.setProperty('filter', 'none', 'important');
+                            n.style.setProperty('perspective', 'none', 'important');
+                            n.style.setProperty('contain', 'none', 'important');
+                        }
+                        n = n.parentElement; depth++;
+                    }
+                });
+            } catch(e) {}
+        }
+        tick();
+        setTimeout(tick, 100);
+        setTimeout(tick, 300);
+        setTimeout(tick, 800);
+        setTimeout(tick, 1500);
+        setTimeout(tick, 2500);
+        setInterval(tick, 1200);
+    })();
+    </script>
+    """, height=0)
+
+    # ---------- 4. Streamlit widgets ----------
     if not light_on:
         if st.button("PULL", key="lamp_cord_off"):
             st.session_state["light_on"] = True
             st.session_state["auth_error"] = ""
             st.rerun()
-
-    # ---------- STATE 2: LIGHT ON -> SHOW FORM ----------
     else:
-        st.markdown("""
-        <div class="auth-brand">AL-BARAKAH</div>
-        <div class="auth-sub">ENTERPRISES · SECURE ACCESS</div>
-        """, unsafe_allow_html=True)
-
         mode = st.radio(
             "MODE", ["LOGIN", "SIGNUP"],
             horizontal=True, key="auth_mode",
@@ -536,41 +577,6 @@ if not st.session_state.get("logged_in_user"):
                 f'<div class="auth-error">⚠️ {st.session_state["auth_error"]}</div>',
                 unsafe_allow_html=True
             )
-
-    # ---------- KILL "MANAGE APP" (belt & suspenders) ----------
-    components.html("""
-    <script>
-    (function(){
-        function kill(){
-            try {
-                var d = window.parent.document;
-                var sels = ['[data-testid="stAppDeployButton"]',
-                    '[data-testid="manage-app-button"]',
-                    '[data-testid="stCloudAppManageButton"]',
-                    '[data-testid="stToolbar"]',
-                    '.stAppDeployButton',
-                    'iframe[title="streamlit_cloud_status"]',
-                    'div[class*="ManageApp"]',
-                    'div[class*="manageApp"]',
-                    'button[class*="ManageApp"]'];
-                sels.forEach(function(s){
-                    d.querySelectorAll(s).forEach(function(el){
-                        el.style.setProperty('display','none','important');
-                        el.style.setProperty('visibility','hidden','important');
-                        el.style.setProperty('opacity','0','important');
-                        el.style.setProperty('height','0','important');
-                        el.style.setProperty('width','0','important');
-                    });
-                });
-            } catch(e){}
-        }
-        kill();
-        setTimeout(kill, 300);
-        setTimeout(kill, 1000);
-        setInterval(kill, 2000);
-    })();
-    </script>
-    """, height=0)
 
     st.stop()
 
@@ -2059,7 +2065,7 @@ def render_daily_expense():
         st.error(st.session_state["error_msg"]); st.session_state["error_msg"] = None
 
 # ============================================================
-# PAGE: BILLING
+# BILLING CALLBACKS
 # ============================================================
 def add_bill_callback():
     db = st.session_state.database
@@ -2311,6 +2317,9 @@ def refresh_load_form_callback():
     for k in ["boxes", "tp_box", "discount"]: st.session_state[k] = 0
     st.session_state["success_msg"] = f"✅ Load Form Cleared | Booker: {booker}"
 
+# ============================================================
+# PAGE: BILLING
+# ============================================================
 def render_billing():
     st.markdown(f"<h2 style='color:#1976d2 !important;margin:0 0 6px 0;'>🧾 Billing</h2>", unsafe_allow_html=True)
 
