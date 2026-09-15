@@ -70,623 +70,509 @@ def default_blank_db():
     }
 
 # ============================================================
-# LAMP HTML — Premium Pendant Lamp + Login Form Inside Light
+# SESSION STATE INIT
 # ============================================================
-def build_lamp_html(light_on):
-    initial_class = "lit" if light_on else ""
-    return """
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body {
-    width: 100%;
-    height: 100vh;
-    background: #000;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    overflow: hidden;
-    user-select: none;
-  }
-  .scene {
-    position: relative;
-    width: 100%;
-    height: 100vh;
-    background: radial-gradient(ellipse at 50% 0%, #0a0805 0%, #000 60%);
-    overflow: hidden;
-  }
-  .scene.lit {
-    background: radial-gradient(ellipse at 50% 15%, #1f1408 0%, #0a0604 40%, #000 75%);
-    transition: background 1.2s ease;
-  }
+if "light_on" not in st.session_state:
+    st.session_state["light_on"] = False
+if "auth_error" not in st.session_state:
+    st.session_state["auth_error"] = ""
 
-  /* ========= CEILING ========= */
-  .ceiling {
-    position: absolute;
-    top: 0; left: 50%;
-    transform: translateX(-50%);
-    width: 56px; height: 10px;
-    background: linear-gradient(180deg, #1a1a1a 0%, #050505 100%);
-    border-radius: 0 0 6px 6px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.9);
-    z-index: 5;
-  }
-  .ceiling::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 50%;
-    transform: translateX(-50%);
-    width: 22px; height: 3px;
-    background: #2a2a2a;
-    border-radius: 2px;
-  }
+# ============================================================
+# LAMP LOGIN  —  OFF → PULL → ON (animation) → FORM → PULL → LOGIN
+# ============================================================
+if not st.session_state.get("logged_in_user"):
 
-  /* ========= WIRE ========= */
-  .wire {
-    position: absolute;
-    top: 8px; left: 50%;
-    transform: translateX(-50%);
-    width: 3px; height: 130px;
-    background: linear-gradient(90deg, #3a3a3a 0%, #6b6b6b 50%, #1a1a1a 100%);
-    box-shadow: 0 0 4px rgba(0,0,0,0.8);
-    z-index: 4;
-  }
+    light_on = st.session_state.get("light_on", False)
+    auth_mode_now = st.session_state.get("auth_mode", "LOGIN")
+    lit_cls = "lit" if light_on else ""
+    card_h = 470 if (light_on and auth_mode_now == "SIGNUP") else (385 if light_on else 0)
+    submit_hint_top = 735 if auth_mode_now == "SIGNUP" else 665
 
-  /* ========= LAMP ASSEMBLY ========= */
-  .lamp {
-    position: absolute;
-    top: 130px; left: 50%;
-    transform: translateX(-50%);
-    width: 220px; height: 130px;
-    z-index: 6;
-  }
-  .lamp-shade {
-    position: absolute;
-    top: 0; left: 0;
-    width: 220px; height: 100px;
-    border-radius: 110px 110px 20px 20px / 100px 100px 22px 22px;
-    background:
-      radial-gradient(ellipse at 50% -10%, #4a3826 0%, #2b1d10 30%, #0f0a05 85%),
-      linear-gradient(180deg, #2a1d10 0%, #0a0603 100%);
-    box-shadow:
-      inset 0 -18px 30px rgba(0,0,0,0.95),
-      inset 0 4px 12px rgba(120, 80, 40, 0.25),
-      0 6px 22px rgba(0,0,0,0.85);
-    transition: box-shadow 0.9s ease;
-    z-index: 3;
-  }
-  .lamp-shade::before {
-    content: '';
-    position: absolute;
-    top: 6px; left: 50%;
-    transform: translateX(-50%);
-    width: 90%; height: 30px;
-    border-radius: 50%;
-    background: radial-gradient(ellipse, rgba(160,110,60,0.25) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  .lamp-shade::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0;
-    width: 100%; height: 22px;
-    border-radius: 0 0 22px 22px / 0 0 22px 22px;
-    background: linear-gradient(180deg, transparent 0%, #050301 100%);
-  }
-  .scene.lit .lamp-shade {
-    box-shadow:
-      inset 0 -18px 30px rgba(0,0,0,0.95),
-      inset 0 4px 12px rgba(160, 110, 60, 0.45),
-      0 6px 22px rgba(0,0,0,0.85),
-      0 0 60px 12px rgba(255, 200, 80, 0.18);
-  }
+    import random as _rnd
+    dust_spans = "".join(
+        f'<span style="left:{10 + _rnd.random()*80:.2f}%;top:{_rnd.random()*60:.2f}%;'
+        f'width:{1 + _rnd.random()*2:.2f}px;height:{1 + _rnd.random()*2:.2f}px;'
+        f'animation-duration:{5 + _rnd.random()*6:.2f}s;'
+        f'animation-delay:{_rnd.random()*5:.2f}s;"></span>'
+        for _ in range(24)
+    )
 
-  /* Bulb (visible under shade) */
-  .bulb {
-    position: absolute;
-    top: 78px; left: 50%;
-    transform: translateX(-50%);
-    width: 46px; height: 42px;
-    border-radius: 50% 50% 42% 42% / 55% 55% 45% 45%;
-    background: radial-gradient(circle at 50% 35%, #2a2a2a 0%, #0a0a0a 75%);
-    transition: all 0.9s cubic-bezier(0.2, 0.9, 0.3, 1);
-    z-index: 5;
-    box-shadow: inset 0 -6px 12px rgba(0,0,0,0.9);
-  }
-  .scene.lit .bulb {
-    background: radial-gradient(circle at 50% 35%, #ffffff 0%, #fff8e1 25%, #ffd54f 55%, #ff9800 100%);
-    box-shadow:
-      0 0 22px 8px rgba(255, 235, 160, 0.95),
-      0 0 55px 22px rgba(255, 200, 80, 0.6),
-      0 0 110px 45px rgba(255, 170, 40, 0.3),
-      inset 0 0 10px rgba(255, 255, 220, 0.9);
-  }
+    st.markdown(f"""
+    <style>
+    /* -------- HIDE ALL STREAMLIT CHROME -------- */
+    section[data-testid="stSidebar"],
+    header[data-testid="stHeader"],
+    [data-testid="stToolbar"],
+    [data-testid="stDecoration"],
+    [data-testid="stStatusWidget"],
+    [data-testid="stAppDeployButton"],
+    [data-testid="manage-app-button"],
+    [data-testid="stCloudAppManageButton"],
+    .stAppDeployButton,
+    #MainMenu, footer,
+    iframe[title="streamlit_cloud_status"],
+    div[class*="ManageApp"], div[class*="manageApp"],
+    button[kind="header"], button[kind="headerNoPadding"] {{
+        display: none !important; visibility: hidden !important;
+        height: 0 !important; width: 0 !important; opacity: 0 !important;
+    }}
 
-  /* ========= LIGHT BEAM ========= */
-  .beam {
-    position: absolute;
-    top: 220px; left: 50%;
-    transform: translateX(-50%);
-    width: 900px; height: 780px;
-    background: radial-gradient(
-      ellipse at 50% 0%,
-      rgba(255, 235, 160, 0.55) 0%,
-      rgba(255, 220, 130, 0.30) 18%,
-      rgba(255, 200, 80, 0.14) 40%,
-      rgba(255, 180, 60, 0.04) 65%,
-      transparent 82%
-    );
-    opacity: 0;
-    transition: opacity 1.2s ease;
-    pointer-events: none;
-    filter: blur(8px);
-    z-index: 1;
-  }
-  .scene.lit .beam { opacity: 1; }
+    html, body, .stApp {{
+        margin: 0 !important; padding: 0 !important;
+        background: #06070a !important; overflow: hidden !important;
+    }}
+    .block-container {{ padding: 0 !important; max-width: 100% !important; margin: 0 !important; }}
 
-  /* Dust particles */
-  .dust {
-    position: absolute;
-    top: 240px; left: 50%;
-    transform: translateX(-50%);
-    width: 700px; height: 700px;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 1.5s ease 0.3s;
-    z-index: 2;
-  }
-  .scene.lit .dust { opacity: 1; }
-  .dust span {
-    position: absolute;
-    width: 2px; height: 2px;
-    background: radial-gradient(circle, #fff8e1 0%, #ffd54f 60%, transparent 100%);
-    border-radius: 50%;
-    box-shadow: 0 0 4px #ffd54f;
-    animation: drift linear infinite;
-  }
-  @keyframes drift {
-    0%   { transform: translateY(0) translateX(0); opacity: 0; }
-    20%  { opacity: 0.9; }
-    80%  { opacity: 0.9; }
-    100% { transform: translateY(220px) translateX(40px); opacity: 0; }
-  }
+    /* ============ SCENE ============ */
+    .lamp-scene {{
+        position: fixed; inset: 0; overflow: hidden;
+        background: radial-gradient(ellipse at 50% 15%, #14100a 0%, #08070a 45%, #030304 80%);
+        transition: background 1.5s ease;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }}
+    .lamp-scene.lit {{
+        background: radial-gradient(ellipse at 50% 18%, #2a1b09 0%, #120c06 40%, #050505 80%);
+    }}
 
-  /* ========= PULL CORD ========= */
-  .cord {
-    position: absolute;
-    top: 130px; left: 50%;
-    transform: translateX(48px);
-    width: 2px;
-    height: 220px;
-    cursor: pointer;
-    z-index: 10;
-    transition: transform 0.4s ease;
-    transform-origin: top center;
-  }
-  .cord::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: linear-gradient(180deg, #4a4a4a 0%, #b8b8b8 40%, #2a2a2a 100%);
-    box-shadow: 1px 0 2px rgba(0,0,0,0.6);
-  }
-  .cord .bead {
-    position: absolute;
-    bottom: -14px; left: 50%;
-    transform: translateX(-50%);
-    width: 18px; height: 22px;
-    border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
-    background:
-      radial-gradient(circle at 35% 30%, #d4a35e 0%, #8a5a2a 40%, #3a2210 100%);
-    box-shadow:
-      0 3px 8px rgba(0,0,0,0.85),
-      0 0 14px 2px rgba(255, 190, 90, 0.35),
-      inset 0 -2px 4px rgba(0,0,0,0.5);
-    transition: all 0.3s ease;
-  }
-  .cord .bead::after {
-    content: '';
-    position: absolute;
-    top: 5px; left: 5px;
-    width: 5px; height: 5px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,240,200,0.9) 0%, transparent 70%);
-  }
-  .cord:hover .bead {
-    box-shadow:
-      0 3px 8px rgba(0,0,0,0.85),
-      0 0 24px 6px rgba(255, 200, 100, 0.9),
-      inset 0 -2px 4px rgba(0,0,0,0.5);
-    transform: translateX(-50%) scale(1.15);
-  }
-  .cord.pulled {
-    animation: pullCord 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  @keyframes pullCord {
-    0%   { transform: translateX(48px) scaleY(1); }
-    40%  { transform: translateX(48px) scaleY(1.55); }
-    70%  { transform: translateX(48px) scaleY(0.92); }
-    100% { transform: translateX(48px) scaleY(1); }
-  }
+    /* Ceiling mount */
+    .ceiling {{
+        position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+        width: 90px; height: 14px;
+        background: linear-gradient(180deg, #262829, #0a0b0c);
+        border-radius: 0 0 8px 8px;
+        box-shadow: 0 3px 15px rgba(0,0,0,.8);
+        z-index: 10;
+    }}
+    .ceiling::after {{
+        content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+        width: 34px; height: 5px; background: #333537; border-radius: 2px;
+    }}
 
-  /* ========= LOGIN FORM (inside beam) ========= */
-  /* Authentication is rendered by native Streamlit widgets. */
-  .form-wrap { display:none !important; }
-  .form-wrap {
-    position: absolute;
-    top: 340px; left: 50%;
-    transform: translateX(-50%);
-    width: 380px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.9s ease 0.4s, transform 0.9s ease 0.4s;
-    z-index: 8;
-    transform: translateX(-50%) translateY(-15px);
-  }
-  .scene.lit .form-wrap {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateX(-50%) translateY(0);
-  }
-  .glass {
-    background: rgba(15, 12, 8, 0.65);
-    border: 1px solid rgba(255, 200, 100, 0.28);
-    border-radius: 18px;
-    padding: 26px 28px 22px;
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    box-shadow:
-      0 12px 40px rgba(0,0,0,0.6),
-      inset 0 1px 0 rgba(255, 220, 150, 0.15),
-      0 0 60px rgba(255, 190, 80, 0.08);
-  }
-  .brand {
-    text-align: center;
-    margin-bottom: 16px;
-  }
-  .brand h1 {
-    color: #ffd54f;
-    font-size: 20px;
-    font-weight: 800;
-    letter-spacing: 3px;
-    text-shadow: 0 0 18px rgba(255, 200, 80, 0.5);
-    margin-bottom: 2px;
-  }
-  .brand p {
-    color: #a8845a;
-    font-size: 10px;
-    letter-spacing: 4px;
-    font-weight: 600;
-  }
+    /* Wire */
+    .wire {{
+        position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+        width: 2px; height: 96px;
+        background: linear-gradient(180deg, #3f4243, #8a8c8e 45%, #1a1b1c);
+        z-index: 9;
+    }}
 
-  .tabs {
-    display: flex;
-    background: rgba(0,0,0,0.5);
-    border-radius: 10px;
-    padding: 3px;
-    margin-bottom: 16px;
-    border: 1px solid rgba(255, 200, 100, 0.12);
-  }
-  .tab {
-    flex: 1;
-    text-align: center;
-    padding: 8px 0;
-    color: #8a7a5a;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border: none;
-    background: transparent;
-    font-family: inherit;
-  }
-  .tab.active {
-    background: linear-gradient(135deg, rgba(255,200,80,0.18) 0%, rgba(255,150,40,0.10) 100%);
-    color: #ffd54f;
-    box-shadow: 0 2px 8px rgba(255,180,50,0.2), inset 0 0 0 1px rgba(255,200,100,0.25);
-  }
+    /* Shade */
+    .shade {{
+        position: absolute; top: 110px; left: 50%; transform: translateX(-50%);
+        width: 210px; height: 110px;
+        border-radius: 105px 105px 18px 18px / 90px 90px 18px 18px;
+        background:
+            radial-gradient(ellipse at 50% 0%, rgba(200,150,80,.12), transparent 45%),
+            linear-gradient(180deg, #4a3520 0%, #2a1c0e 50%, #0a0603 100%);
+        box-shadow:
+            inset 0 -22px 40px rgba(0,0,0,.9),
+            inset 0 4px 12px rgba(140,95,45,.25),
+            0 15px 35px rgba(0,0,0,.75);
+        transition: box-shadow 1s ease;
+        z-index: 8;
+    }}
+    .lamp-scene.lit .shade {{
+        box-shadow:
+            inset 0 -22px 40px rgba(0,0,0,.9),
+            inset 0 4px 12px rgba(220,160,80,.45),
+            0 15px 35px rgba(0,0,0,.75),
+            0 0 70px 18px rgba(255,200,85,.18);
+    }}
 
-  .f-field {
-    margin-bottom: 12px;
-    position: relative;
-  }
-  .f-field label {
-    display: block;
-    color: #a8845a;
-    font-size: 10px;
-    letter-spacing: 2px;
-    font-weight: 700;
-    margin-bottom: 5px;
-    padding-left: 4px;
-  }
-  .f-field input {
-    width: 100%;
-    padding: 11px 14px;
-    background: rgba(0,0,0,0.55);
-    border: 1px solid rgba(255, 200, 100, 0.15);
-    border-radius: 10px;
-    color: #fff8e1;
-    font-size: 14px;
-    font-family: inherit;
-    outline: none;
-    transition: all 0.3s ease;
-    caret-color: #ffd54f;
-  }
-  .f-field input::placeholder {
-    color: #6a5a3a;
-    font-style: italic;
-  }
-  .f-field input:focus {
-    border-color: rgba(255, 200, 100, 0.55);
-    background: rgba(0,0,0,0.7);
-    box-shadow: 0 0 0 3px rgba(255, 200, 100, 0.1), 0 0 20px rgba(255, 180, 50, 0.15);
-  }
-  .f-field.hidden { display: none; }
+    /* Bulb */
+    .bulb {{
+        position: absolute; top: 178px; left: 50%; transform: translateX(-50%);
+        width: 46px; height: 44px;
+        border-radius: 50% 50% 42% 42% / 55% 55% 45% 45%;
+        background: radial-gradient(circle at 50% 38%, #1e1e1e 0%, #070707 80%);
+        box-shadow: inset 0 -8px 14px rgba(0,0,0,.9);
+        transition: all 1s cubic-bezier(.2,.9,.3,1);
+        z-index: 12;
+    }}
+    .lamp-scene.lit .bulb {{
+        background: radial-gradient(circle at 50% 32%, #fff 0%, #fff8e1 20%, #ffd54f 55%, #ff9800 100%);
+        box-shadow:
+            0 0 25px 10px rgba(255,235,160,1),
+            0 0 60px 24px rgba(255,200,80,.65),
+            0 0 120px 50px rgba(255,170,40,.3),
+            inset 0 0 14px rgba(255,255,220,.9);
+    }}
 
-  .hint-msg {
-    text-align: center;
-    color: #a8845a;
-    font-size: 11px;
-    margin-top: 14px;
-    letter-spacing: 1px;
-    line-height: 1.6;
-  }
-  .hint-msg b { color: #ffd54f; }
+    /* Beam (soft radial) */
+    .beam {{
+        position: absolute; top: 205px; left: 50%; transform: translateX(-50%);
+        width: 950px; height: 900px;
+        background: radial-gradient(ellipse 380px 500px at 50% 0%,
+            rgba(255,240,180,.5) 0%,
+            rgba(255,220,130,.22) 25%,
+            rgba(255,200,80,.06) 55%,
+            transparent 78%);
+        opacity: 0; transition: opacity 1.5s ease;
+        pointer-events: none; filter: blur(12px);
+        z-index: 2;
+    }}
+    .lamp-scene.lit .beam {{ opacity: 1; }}
 
-  /* Error state shake */
-  .glass.shake {
-    animation: shake 0.45s ease;
-  }
-  @keyframes shake {
-    0%,100% { transform: translateX(0); }
-    20%     { transform: translateX(-8px); }
-    40%     { transform: translateX(8px); }
-    60%     { transform: translateX(-6px); }
-    80%     { transform: translateX(6px); }
-  }
+    /* Dust */
+    .dust {{
+        position: absolute; top: 220px; left: 50%; transform: translateX(-50%);
+        width: 800px; height: 800px;
+        pointer-events: none; opacity: 0;
+        transition: opacity 2s ease .4s; z-index: 3;
+    }}
+    .lamp-scene.lit .dust {{ opacity: 1; }}
+    .dust span {{
+        position: absolute;
+        background: radial-gradient(circle, #fff8e1, #ffd54f 60%, transparent);
+        border-radius: 50%;
+        box-shadow: 0 0 4px #ffd54f;
+        animation: drift linear infinite;
+    }}
+    @keyframes drift {{
+        0%   {{ transform: translate(0,0); opacity: 0; }}
+        15%  {{ opacity: .9; }}
+        85%  {{ opacity: .85; }}
+        100% {{ transform: translate(35px,260px); opacity: 0; }}
+    }}
 
-  /* ========= HINT AT BOTTOM ========= */
-  .bottom-hint {
-    position: absolute;
-    bottom: 40px; left: 50%;
-    transform: translateX(-50%);
-    color: #666;
-    font-size: 12px;
-    letter-spacing: 5px;
-    text-transform: uppercase;
-    font-weight: 300;
-    animation: pulse 2.8s ease-in-out infinite;
-    transition: all 0.6s ease;
-    z-index: 9;
-    text-align: center;
-    white-space: nowrap;
-  }
-  .scene.lit .bottom-hint {
-    color: #a8845a;
-    animation: none;
-    letter-spacing: 3px;
-    font-size: 11px;
-  }
-  @keyframes pulse {
-    0%,100% { opacity: 0.35; }
-    50%     { opacity: 0.95; }
-  }
-</style>
-</head>
-<body>
-<div class="scene __INITIAL_CLASS__" id="scene">
+    /* Cord */
+    .cord {{
+        position: absolute; top: 130px; left: calc(50% + 62px);
+        width: 2px; height: 195px;
+        background: linear-gradient(180deg, #3a3a3a, #b0b0b0 42%, #222);
+        box-shadow: 1px 0 2px rgba(0,0,0,.6);
+        z-index: 25;
+    }}
+    .cord-bead {{
+        position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%);
+        width: 22px; height: 26px;
+        border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+        background: radial-gradient(circle at 35% 28%, #e8c480 0%, #a87030 42%, #3a2210 100%);
+        box-shadow: 0 3px 8px rgba(0,0,0,.85), 0 0 14px rgba(255,190,90,.35), inset 0 -2px 4px rgba(0,0,0,.5);
+        transition: all .4s ease;
+    }}
+    .cord-bead::after {{
+        content: ""; position: absolute; top: 5px; left: 5px;
+        width: 5px; height: 5px; border-radius: 50%;
+        background: rgba(255,245,200,.85); filter: blur(1px);
+    }}
+    .lamp-scene.lit .cord-bead {{
+        box-shadow: 0 3px 8px rgba(0,0,0,.85), 0 0 26px 8px rgba(255,200,100,.75), inset 0 -2px 4px rgba(0,0,0,.5);
+    }}
 
-  <!-- Ceiling mount -->
-  <div class="ceiling"></div>
+    /* Invisible cord button (Streamlit widget) */
+    .st-key-lamp_cord_off, .st-key-lamp_cord_on,
+    div[data-testid="stButton"]:has(button p) {{
+        position: fixed !important;
+        top: 318px !important;
+        left: calc(50% + 62px) !important;
+        transform: translateX(-50%) !important;
+        width: 60px !important; height: 60px !important;
+        z-index: 200 !important;
+        margin: 0 !important; padding: 0 !important;
+    }}
+    .st-key-lamp_cord_off button, .st-key-lamp_cord_on button,
+    div[data-testid="stButton"]:has(button p) button {{
+        width: 100% !important; height: 100% !important;
+        min-height: 100% !important; padding: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        color: transparent !important;
+        cursor: pointer !important;
+    }}
+    .st-key-lamp_cord_off button p, .st-key-lamp_cord_on button p,
+    div[data-testid="stButton"]:has(button p) button p {{
+        color: transparent !important; opacity: 0 !important; display: none !important;
+    }}
 
-  <!-- Wire -->
-  <div class="wire"></div>
+    /* Form card */
+    .auth-card {{
+        position: fixed;
+        top: 380px; left: 50%; transform: translateX(-50%);
+        width: 400px; height: {card_h}px;
+        border-radius: 18px;
+        background: linear-gradient(145deg, rgba(24,22,20,.92), rgba(12,11,10,.94));
+        border: 1px solid rgba(230,190,100,.28);
+        box-shadow:
+            0 25px 70px rgba(0,0,0,.75),
+            0 0 60px rgba(210,160,60,.08),
+            inset 0 1px 0 rgba(255,240,200,.08);
+        backdrop-filter: blur(12px);
+        z-index: 30;
+        pointer-events: none;
+    }}
+    .auth-card::before {{
+        content: ""; position: absolute; top: 0; left: 30px; right: 30px; height: 1px;
+        background: linear-gradient(90deg, transparent, #e7bf72, transparent);
+        opacity: .7;
+    }}
+    .auth-brand {{
+        position: fixed;
+        top: 402px; left: 0; width: 100%;
+        text-align: center;
+        color: #f0c66c; font-size: 22px; font-weight: 900; letter-spacing: 5px;
+        text-shadow: 0 0 20px rgba(240,198,108,.4);
+        z-index: 40; pointer-events: none;
+    }}
+    .auth-sub {{
+        position: fixed;
+        top: 430px; left: 0; width: 100%;
+        text-align: center;
+        color: #8c7c5e; font-size: 9px; font-weight: 800; letter-spacing: 3.5px;
+        z-index: 40; pointer-events: none;
+    }}
 
-  <!-- Lamp assembly -->
-  <div class="lamp">
-    <div class="lamp-shade"></div>
-    <div class="bulb"></div>
-  </div>
+    /* Radio */
+    div[data-testid="stRadio"] {{
+        position: fixed !important;
+        top: 465px !important; left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: 340px !important;
+        z-index: 60 !important;
+        margin: 0 !important;
+    }}
+    div[data-testid="stRadio"] > label {{ display: none !important; }}
+    div[data-testid="stRadio"] [role="radiogroup"] {{
+        display: flex !important; gap: 3px !important; padding: 4px !important;
+        background: #0b0c0e !important;
+        border: 1px solid rgba(255,220,130,.14) !important;
+        border-radius: 10px !important;
+    }}
+    div[data-testid="stRadio"] [role="radio"] {{
+        flex: 1 !important; justify-content: center !important;
+        padding: 8px 6px !important; border-radius: 7px !important;
+        color: #8a7c60 !important;
+        font-size: 11px !important; font-weight: 800 !important; letter-spacing: 1.4px !important;
+    }}
+    div[data-testid="stRadio"] [role="radio"][aria-checked="true"] {{
+        background: linear-gradient(135deg, #3b2e19, #241b10) !important;
+        color: #efc66d !important;
+        box-shadow: inset 0 0 0 1px rgba(220,174,84,.28) !important;
+    }}
+    div[data-testid="stRadio"] [role="radio"] > div:first-child {{ display: none !important; }}
+    div[data-testid="stRadio"] [role="radio"] p {{ color: inherit !important; font-size: inherit !important; }}
 
-  <!-- Light beam -->
-  <div class="beam"></div>
+    /* Text inputs */
+    div[data-testid="stTextInput"] {{
+        position: fixed !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: 340px !important;
+        z-index: 60 !important;
+        margin: 0 !important;
+    }}
+    div[data-testid="stTextInput"]:has(input[aria-label="USERNAME"]) {{ top: 520px !important; }}
+    div[data-testid="stTextInput"]:has(input[aria-label="PASSWORD"]) {{ top: 588px !important; }}
+    div[data-testid="stTextInput"]:has(input[aria-label="CONFIRM PASSWORD"]) {{ top: 656px !important; }}
 
-  <!-- Dust particles -->
-  <div class="dust" id="dust"></div>
+    div[data-testid="stTextInput"] label,
+    div[data-testid="stTextInput"] label p {{
+        color: #9d8a66 !important; font-size: 9px !important; font-weight: 800 !important;
+        letter-spacing: 2px !important; margin-bottom: 4px !important;
+    }}
+    div[data-testid="stTextInput"] input {{
+        height: 40px !important; min-height: 40px !important;
+        border-radius: 9px !important;
+        background: #0b0c0e !important;
+        color: #f7f1e5 !important; -webkit-text-fill-color: #f7f1e5 !important;
+        border: 1px solid rgba(255,220,130,.16) !important;
+        font-size: 14px !important;
+    }}
+    div[data-testid="stTextInput"] input:focus {{
+        border-color: rgba(232,190,100,.7) !important;
+        box-shadow: 0 0 0 3px rgba(232,190,100,.08) !important;
+    }}
+    div[data-testid="stTextInput"] input::placeholder {{
+        color: #6a5a3c !important; -webkit-text-fill-color: #6a5a3c !important;
+        font-style: italic;
+    }}
 
-  <!-- Pull cord -->
-  <div class="cord" id="cord"><div class="bead"></div></div>
+    /* Hints */
+    .hint-msg {{
+        position: fixed; left: 50%; transform: translateX(-50%);
+        width: 420px; text-align: center;
+        color: #907f5e; font-size: 10px; font-weight: 700;
+        letter-spacing: 2px; z-index: 65; pointer-events: none;
+    }}
+    .hint-msg.pull {{
+        bottom: 55px; font-size: 12px; letter-spacing: 5px;
+        color: #6a5a3c;
+        animation: pulseHint 2.6s ease-in-out infinite;
+    }}
+    @keyframes pulseHint {{
+        0%,100% {{ opacity: .35; }}
+        50%     {{ opacity: .95; }}
+    }}
+    .hint-msg.submit {{ top: {submit_hint_top}px; color: #8c7c5e; }}
 
-  <!-- Login form -->
-  <div class="form-wrap">
-    <div class="glass" id="glass">
-      <div class="brand">
-        <h1>AL-BARAKAH</h1>
-        <p>ENTERPRISES</p>
-      </div>
-      <div class="tabs">
-        <button class="tab active" data-mode="login" type="button">LOGIN</button>
-        <button class="tab" data-mode="signup" type="button">SIGNUP</button>
-      </div>
-      <div class="f-field">
-        <label>USERNAME</label>
-        <input type="text" id="fUser" placeholder="enter username" autocomplete="off" spellcheck="false">
-      </div>
-      <div class="f-field">
-        <label>PASSWORD</label>
-        <input type="password" id="fPass" placeholder="enter password" autocomplete="off">
-      </div>
-      <div class="f-field hidden" id="fPass2Wrap">
-        <label>CONFIRM PASSWORD</label>
-        <input type="password" id="fPass2" placeholder="repeat password" autocomplete="off">
-      </div>
-      <div class="hint-msg" id="hintMsg">
-        Pull the cord <b>again</b> to sign in
-      </div>
+    .auth-error {{
+        position: fixed; left: 50%; transform: translateX(-50%);
+        top: 780px; width: 360px; text-align: center;
+        padding: 8px 12px; border-radius: 8px;
+        color: #ffb1a7; background: rgba(69,25,21,.95);
+        border: 1px solid rgba(255,105,82,.25);
+        font-size: 11px; font-weight: 700;
+        z-index: 90;
+    }}
+
+    @media (max-width: 600px) {{
+        .wire {{ height: 78px; }}
+        .shade {{ top: 90px; width: 170px; height: 90px; }}
+        .bulb {{ top: 152px; width: 38px; height: 36px; }}
+        .cord {{ top: 108px; height: 160px; left: calc(50% + 50px); }}
+        .st-key-lamp_cord_off, .st-key-lamp_cord_on,
+        div[data-testid="stButton"]:has(button p) {{
+            top: 262px !important; left: calc(50% + 50px) !important;
+        }}
+        .auth-card {{ top: 315px; width: calc(100vw - 30px); }}
+        .auth-brand {{ top: 335px; font-size: 18px; }}
+        .auth-sub {{ top: 360px; }}
+        div[data-testid="stRadio"],
+        div[data-testid="stTextInput"] {{ width: calc(100vw - 70px) !important; }}
+        div[data-testid="stRadio"] {{ top: 400px !important; }}
+        div[data-testid="stTextInput"]:has(input[aria-label="USERNAME"]) {{ top: 455px !important; }}
+        div[data-testid="stTextInput"]:has(input[aria-label="PASSWORD"]) {{ top: 523px !important; }}
+        div[data-testid="stTextInput"]:has(input[aria-label="CONFIRM PASSWORD"]) {{ top: 591px !important; }}
+        .auth-error {{ top: 690px; width: calc(100vw - 40px); }}
+    }}
+    </style>
+    """, unsafe_allow_html=True)
+
+    # ---------- SCENE MARKUP ----------
+    card_html = '<div class="auth-card"></div>' if light_on else ""
+    hint_txt = "PULL THE CORD TO SUBMIT" if light_on else "▼  PULL THE CORD TO TURN ON THE LIGHT  ▼"
+    hint_cls = "submit" if light_on else "pull"
+
+    st.markdown(f"""
+    <div class="lamp-scene {lit_cls}">
+      <div class="ceiling"></div>
+      <div class="wire"></div>
+      <div class="shade"></div>
+      <div class="bulb"></div>
+      <div class="beam"></div>
+      <div class="dust">{dust_spans}</div>
+      <div class="cord"><div class="cord-bead"></div></div>
+      {card_html}
+      <div class="hint-msg {hint_cls}">{hint_txt}</div>
     </div>
-  </div>
+    """, unsafe_allow_html=True)
 
-  <!-- Bottom hint -->
-  <div class="bottom-hint" id="bottomHint">▼ PULL THE CORD ▼</div>
+    # ---------- STATE 1: LIGHT OFF ----------
+    if not light_on:
+        if st.button("PULL", key="lamp_cord_off"):
+            st.session_state["light_on"] = True
+            st.session_state["auth_error"] = ""
+            st.rerun()
 
-</div>
+    # ---------- STATE 2: LIGHT ON -> SHOW FORM ----------
+    else:
+        st.markdown("""
+        <div class="auth-brand">AL-BARAKAH</div>
+        <div class="auth-sub">ENTERPRISES · SECURE ACCESS</div>
+        """, unsafe_allow_html=True)
 
-<script>
-(function(){
-  var scene = document.getElementById('scene');
-  var cord = document.getElementById('cord');
-  var glass = document.getElementById('glass');
-  var bottomHint = document.getElementById('bottomHint');
-  var hintMsg = document.getElementById('hintMsg');
-  var fUser = document.getElementById('fUser');
-  var fPass = document.getElementById('fPass');
-  var fPass2 = document.getElementById('fPass2');
-  var fPass2Wrap = document.getElementById('fPass2Wrap');
-  var tabs = document.querySelectorAll('.tab');
-  var mode = 'login';
-  var pulled = false;
+        mode = st.radio(
+            "MODE", ["LOGIN", "SIGNUP"],
+            horizontal=True, key="auth_mode",
+            label_visibility="collapsed"
+        )
+        st.text_input("USERNAME", key="auth_username", placeholder="Enter username")
+        st.text_input("PASSWORD", key="auth_password", type="password", placeholder="Enter password")
+        if mode == "SIGNUP":
+            st.text_input("CONFIRM PASSWORD", key="auth_password2", type="password", placeholder="Repeat password")
 
-  /* ---- Dust particles ---- */
-  var dust = document.getElementById('dust');
-  for (var i = 0; i < 22; i++) {
-    var s = document.createElement('span');
-    s.style.left = (10 + Math.random() * 80) + '%';
-    s.style.top = (Math.random() * 60) + '%';
-    s.style.animationDuration = (5 + Math.random() * 6) + 's';
-    s.style.animationDelay = (Math.random() * 5) + 's';
-    var sz = 1 + Math.random() * 2;
-    s.style.width = sz + 'px';
-    s.style.height = sz + 'px';
-    dust.appendChild(s);
-  }
+        if st.button("PULL", key="lamp_cord_on"):
+            users = load_users()
+            uname_raw = st.session_state.get("auth_username", "").strip()
+            uname = sanitize_username(uname_raw)
+            pass_v = st.session_state.get("auth_password", "")
+            pass2_v = st.session_state.get("auth_password2", "")
 
-  /* ---- Tab switching ---- */
-  tabs.forEach(function(t){
-    t.addEventListener('click', function(){
-      tabs.forEach(function(x){ x.classList.remove('active'); });
-      t.classList.add('active');
-      mode = t.getAttribute('data-mode');
-      if (mode === 'signup') {
-        fPass2Wrap.classList.remove('hidden');
-        hintMsg.innerHTML = 'Pull the cord <b>again</b> to create account';
-      } else {
-        fPass2Wrap.classList.add('hidden');
-        hintMsg.innerHTML = 'Pull the cord <b>again</b> to sign in';
-      }
-    });
-  });
+            if not uname or not pass_v:
+                st.session_state["auth_error"] = "Please enter your username and password."
+            elif mode == "LOGIN":
+                if uname not in users:
+                    st.session_state["auth_error"] = "Username not found. Please use SIGNUP first."
+                elif users[uname].get("password_hash") != hash_password(pass_v):
+                    st.session_state["auth_error"] = "Incorrect password. Please try again."
+                else:
+                    st.session_state["logged_in_user"] = uname
+                    st.session_state["display_name"] = users[uname].get("display_name", uname)
+                    st.session_state["page"] = "📊 Dashboard"
+                    st.session_state["light_on"] = False
+                    st.session_state["auth_error"] = ""
+                    st.rerun()
+            else:
+                if len(uname) < 3:
+                    st.session_state["auth_error"] = "Username must be at least 3 characters."
+                elif len(uname) > 20:
+                    st.session_state["auth_error"] = "Username must be 20 characters or less."
+                elif len(pass_v) < 4:
+                    st.session_state["auth_error"] = "Password must be at least 4 characters."
+                elif pass_v != pass2_v:
+                    st.session_state["auth_error"] = "Passwords do not match."
+                elif uname in users:
+                    st.session_state["auth_error"] = f"Username '{uname}' is already registered."
+                else:
+                    users[uname] = {
+                        "username": uname,
+                        "display_name": uname_raw,
+                        "password_hash": hash_password(pass_v),
+                        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    }
+                    save_users(users)
+                    with open(user_data_file(uname), "w", encoding="utf-8") as f:
+                        json.dump(default_blank_db(), f, indent=4, ensure_ascii=False)
+                    st.session_state["logged_in_user"] = uname
+                    st.session_state["display_name"] = uname_raw
+                    st.session_state["page"] = "📊 Dashboard"
+                    st.session_state["light_on"] = False
+                    st.session_state["auth_error"] = ""
+                    st.rerun()
 
-  /* ---- Native value setter for React inputs ---- */
-  function setNativeValue(element, value) {
-    var proto = Object.getPrototypeOf(element);
-    var setter = Object.getOwnPropertyDescriptor(proto, 'value').set;
-    setter.call(element, value);
-    element.dispatchEvent(new Event('input', { bubbles: true }));
-    element.dispatchEvent(new Event('change', { bubbles: true }));
-  }
+        if st.session_state.get("auth_error"):
+            st.markdown(
+                f'<div class="auth-error">⚠️ {st.session_state["auth_error"]}</div>',
+                unsafe_allow_html=True
+            )
 
-  /* ---- Find streamlit hidden input by label marker ---- */
-  function findStreamlitInput(marker) {
-    try {
-      var pd = window.parent.document;
-      var labels = pd.querySelectorAll('label');
-      for (var i = 0; i < labels.length; i++) {
-        if (labels[i].textContent.indexOf(marker) !== -1) {
-          var wrap = labels[i].closest('[data-testid="stTextInput"]');
-          if (wrap) return wrap.querySelector('input');
+    # ---------- KILL "MANAGE APP" (belt & suspenders) ----------
+    components.html("""
+    <script>
+    (function(){
+        function kill(){
+            try {
+                var d = window.parent.document;
+                var sels = ['[data-testid="stAppDeployButton"]',
+                    '[data-testid="manage-app-button"]',
+                    '[data-testid="stCloudAppManageButton"]',
+                    '[data-testid="stToolbar"]',
+                    '.stAppDeployButton',
+                    'iframe[title="streamlit_cloud_status"]',
+                    'div[class*="ManageApp"]',
+                    'div[class*="manageApp"]',
+                    'button[class*="ManageApp"]'];
+                sels.forEach(function(s){
+                    d.querySelectorAll(s).forEach(function(el){
+                        el.style.setProperty('display','none','important');
+                        el.style.setProperty('visibility','hidden','important');
+                        el.style.setProperty('opacity','0','important');
+                        el.style.setProperty('height','0','important');
+                        el.style.setProperty('width','0','important');
+                    });
+                });
+            } catch(e){}
         }
-      }
-    } catch(e) {}
-    return null;
-  }
+        kill();
+        setTimeout(kill, 300);
+        setTimeout(kill, 1000);
+        setInterval(kill, 2000);
+    })();
+    </script>
+    """, height=0)
 
-  /* ---- Click streamlit hidden button by text ---- */
-  function clickStreamlitButton(marker) {
-    try {
-      var pd = window.parent.document;
-      var btns = pd.querySelectorAll('button');
-      for (var i = 0; i < btns.length; i++) {
-        if ((btns[i].textContent || '').indexOf(marker) !== -1) {
-          btns[i].click();
-          return true;
-        }
-      }
-    } catch(e) {}
-    return false;
-  }
-
-  /* ---- Cord click ---- */
-  cord.addEventListener('click', function(){
-    if (pulled) return;
-    pulled = true;
-    cord.classList.add('pulled');
-    setTimeout(function(){ cord.classList.remove('pulled'); pulled = false; }, 650);
-
-    var isLit = scene.classList.contains('lit');
-
-    if (!isLit) {
-      /* Turn ON: click the "TURN_ON" streamlit button */
-      setTimeout(function(){
-        clickStreamlitButton('__LAMP_TURN_ON__');
-      }, 350);
-    } else {
-      /* Turn OFF: check form values first */
-      var user = (fUser.value || '').trim();
-      var pass = fPass.value || '';
-      var pass2 = fPass2.value || '';
-
-      if (user === '' || pass === '') {
-        /* shake */
-        glass.classList.add('shake');
-        setTimeout(function(){ glass.classList.remove('shake'); }, 500);
-        hintMsg.innerHTML = '<span style="color:#ff7b7b;">Please fill all fields</span>';
-        setTimeout(function(){
-          hintMsg.innerHTML = mode === 'signup'
-            ? 'Pull the cord <b>again</b> to create account'
-            : 'Pull the cord <b>again</b> to sign in';
-        }, 2200);
-        return;
-      }
-
-      if (mode === 'signup' && pass !== pass2) {
-        glass.classList.add('shake');
-        setTimeout(function(){ glass.classList.remove('shake'); }, 500);
-        hintMsg.innerHTML = '<span style="color:#ff7b7b;">Passwords do not match</span>';
-        setTimeout(function(){
-          hintMsg.innerHTML = 'Pull the cord <b>again</b> to create account';
-        }, 2200);
-        return;
-      }
-
-      /* Set hidden streamlit inputs and click submit */
-      var uIn = findStreamlitInput('__LU__');
-      var pIn = findStreamlitInput('__LP__');
-      var p2In = findStreamlitInput('__LP2__');
-      var mIn = findStreamlitInput('__LM__');
-      if (uIn) setNativeValue(uIn, user);
-      if (pIn) setNativeValue(pIn, pass);
-      if (p2In) setNativeValue(p2In, pass2);
-      if (mIn) setNativeValue(mIn, mode);
-
-      setTimeout(function(){
-        clickStreamlitButton('__LAMP_SUBMIT__');
-      }, 220);
-    }
-  });
-
-  /* Auto-focus username when lit */
-  if (scene.classList.contains('lit')) {
-    setTimeout(function(){ try { fUser.focus(); } catch(e){} }, 800);
-  }
-})();
-</script>
-</body>
-</html>
-""".replace("__INITIAL_CLASS__", initial_class)
+    st.stop()
 
 # ============================================================
 # GLOBAL CSS (for the app itself, applies when logged in)
@@ -1154,321 +1040,6 @@ PRODUCTS = sorted([
 
 PRODUCT_NAMES = [p["name"] for p in PRODUCTS]
 COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
-
-# ============================================================
-# SESSION STATE INIT
-# ============================================================
-if "light_on" not in st.session_state:
-    st.session_state["light_on"] = False
-if "auth_error" not in st.session_state:
-    st.session_state["auth_error"] = ""
-
-# ============================================================
-# PROFESSIONAL LAMP LOGIN — CLEAN, CENTERED, NATIVE STREAMLIT
-# ============================================================
-if not st.session_state.get("logged_in_user"):
-    st.markdown("""
-    <style>
-    /* Hide Streamlit chrome on authentication screen */
-    section[data-testid="stSidebar"], header[data-testid="stHeader"],
-    [data-testid="stToolbar"], [data-testid="stDecoration"],
-    [data-testid="stStatusWidget"], #MainMenu, footer,
-    .stAppDeployButton, [data-testid="manage-app-button"] { display:none !important; }
-
-    html, body, .stApp {
-        margin:0 !important;
-        background:#0b0c0d !important;
-        color:#f3efe7 !important;
-        overflow:hidden !important;
-    }
-    .block-container {
-        padding:0 !important;
-        max-width:none !important;
-        margin:0 !important;
-    }
-
-    /* ===== BACKGROUND ===== */
-    .login-scene {
-        position:fixed; inset:0; z-index:0; overflow:hidden;
-        background:
-          radial-gradient(circle at 50% 22%, rgba(225,178,82,.10), transparent 19%),
-          radial-gradient(circle at 50% 68%, rgba(194,143,50,.045), transparent 43%),
-          linear-gradient(180deg,#17191a 0%,#101112 58%,#090a0b 100%);
-    }
-    .login-scene:after {
-        content:""; position:absolute; inset:0; pointer-events:none;
-        background:linear-gradient(90deg,rgba(255,255,255,.018),transparent 24%,transparent 76%,rgba(255,255,255,.018));
-    }
-
-    /* ===== PREMIUM PENDANT ===== */
-    .ceiling-mount {
-        position:absolute; top:0; left:50%; transform:translateX(-50%);
-        width:74px; height:11px; border-radius:0 0 8px 8px;
-        background:linear-gradient(180deg,#3b3d3e,#141516);
-        box-shadow:0 4px 16px rgba(0,0,0,.65);
-    }
-    .main-wire {
-        position:absolute; top:10px; left:50%; transform:translateX(-50%);
-        width:2px; height:94px;
-        background:linear-gradient(180deg,#454748,#77797a 55%,#252627);
-    }
-    .pendant {
-        position:absolute; top:98px; left:50%; transform:translateX(-50%);
-        width:190px; height:112px;
-        animation:floatLamp 5s ease-in-out infinite;
-    }
-    @keyframes floatLamp { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(2px)} }
-    .shade {
-        position:absolute; inset:0 0 auto 0; height:86px;
-        border-radius:96px 96px 24px 24px / 62px 62px 21px 21px;
-        background:
-          radial-gradient(ellipse at 50% 12%,rgba(255,222,164,.24),transparent 35%),
-          linear-gradient(180deg,#503a24 0%,#2b2116 45%,#100d09 100%);
-        box-shadow:
-          inset 0 2px 10px rgba(255,225,170,.10),
-          inset 0 -14px 24px rgba(0,0,0,.70),
-          0 15px 35px rgba(0,0,0,.70);
-    }
-    .shade:after {
-        content:""; position:absolute; left:34px; right:34px; bottom:3px; height:9px;
-        border-radius:50%; background:rgba(0,0,0,.65); filter:blur(3px);
-    }
-    .bulb {
-        position:absolute; top:61px; left:50%; transform:translateX(-50%);
-        width:38px; height:38px; border-radius:50%;
-        background:radial-gradient(circle at 35% 28%,#fff,#fff1bd 30%,#ffd45b 60%,#d48a25 100%);
-        box-shadow:0 0 13px 4px rgba(255,215,112,.78),0 0 48px 18px rgba(225,163,57,.28),0 0 92px 34px rgba(205,143,39,.12);
-        animation:bulbPulse 2.8s ease-in-out infinite;
-    }
-    @keyframes bulbPulse { 0%,100%{filter:brightness(.96)} 50%{filter:brightness(1.10)} }
-    .light-cone {
-        position:absolute; top:178px; left:50%; transform:translateX(-50%);
-        width:min(720px,78vw); height:430px; pointer-events:none;
-        background:linear-gradient(180deg,rgba(255,211,119,.13),rgba(255,185,65,.025) 55%,transparent 80%);
-        clip-path:polygon(43% 0,57% 0,100% 100%,0 100%); filter:blur(7px);
-    }
-
-    /* ===== PULL CORD ===== */
-    .pull-cord-visual {
-        position:absolute; top:145px; left:calc(50% + 43px);
-        width:2px; height:104px; z-index:20;
-        background:linear-gradient(180deg,#4c4d4e,#b0b0b0 48%,#272829);
-    }
-    .pull-bead {
-        position:absolute; left:50%; bottom:-15px; transform:translateX(-50%);
-        width:22px; height:27px; border-radius:50% 50% 46% 46%;
-        background:radial-gradient(circle at 34% 27%,#f0c77b 0%,#ae7130 35%,#4a2912 78%,#1c1008 100%);
-        box-shadow:0 4px 10px rgba(0,0,0,.75),0 0 15px rgba(232,164,61,.20),inset 0 -4px 5px rgba(0,0,0,.4);
-    }
-    .pull-bead:after {
-        content:""; position:absolute; top:5px; left:5px; width:5px; height:5px;
-        border-radius:50%; background:#fff1c7; box-shadow:0 0 7px #fff1c7;
-    }
-
-    /* One transparent native button controls the cord. */
-    div[data-testid="stButton"]:has(button p) {
-        position:fixed !important; top:229px !important; left:calc(50% + 5px) !important;
-        transform:translateX(-50%) !important; width:68px !important; height:68px !important;
-        z-index:100 !important; margin:0 !important; padding:0 !important;
-    }
-    div[data-testid="stButton"]:has(button p) button {
-        width:68px !important; height:68px !important; min-height:68px !important;
-        opacity:0 !important; background:transparent !important; border:0 !important;
-        cursor:pointer !important; padding:0 !important;
-    }
-    div[data-testid="stButton"]:has(button p) button p { display:none !important; }
-
-    /* ===== LOGIN CARD ===== */
-    .auth-shell {
-        position:fixed; top:275px; left:50%; transform:translateX(-50%);
-        width:390px; height:320px; z-index:30;
-        border-radius:18px;
-        background:linear-gradient(145deg,rgba(29,30,30,.985),rgba(16,17,17,.985));
-        border:1px solid rgba(224,181,93,.30);
-        box-shadow:0 28px 70px rgba(0,0,0,.72),0 0 55px rgba(209,157,55,.07),inset 0 1px 0 rgba(255,255,255,.06);
-        pointer-events:none;
-    }
-    .auth-shell:before {
-        content:""; position:absolute; top:0; left:28px; right:28px; height:1px;
-        background:linear-gradient(90deg,transparent,#e7bf72,transparent); opacity:.72;
-    }
-    .brand-title {
-        position:absolute; top:22px; left:0; width:100%; text-align:center;
-        color:#f0c66c; font-size:22px; font-weight:850; letter-spacing:5px;
-    }
-    .brand-sub {
-        position:absolute; top:51px; left:0; width:100%; text-align:center;
-        color:#81735c; font-size:8px; font-weight:800; letter-spacing:3.5px;
-    }
-    .auth-divider {
-        position:absolute; top:72px; left:30px; right:30px; height:1px;
-        background:linear-gradient(90deg,transparent,rgba(220,174,85,.25),transparent);
-    }
-
-    /* Keep all native controls inside the card. */
-    div[data-testid="stRadio"] {
-        position:fixed !important; top:360px !important; left:50% !important;
-        transform:translateX(-50%) !important; width:330px !important; z-index:60 !important;
-        margin:0 !important;
-    }
-    div[data-testid="stRadio"] > label { display:none !important; }
-    div[data-testid="stRadio"] [role="radiogroup"] {
-        display:flex !important; gap:3px !important; padding:3px !important;
-        background:#0b0c0c !important; border:1px solid rgba(255,255,255,.07) !important;
-        border-radius:9px !important;
-    }
-    div[data-testid="stRadio"] [role="radio"] {
-        flex:1 !important; justify-content:center !important; padding:7px 5px !important;
-        border-radius:6px !important; color:#8b8171 !important;
-        font-size:10px !important; font-weight:800 !important; letter-spacing:1.3px !important;
-    }
-    div[data-testid="stRadio"] [role="radio"][aria-checked="true"] {
-        background:linear-gradient(135deg,#3b2e19,#241b10) !important;
-        color:#efc66d !important; box-shadow:inset 0 0 0 1px rgba(220,174,84,.26) !important;
-    }
-    div[data-testid="stRadio"] [role="radio"] > div:first-child { display:none !important; }
-    div[data-testid="stRadio"] [role="radio"] p { color:inherit !important; }
-
-    div[data-testid="stTextInput"] {
-        position:fixed !important; left:50% !important; transform:translateX(-50%) !important;
-        width:330px !important; z-index:60 !important; margin:0 !important;
-    }
-    div[data-testid="stTextInput"]:has(input[aria-label="USERNAME"]) { top:410px !important; }
-    div[data-testid="stTextInput"]:has(input[aria-label="PASSWORD"]) { top:477px !important; }
-    div[data-testid="stTextInput"]:has(input[aria-label="CONFIRM PASSWORD"]) { top:544px !important; }
-    div[data-testid="stTextInput"] label, div[data-testid="stTextInput"] label p {
-        color:#9d8968 !important; font-size:8px !important; font-weight:800 !important;
-        letter-spacing:1.8px !important; margin-bottom:4px !important;
-    }
-    div[data-testid="stTextInput"] input {
-        height:38px !important; min-height:38px !important; border-radius:8px !important;
-        background:#0b0c0c !important; color:#f7f1e5 !important; -webkit-text-fill-color:#f7f1e5 !important;
-        border:1px solid rgba(255,255,255,.10) !important; font-size:13px !important;
-    }
-    div[data-testid="stTextInput"] input:focus {
-        border-color:rgba(225,179,88,.70) !important;
-        box-shadow:0 0 0 2px rgba(225,179,88,.07) !important;
-    }
-
-    /* Cord action button */
-    .submit-caption {
-        position:fixed; top:575px; left:50%; transform:translateX(-50%); z-index:35;
-        color:#82745d; font-size:8px; font-weight:800; letter-spacing:2px; pointer-events:none;
-        width:390px; text-align:center;
-    }
-    .auth-error {
-        position:fixed; top:605px; left:50%; transform:translateX(-50%); z-index:90;
-        width:350px; text-align:center; padding:7px 10px; border-radius:8px;
-        color:#ffb1a7; background:rgba(69,25,21,.96); border:1px solid rgba(255,105,82,.22);
-        font-size:10px; font-weight:700;
-    }
-
-    @media(max-width:600px){
-        .main-wire{height:80px}.pendant{top:84px;transform:translateX(-50%) scale(.82);transform-origin:top center}
-        .pull-cord-visual{top:125px;height:90px;left:calc(50% + 35px)}
-        .light-cone{top:160px;width:115vw}
-        div[data-testid="stButton"]:has(button p){top:201px !important;left:calc(50% + 4px) !important;width:64px !important;height:64px !important}
-        div[data-testid="stButton"]:has(button p) button{width:64px !important;height:64px !important}
-        .auth-shell{top:235px;width:calc(100vw - 28px);height:350px}
-        div[data-testid="stRadio"],div[data-testid="stTextInput"]{width:calc(100vw - 68px) !important}
-        div[data-testid="stRadio"]{top:315px !important}
-        div[data-testid="stTextInput"]:has(input[aria-label="USERNAME"]){top:365px !important}
-        div[data-testid="stTextInput"]:has(input[aria-label="PASSWORD"]){top:432px !important}
-        div[data-testid="stTextInput"]:has(input[aria-label="CONFIRM PASSWORD"]){top:499px !important}
-        .submit-caption{top:570px;width:90vw}
-        .auth-error{top:600px;width:calc(100vw - 50px)}
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    st.markdown("""
-    <div class="login-scene">
-      <div class="ceiling-mount"></div>
-      <div class="main-wire"></div>
-      <div class="pendant"><div class="shade"></div><div class="bulb"></div></div>
-      <div class="light-cone"></div>
-      <div class="pull-cord-visual"><div class="pull-bead"></div></div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    if not st.session_state["light_on"]:
-        pull_cord = st.button("__PULL_CORD__", key="lamp_cord_off")
-        if pull_cord:
-            st.session_state["light_on"] = True
-            st.session_state["auth_error"] = ""
-            st.rerun()
-        st.markdown('<div class="submit-caption">PULL THE CORD TO TURN ON THE LIGHT</div>', unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div class="auth-shell">
-          <div class="brand-title">AL-BARAKAH</div>
-          <div class="brand-sub">ENTERPRISES • SECURE ACCESS</div>
-          <div class="auth-divider"></div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        mode = st.radio("MODE", ["LOGIN", "SIGNUP"], horizontal=True, key="auth_mode", label_visibility="collapsed")
-        st.text_input("USERNAME", key="auth_username", placeholder="Enter username")
-        st.text_input("PASSWORD", key="auth_password", type="password", placeholder="Enter password")
-        if mode == "SIGNUP":
-            st.text_input("CONFIRM PASSWORD", key="auth_password2", type="password", placeholder="Repeat password")
-
-        st.markdown('<div class="submit-caption">PULL THE CORD TO SUBMIT • LIGHT TURNS OFF ON SUCCESS</div>', unsafe_allow_html=True)
-        pull_cord = st.button("__PULL_TO_SUBMIT__", key="lamp_cord_on")
-
-        if pull_cord:
-            users = load_users()
-            uname_raw = st.session_state.get("auth_username", "").strip()
-            uname = sanitize_username(uname_raw)
-            pass_v = st.session_state.get("auth_password", "")
-            pass2_v = st.session_state.get("auth_password2", "")
-
-            if not uname or not pass_v:
-                st.session_state["auth_error"] = "Please enter your username and password."
-            elif mode == "LOGIN":
-                if uname not in users:
-                    st.session_state["auth_error"] = "Username not found. Please use SIGNUP first."
-                elif users[uname].get("password_hash") != hash_password(pass_v):
-                    st.session_state["auth_error"] = "Incorrect password. Please try again."
-                else:
-                    st.session_state["logged_in_user"] = uname
-                    st.session_state["display_name"] = users[uname].get("display_name", uname)
-                    st.session_state["page"] = "📊 Dashboard"
-                    st.session_state["light_on"] = False
-                    st.session_state["auth_error"] = ""
-                    st.rerun()
-            else:
-                if len(uname) < 3:
-                    st.session_state["auth_error"] = "Username must be at least 3 characters."
-                elif len(uname) > 20:
-                    st.session_state["auth_error"] = "Username must be 20 characters or less."
-                elif len(pass_v) < 4:
-                    st.session_state["auth_error"] = "Password must be at least 4 characters."
-                elif pass_v != pass2_v:
-                    st.session_state["auth_error"] = "Passwords do not match."
-                elif uname in users:
-                    st.session_state["auth_error"] = f"Username '{uname}' is already registered."
-                else:
-                    users[uname] = {
-                        "username": uname,
-                        "display_name": uname_raw,
-                        "password_hash": hash_password(pass_v),
-                        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    }
-                    save_users(users)
-                    with open(user_data_file(uname), "w", encoding="utf-8") as f:
-                        json.dump(default_blank_db(), f, indent=4, ensure_ascii=False)
-                    st.session_state["logged_in_user"] = uname
-                    st.session_state["display_name"] = uname_raw
-                    st.session_state["page"] = "📊 Dashboard"
-                    st.session_state["light_on"] = False
-                    st.session_state["auth_error"] = ""
-                    st.rerun()
-
-        if st.session_state.get("auth_error"):
-            st.markdown(f'<div class="auth-error">⚠️ {st.session_state["auth_error"]}</div>', unsafe_allow_html=True)
-
-    st.stop()
 
 # ============================================================
 # LOAD USER DATA (after login)
@@ -2490,6 +2061,256 @@ def render_daily_expense():
 # ============================================================
 # PAGE: BILLING
 # ============================================================
+def add_bill_callback():
+    db = st.session_state.database
+    product_sel = st.session_state.get("product_sel", "")
+    boxes_v = st.session_state.get("boxes", 0)
+    tp_v = st.session_state.get("tp_box", 0.0)
+    disc_v = st.session_state.get("discount", 0.0)
+
+    if not product_sel:
+        st.session_state["error_msg"] = "❌ Please Select Product from dropdown"; return
+    if boxes_v <= 0:
+        st.session_state["error_msg"] = "❌ Enter Boxes"; return
+
+    sel = next((p for p in PRODUCTS if p["name"] == product_sel), None)
+    if not sel:
+        st.session_state["error_msg"] = "❌ Invalid Product"; return
+
+    gross_v = boxes_v * tp_v
+    net_v = gross_v - (gross_v * disc_v / 100)
+
+    bill = {
+        "Bill No": db["next_bill_no"], "Date": datetime.now().strftime("%d-%m-%Y"),
+        "Shop": st.session_state.get("shop_name", "").strip(),
+        "Order Booker": st.session_state.get("order_booker", "").strip(),
+        "Salesman": st.session_state.get("salesman", "").strip(),
+        "Delivery Man": "",
+        "Code": sel["code"], "Product": sel["name"],
+        "Boxes": boxes_v, "TP/Box": tp_v, "Discount %": disc_v,
+        "Gross": gross_v, "Net": net_v
+    }
+
+    db["bills"].append(bill); save_database(db)
+    st.session_state["last_bill_no"] = db["next_bill_no"]
+    st.session_state["success_msg"] = f"✅ Bill Added | Bill No: {db['next_bill_no']} | Total: {len(db['bills'])}"
+    for k in ["search_text", "product_sel"]: st.session_state[k] = ""
+    st.session_state["_prev_prod"] = None
+    for k in ["boxes", "tp_box", "discount"]: st.session_state[k] = 0
+
+def refresh_callback():
+    for k in ["search_text", "product_sel"]: st.session_state[k] = ""
+    st.session_state["_prev_prod"] = None
+    for k in ["boxes", "tp_box", "discount"]: st.session_state[k] = 0
+    st.session_state["success_msg"] = "✅ Ready For Next Product"
+
+def export_bill_callback():
+    db = st.session_state.database
+    if len(db["bills"]) == 0:
+        st.session_state["error_msg"] = "❌ No Bills Found"; return
+
+    shop = st.session_state.get("shop_name", "").strip() or "Bill"
+    for ch in ['\\','/',':','*','?','"','<','>','|']: shop = shop.replace(ch, "")
+
+    shop_bills = [b for b in db["bills"] if b["Shop"].strip() == shop]
+    if not shop_bills:
+        st.session_state["error_msg"] = "❌ Is shop ke liye koi bill nahi mila"; return
+
+    bill_total_net = sum(float(b.get("Net", 0)) for b in shop_bills)
+    pkg_pct, pkg_name, tier_label = get_package_discount_pct(bill_total_net)
+
+    output = BytesIO()
+    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+    worksheet = workbook.add_worksheet("Bill")
+    worksheet.set_paper(9); worksheet.set_portrait(); worksheet.fit_to_pages(1, 1)
+    worksheet.set_column("A:A", 42.86); worksheet.set_column("B:B", 12.71)
+    worksheet.set_column("C:C", 10.71); worksheet.set_column("D:D", 10.71)
+    worksheet.set_column("E:E", 11.71); worksheet.set_column("F:F", 11.14)
+    worksheet.set_column("G:G", 11.14); worksheet.set_column("H:H", 12.14)
+    worksheet.set_column("I:I", 13.14); worksheet.set_column("J:J", 13.14)
+
+    title = workbook.add_format({"bold":True, "font_size":18, "align":"center", "border":2})
+    header = workbook.add_format({"bold":True, "font_size":11, "bg_color":"#BBDEFB", "align":"center", "border":2, "text_wrap": True})
+    cell_left = workbook.add_format({"font_size":12, "border":1, "align":"left"})
+    cell_center = workbook.add_format({"font_size":12, "border":1, "align":"center"})
+    total = workbook.add_format({"bold":True, "font_size":12, "bg_color":"#FFF2CC", "align":"center", "border":2})
+    disc_hl = workbook.add_format({"font_size":12, "border":1, "align":"center", "bg_color":"#E8F5E9", "bold": True})
+    pkg_info = workbook.add_format({"font_size":10, "italic": True, "align":"left", "font_color":"#1b5e20"})
+
+    worksheet.merge_range("A1:J1", COMPANY_NAME, title)
+    worksheet.write("A3","Shop Name",header); worksheet.write("B3", shop, cell_center)
+    worksheet.write("D3","Booker",header); worksheet.write("E3", st.session_state.get("order_booker", ""), cell_center)
+    worksheet.write("G3","Bill No",header)
+    last_bill = st.session_state.get("last_bill_no") or (db["next_bill_no"] - 1)
+    worksheet.write("H3", last_bill, cell_center)
+    worksheet.write("I3","Date",header); worksheet.write("J3", datetime.now().strftime("%d-%m-%Y"), cell_center)
+
+    if pkg_pct > 0:
+        worksheet.merge_range("A4:J4", f"🎁 Best Discount Applied: {pkg_name} | {tier_label} | {pkg_pct}% on each product", pkg_info)
+    else:
+        worksheet.merge_range("A4:J4", "💡 Koi discount apply nahi hua", pkg_info)
+
+    start_row = 6
+    headers = ["Product", "Code", "Boxes", "TP/Box", "Gross", "Disc %", "Net", "Pkg Disc %", "After Disc Net", "Saved"]
+    for col, h in enumerate(headers):
+        worksheet.write(start_row, col, h, header)
+    row = start_row + 1
+
+    gross_total = 0; total_boxes = 0; net_total = 0; after_disc_total = 0; saved_total = 0
+    for bill in shop_bills:
+        b_net = float(bill.get("Net", 0)); b_gross = float(bill.get("Gross", 0))
+        b_boxes = int(bill.get("Boxes", 0))
+        after_net = b_net - (b_net * pkg_pct / 100)
+        saved = b_net - after_net
+
+        worksheet.write(row, 0, bill["Product"], cell_left)
+        worksheet.write(row, 1, bill["Code"], cell_center)
+        worksheet.write(row, 2, b_boxes, cell_center)
+        worksheet.write(row, 3, bill.get("TP/Box", 0), cell_center)
+        worksheet.write(row, 4, b_gross, cell_center)
+        worksheet.write(row, 5, bill.get("Discount %", 0), cell_center)
+        worksheet.write(row, 6, b_net, cell_center)
+        if pkg_pct > 0:
+            worksheet.write(row, 7, pkg_pct, disc_hl)
+            worksheet.write(row, 8, after_net, disc_hl)
+            worksheet.write(row, 9, saved, disc_hl)
+        else:
+            worksheet.write(row, 7, 0, cell_center)
+            worksheet.write(row, 8, b_net, cell_center)
+            worksheet.write(row, 9, 0, cell_center)
+
+        gross_total += b_gross; total_boxes += b_boxes
+        net_total += b_net; after_disc_total += after_net; saved_total += saved
+        row += 1
+
+    worksheet.write(row, 1, "TOTAL", total)
+    worksheet.write(row, 2, total_boxes, total)
+    worksheet.write(row, 4, gross_total, total)
+    worksheet.write(row, 6, net_total, total)
+    worksheet.write(row, 7, "", total)
+    worksheet.write(row, 8, after_disc_total, total)
+    worksheet.write(row, 9, saved_total, total)
+
+    row += 2
+    worksheet.merge_range(row, 0, row, 6, "NET AMOUNT (After Package Discount)", header)
+    worksheet.merge_range(row, 7, row, 9, f"Rs {after_disc_total:,.0f}", total)
+    row += 1
+    if pkg_pct > 0:
+        worksheet.merge_range(row, 0, row, 6, "TOTAL SAVED BY DISCOUNT", header)
+        worksheet.merge_range(row, 7, row, 9, f"Rs {saved_total:,.0f}", total)
+
+    workbook.close(); output.seek(0)
+    st.session_state["download_file"] = (f"{shop}.xlsx", output.getvalue())
+    db["next_bill_no"] += 1; save_database(db)
+    st.session_state["last_bill_no"] = None
+    if pkg_pct > 0:
+        st.session_state["success_msg"] = f"✅ Bill Exported | {pkg_name} {tier_label} | {pkg_pct}% | Net: Rs {after_disc_total:,.0f} (Saved Rs {saved_total:,.0f})"
+    else:
+        st.session_state["success_msg"] = f"✅ Bill Exported | Next Bill No: {db['next_bill_no']}"
+
+def export_load_form_from_billing_callback():
+    db = st.session_state.database
+    booker = st.session_state.get("order_booker", "").strip()
+    if not booker:
+        st.session_state["error_msg"] = "❌ Please select Order Booker first"; return
+    booker_bills = [b for b in db["bills"] if b["Order Booker"].strip() == booker]
+    if not booker_bills:
+        st.session_state["error_msg"] = f"❌ No bills found for booker: {booker}"; return
+    summary = {}
+    for b in booker_bills:
+        code = b["Code"]
+        if code not in summary: summary[code] = {"Code": code, "Product": b["Product"], "Boxes": 0}
+        summary[code]["Boxes"] += b["Boxes"]
+    items = list(summary.values()); total_boxes = sum(it["Boxes"] for it in items)
+    if "load_forms" not in db: db["load_forms"] = []
+    next_id = 1
+    if db["load_forms"]: next_id = max(lf.get("id", 0) for lf in db["load_forms"]) + 1
+    lf_record = {
+        "id": next_id, "date": datetime.now().strftime("%d-%m-%Y"),
+        "time": datetime.now().strftime("%H:%M"),
+        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "booker": booker, "items": items,
+        "total_boxes": total_boxes, "total_products": len(items)
+    }
+    db["load_forms"].append(lf_record); save_database(db)
+    export_load_form_for_booker(booker, booker_bills)
+    st.session_state["success_msg"] = f"✅ Load Form #{next_id} saved & exported | {len(items)} products, {total_boxes} boxes"
+
+def export_load_form_for_booker(booker, booker_bills=None):
+    db = st.session_state.database
+    if booker_bills is None:
+        booker_bills = [b for b in db["bills"] if b["Order Booker"].strip() == booker]
+    if not booker_bills:
+        st.session_state["error_msg"] = "❌ No Bills Found for this Booker"; return
+    summary = {}
+    for bill in booker_bills:
+        code = bill["Code"]
+        if code not in summary: summary[code] = {"Product": bill["Product"], "Boxes": 0}
+        summary[code]["Boxes"] += bill["Boxes"]
+    output = BytesIO()
+    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+    worksheet = workbook.add_worksheet("Load Form")
+    title = workbook.add_format({"bold":True, "font_size":16, "align":"center", "border":2})
+    header = workbook.add_format({"bold":True, "font_size":12, "bg_color":"#BBDEFB", "align":"center", "border":2})
+    cell_left = workbook.add_format({"font_size":14, "border":1, "align":"left"})
+    cell_center = workbook.add_format({"font_size":14, "border":1, "align":"center"})
+    total = workbook.add_format({"bold":True, "font_size":14, "bg_color":"#FFF2CC", "align":"center", "border":2})
+    worksheet.set_column("A:A", 47.86); worksheet.set_column("B:B", 12.71)
+    worksheet.merge_range("A1:B1", COMPANY_NAME, title)
+    worksheet.write("A3","Order Booker",header); worksheet.write("B3",booker,cell_center)
+    worksheet.write("A5","Product",header); worksheet.write("B5","Boxes",header)
+    row = 5; total_boxes = 0
+    for item in summary.values():
+        worksheet.write(row, 0, item["Product"], cell_left)
+        worksheet.write(row, 1, item["Boxes"], cell_center)
+        total_boxes += item["Boxes"]; row += 1
+    worksheet.write(row, 0, "TOTAL", total); worksheet.write(row, 1, total_boxes, total)
+    workbook.close(); output.seek(0)
+    st.session_state["download_file"] = (f"{booker}_Load_Form.xlsx", output.getvalue())
+
+def export_all_filtered_load_forms(filtered_lfs):
+    if not filtered_lfs:
+        st.session_state["error_msg"] = "❌ No Load Forms to export"; return
+    output = BytesIO(); wb = xlsxwriter.Workbook(output, {'in_memory': True})
+    title_fmt = wb.add_format({"bold": True, "font_size": 14, "align": "center", "border": 2, "bg_color": "#BBDEFB"})
+    header_fmt = wb.add_format({"bold": True, "bg_color": "#E3F2FD", "border": 1, "align": "center"})
+    cell_fmt = wb.add_format({"border": 1}); cell_center = wb.add_format({"border": 1, "align": "center"})
+    total_fmt = wb.add_format({"bold": True, "bg_color": "#FFF2CC", "border": 1, "align": "center"})
+    for lf in filtered_lfs:
+        booker = lf.get("booker", "Unknown"); date_str = lf.get("date", ""); time_str = lf.get("time", "")
+        sheet_name = f"{booker}_{date_str}".replace("/", "-")[:31] or f"LF_{lf.get('id')}"
+        base_name = sheet_name; counter = 1; existing = wb.sheetnames
+        while sheet_name in existing:
+            sheet_name = f"{base_name[:28]}_{counter}"; counter += 1
+        ws = wb.add_worksheet(sheet_name)
+        ws.set_column("A:A", 45); ws.set_column("B:B", 10); ws.set_column("C:C", 10)
+        ws.merge_range("A1:C1", f"{COMPANY_NAME} - Load Form", title_fmt)
+        ws.write("A3", "Booker", header_fmt); ws.write("B3", booker, cell_fmt)
+        ws.write("A4", "Date", header_fmt); ws.write("B4", f"{date_str} {time_str}", cell_fmt)
+        ws.write("A6", "Product", header_fmt); ws.write("B6", "Code", header_fmt); ws.write("C6", "Boxes", header_fmt)
+        row = 6; total_boxes = 0
+        for it in lf.get("items", []):
+            ws.write(row, 0, it["Product"], cell_fmt)
+            ws.write(row, 1, it["Code"], cell_center)
+            ws.write(row, 2, it["Boxes"], cell_center)
+            total_boxes += it["Boxes"]; row += 1
+        ws.write(row, 0, "TOTAL", total_fmt); ws.write(row, 1, "", total_fmt); ws.write(row, 2, total_boxes, total_fmt)
+    wb.close(); output.seek(0)
+    fname = f"Load_Forms_{datetime.now().strftime('%d-%m-%Y_%H%M')}.xlsx"
+    st.session_state["download_file"] = (fname, output.getvalue())
+
+def refresh_load_form_callback():
+    db = st.session_state.database
+    booker = st.session_state.get("order_booker", "").strip()
+    if not booker:
+        st.session_state["error_msg"] = "❌ Please Enter Order Booker"; return
+    db["bills"] = [b for b in db["bills"] if b["Order Booker"].strip() != booker]
+    save_database(db)
+    for k in ["search_text", "product_sel"]: st.session_state[k] = ""
+    st.session_state["_prev_prod"] = None
+    for k in ["boxes", "tp_box", "discount"]: st.session_state[k] = 0
+    st.session_state["success_msg"] = f"✅ Load Form Cleared | Booker: {booker}"
+
 def render_billing():
     st.markdown(f"<h2 style='color:#1976d2 !important;margin:0 0 6px 0;'>🧾 Billing</h2>", unsafe_allow_html=True)
 
@@ -2937,259 +2758,6 @@ def render_load_form():
         st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
 
     show_auto_download()
-
-# ============================================================
-# CALLBACKS
-# ============================================================
-def add_bill_callback():
-    db = st.session_state.database
-    product_sel = st.session_state.get("product_sel", "")
-    boxes_v = st.session_state.get("boxes", 0)
-    tp_v = st.session_state.get("tp_box", 0.0)
-    disc_v = st.session_state.get("discount", 0.0)
-
-    if not product_sel:
-        st.session_state["error_msg"] = "❌ Please Select Product from dropdown"; return
-    if boxes_v <= 0:
-        st.session_state["error_msg"] = "❌ Enter Boxes"; return
-
-    sel = next((p for p in PRODUCTS if p["name"] == product_sel), None)
-    if not sel:
-        st.session_state["error_msg"] = "❌ Invalid Product"; return
-
-    gross_v = boxes_v * tp_v
-    net_v = gross_v - (gross_v * disc_v / 100)
-
-    bill = {
-        "Bill No": db["next_bill_no"], "Date": datetime.now().strftime("%d-%m-%Y"),
-        "Shop": st.session_state.get("shop_name", "").strip(),
-        "Order Booker": st.session_state.get("order_booker", "").strip(),
-        "Salesman": st.session_state.get("salesman", "").strip(),
-        "Delivery Man": "",
-        "Code": sel["code"], "Product": sel["name"],
-        "Boxes": boxes_v, "TP/Box": tp_v, "Discount %": disc_v,
-        "Gross": gross_v, "Net": net_v
-    }
-
-    db["bills"].append(bill); save_database(db)
-    st.session_state["last_bill_no"] = db["next_bill_no"]
-    st.session_state["success_msg"] = f"✅ Bill Added | Bill No: {db['next_bill_no']} | Total: {len(db['bills'])}"
-    for k in ["search_text", "product_sel"]: st.session_state[k] = ""
-    st.session_state["_prev_prod"] = None
-    for k in ["boxes", "tp_box", "discount"]: st.session_state[k] = 0
-
-def refresh_callback():
-    for k in ["search_text", "product_sel"]: st.session_state[k] = ""
-    st.session_state["_prev_prod"] = None
-    for k in ["boxes", "tp_box", "discount"]: st.session_state[k] = 0
-    st.session_state["success_msg"] = "✅ Ready For Next Product"
-
-def export_bill_callback():
-    db = st.session_state.database
-    if len(db["bills"]) == 0:
-        st.session_state["error_msg"] = "❌ No Bills Found"; return
-
-    shop = st.session_state.get("shop_name", "").strip() or "Bill"
-    for ch in ['\\','/',':','*','?','"','<','>','|']: shop = shop.replace(ch, "")
-
-    shop_bills = [b for b in db["bills"] if b["Shop"].strip() == shop]
-    if not shop_bills:
-        st.session_state["error_msg"] = "❌ Is shop ke liye koi bill nahi mila"; return
-
-    bill_total_net = sum(float(b.get("Net", 0)) for b in shop_bills)
-    pkg_pct, pkg_name, tier_label = get_package_discount_pct(bill_total_net)
-
-    output = BytesIO()
-    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
-    worksheet = workbook.add_worksheet("Bill")
-    worksheet.set_paper(9); worksheet.set_portrait(); worksheet.fit_to_pages(1, 1)
-    worksheet.set_column("A:A", 42.86); worksheet.set_column("B:B", 12.71)
-    worksheet.set_column("C:C", 10.71); worksheet.set_column("D:D", 10.71)
-    worksheet.set_column("E:E", 11.71); worksheet.set_column("F:F", 11.14)
-    worksheet.set_column("G:G", 11.14); worksheet.set_column("H:H", 12.14)
-    worksheet.set_column("I:I", 13.14); worksheet.set_column("J:J", 13.14)
-
-    title = workbook.add_format({"bold":True, "font_size":18, "align":"center", "border":2})
-    header = workbook.add_format({"bold":True, "font_size":11, "bg_color":"#BBDEFB", "align":"center", "border":2, "text_wrap": True})
-    cell_left = workbook.add_format({"font_size":12, "border":1, "align":"left"})
-    cell_center = workbook.add_format({"font_size":12, "border":1, "align":"center"})
-    total = workbook.add_format({"bold":True, "font_size":12, "bg_color":"#FFF2CC", "align":"center", "border":2})
-    disc_hl = workbook.add_format({"font_size":12, "border":1, "align":"center", "bg_color":"#E8F5E9", "bold": True})
-    pkg_info = workbook.add_format({"font_size":10, "italic": True, "align":"left", "font_color":"#1b5e20"})
-
-    worksheet.merge_range("A1:J1", COMPANY_NAME, title)
-    worksheet.write("A3","Shop Name",header); worksheet.write("B3", shop, cell_center)
-    worksheet.write("D3","Booker",header); worksheet.write("E3", st.session_state.get("order_booker", ""), cell_center)
-    worksheet.write("G3","Bill No",header)
-    last_bill = st.session_state.get("last_bill_no") or (db["next_bill_no"] - 1)
-    worksheet.write("H3", last_bill, cell_center)
-    worksheet.write("I3","Date",header); worksheet.write("J3", datetime.now().strftime("%d-%m-%Y"), cell_center)
-
-    if pkg_pct > 0:
-        worksheet.merge_range("A4:J4", f"🎁 Best Discount Applied: {pkg_name} | {tier_label} | {pkg_pct}% on each product", pkg_info)
-    else:
-        worksheet.merge_range("A4:J4", "💡 Koi discount apply nahi hua", pkg_info)
-
-    start_row = 6
-    headers = ["Product", "Code", "Boxes", "TP/Box", "Gross", "Disc %", "Net", "Pkg Disc %", "After Disc Net", "Saved"]
-    for col, h in enumerate(headers):
-        worksheet.write(start_row, col, h, header)
-    row = start_row + 1
-
-    gross_total = 0; total_boxes = 0; net_total = 0; after_disc_total = 0; saved_total = 0
-    for bill in shop_bills:
-        b_net = float(bill.get("Net", 0)); b_gross = float(bill.get("Gross", 0))
-        b_boxes = int(bill.get("Boxes", 0))
-        after_net = b_net - (b_net * pkg_pct / 100)
-        saved = b_net - after_net
-
-        worksheet.write(row, 0, bill["Product"], cell_left)
-        worksheet.write(row, 1, bill["Code"], cell_center)
-        worksheet.write(row, 2, b_boxes, cell_center)
-        worksheet.write(row, 3, bill.get("TP/Box", 0), cell_center)
-        worksheet.write(row, 4, b_gross, cell_center)
-        worksheet.write(row, 5, bill.get("Discount %", 0), cell_center)
-        worksheet.write(row, 6, b_net, cell_center)
-        if pkg_pct > 0:
-            worksheet.write(row, 7, pkg_pct, disc_hl)
-            worksheet.write(row, 8, after_net, disc_hl)
-            worksheet.write(row, 9, saved, disc_hl)
-        else:
-            worksheet.write(row, 7, 0, cell_center)
-            worksheet.write(row, 8, b_net, cell_center)
-            worksheet.write(row, 9, 0, cell_center)
-
-        gross_total += b_gross; total_boxes += b_boxes
-        net_total += b_net; after_disc_total += after_net; saved_total += saved
-        row += 1
-
-    worksheet.write(row, 1, "TOTAL", total)
-    worksheet.write(row, 2, total_boxes, total)
-    worksheet.write(row, 4, gross_total, total)
-    worksheet.write(row, 6, net_total, total)
-    worksheet.write(row, 7, "", total)
-    worksheet.write(row, 8, after_disc_total, total)
-    worksheet.write(row, 9, saved_total, total)
-
-    row += 2
-    worksheet.merge_range(row, 0, row, 6, "NET AMOUNT (After Package Discount)", header)
-    worksheet.merge_range(row, 7, row, 9, f"Rs {after_disc_total:,.0f}", total)
-    row += 1
-    if pkg_pct > 0:
-        worksheet.merge_range(row, 0, row, 6, "TOTAL SAVED BY DISCOUNT", header)
-        worksheet.merge_range(row, 7, row, 9, f"Rs {saved_total:,.0f}", total)
-
-    workbook.close(); output.seek(0)
-    st.session_state["download_file"] = (f"{shop}.xlsx", output.getvalue())
-    db["next_bill_no"] += 1; save_database(db)
-    st.session_state["last_bill_no"] = None
-    if pkg_pct > 0:
-        st.session_state["success_msg"] = f"✅ Bill Exported | {pkg_name} {tier_label} | {pkg_pct}% | Net: Rs {after_disc_total:,.0f} (Saved Rs {saved_total:,.0f})"
-    else:
-        st.session_state["success_msg"] = f"✅ Bill Exported | Next Bill No: {db['next_bill_no']}"
-
-def export_load_form_from_billing_callback():
-    db = st.session_state.database
-    booker = st.session_state.get("order_booker", "").strip()
-    if not booker:
-        st.session_state["error_msg"] = "❌ Please select Order Booker first"; return
-    booker_bills = [b for b in db["bills"] if b["Order Booker"].strip() == booker]
-    if not booker_bills:
-        st.session_state["error_msg"] = f"❌ No bills found for booker: {booker}"; return
-    summary = {}
-    for b in booker_bills:
-        code = b["Code"]
-        if code not in summary: summary[code] = {"Code": code, "Product": b["Product"], "Boxes": 0}
-        summary[code]["Boxes"] += b["Boxes"]
-    items = list(summary.values()); total_boxes = sum(it["Boxes"] for it in items)
-    if "load_forms" not in db: db["load_forms"] = []
-    next_id = 1
-    if db["load_forms"]: next_id = max(lf.get("id", 0) for lf in db["load_forms"]) + 1
-    lf_record = {
-        "id": next_id, "date": datetime.now().strftime("%d-%m-%Y"),
-        "time": datetime.now().strftime("%H:%M"),
-        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "booker": booker, "items": items,
-        "total_boxes": total_boxes, "total_products": len(items)
-    }
-    db["load_forms"].append(lf_record); save_database(db)
-    export_load_form_for_booker(booker, booker_bills)
-    st.session_state["success_msg"] = f"✅ Load Form #{next_id} saved & exported | {len(items)} products, {total_boxes} boxes"
-
-def export_load_form_for_booker(booker, booker_bills=None):
-    db = st.session_state.database
-    if booker_bills is None:
-        booker_bills = [b for b in db["bills"] if b["Order Booker"].strip() == booker]
-    if not booker_bills:
-        st.session_state["error_msg"] = "❌ No Bills Found for this Booker"; return
-    summary = {}
-    for bill in booker_bills:
-        code = bill["Code"]
-        if code not in summary: summary[code] = {"Product": bill["Product"], "Boxes": 0}
-        summary[code]["Boxes"] += bill["Boxes"]
-    output = BytesIO()
-    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
-    worksheet = workbook.add_worksheet("Load Form")
-    title = workbook.add_format({"bold":True, "font_size":16, "align":"center", "border":2})
-    header = workbook.add_format({"bold":True, "font_size":12, "bg_color":"#BBDEFB", "align":"center", "border":2})
-    cell_left = workbook.add_format({"font_size":14, "border":1, "align":"left"})
-    cell_center = workbook.add_format({"font_size":14, "border":1, "align":"center"})
-    total = workbook.add_format({"bold":True, "font_size":14, "bg_color":"#FFF2CC", "align":"center", "border":2})
-    worksheet.set_column("A:A", 47.86); worksheet.set_column("B:B", 12.71)
-    worksheet.merge_range("A1:B1", COMPANY_NAME, title)
-    worksheet.write("A3","Order Booker",header); worksheet.write("B3",booker,cell_center)
-    worksheet.write("A5","Product",header); worksheet.write("B5","Boxes",header)
-    row = 5; total_boxes = 0
-    for item in summary.values():
-        worksheet.write(row, 0, item["Product"], cell_left)
-        worksheet.write(row, 1, item["Boxes"], cell_center)
-        total_boxes += item["Boxes"]; row += 1
-    worksheet.write(row, 0, "TOTAL", total); worksheet.write(row, 1, total_boxes, total)
-    workbook.close(); output.seek(0)
-    st.session_state["download_file"] = (f"{booker}_Load_Form.xlsx", output.getvalue())
-
-def export_all_filtered_load_forms(filtered_lfs):
-    if not filtered_lfs:
-        st.session_state["error_msg"] = "❌ No Load Forms to export"; return
-    output = BytesIO(); wb = xlsxwriter.Workbook(output, {'in_memory': True})
-    title_fmt = wb.add_format({"bold": True, "font_size": 14, "align": "center", "border": 2, "bg_color": "#BBDEFB"})
-    header_fmt = wb.add_format({"bold": True, "bg_color": "#E3F2FD", "border": 1, "align": "center"})
-    cell_fmt = wb.add_format({"border": 1}); cell_center = wb.add_format({"border": 1, "align": "center"})
-    total_fmt = wb.add_format({"bold": True, "bg_color": "#FFF2CC", "border": 1, "align": "center"})
-    for lf in filtered_lfs:
-        booker = lf.get("booker", "Unknown"); date_str = lf.get("date", ""); time_str = lf.get("time", "")
-        sheet_name = f"{booker}_{date_str}".replace("/", "-")[:31] or f"LF_{lf.get('id')}"
-        base_name = sheet_name; counter = 1; existing = wb.sheetnames
-        while sheet_name in existing:
-            sheet_name = f"{base_name[:28]}_{counter}"; counter += 1
-        ws = wb.add_worksheet(sheet_name)
-        ws.set_column("A:A", 45); ws.set_column("B:B", 10); ws.set_column("C:C", 10)
-        ws.merge_range("A1:C1", f"{COMPANY_NAME} - Load Form", title_fmt)
-        ws.write("A3", "Booker", header_fmt); ws.write("B3", booker, cell_fmt)
-        ws.write("A4", "Date", header_fmt); ws.write("B4", f"{date_str} {time_str}", cell_fmt)
-        ws.write("A6", "Product", header_fmt); ws.write("B6", "Code", header_fmt); ws.write("C6", "Boxes", header_fmt)
-        row = 6; total_boxes = 0
-        for it in lf.get("items", []):
-            ws.write(row, 0, it["Product"], cell_fmt)
-            ws.write(row, 1, it["Code"], cell_center)
-            ws.write(row, 2, it["Boxes"], cell_center)
-            total_boxes += it["Boxes"]; row += 1
-        ws.write(row, 0, "TOTAL", total_fmt); ws.write(row, 1, "", total_fmt); ws.write(row, 2, total_boxes, total_fmt)
-    wb.close(); output.seek(0)
-    fname = f"Load_Forms_{datetime.now().strftime('%d-%m-%Y_%H%M')}.xlsx"
-    st.session_state["download_file"] = (fname, output.getvalue())
-
-def refresh_load_form_callback():
-    db = st.session_state.database
-    booker = st.session_state.get("order_booker", "").strip()
-    if not booker:
-        st.session_state["error_msg"] = "❌ Please Enter Order Booker"; return
-    db["bills"] = [b for b in db["bills"] if b["Order Booker"].strip() != booker]
-    save_database(db)
-    for k in ["search_text", "product_sel"]: st.session_state[k] = ""
-    st.session_state["_prev_prod"] = None
-    for k in ["boxes", "tp_box", "discount"]: st.session_state[k] = 0
-    st.session_state["success_msg"] = f"✅ Load Form Cleared | Booker: {booker}"
 
 # ============================================================
 # RENDER SELECTED PAGE
