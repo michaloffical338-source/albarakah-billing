@@ -4,7 +4,8 @@
 # + Custom Products (Add Single / Bulk Upload)
 # + DSR (Daily Sales Report) with Return Boxes & Discounts
 # + Credit Bills (Pending / Paid) — bill stays in Bills List
-# + Wholeseller Discount (extra % on matching shop names)
+# + Wholesaler Rule: shop name mein "whole seller" ho to 6% discount
+# + Professional Dark Sidebar
 # ============================================================
 
 import os
@@ -53,14 +54,6 @@ def sanitize_username(u):
 def user_data_file(username):
     return f"billing_database_{username}.json"
 
-def default_wholeseller_config():
-    return {
-        "active": False,
-        "pct": 6.0,
-        "keywords": ["wholeseller", "wholesaler", "whole seller", "whole saler",
-                     "wholesale", "whole sale", "whole-seller", "whole_seller"]
-    }
-
 def default_blank_db():
     return {
         "next_bill_no": 1, "bills": [], "bookers": [], "salesmen": [],
@@ -70,8 +63,7 @@ def default_blank_db():
         "custom_products": [],
         "dsr_forms": [],
         "credit_bills": [],
-        "next_credit_id": 1,
-        "wholeseller_discount": default_wholeseller_config()
+        "next_credit_id": 1
     }
 
 # ============================================================
@@ -106,16 +98,18 @@ def default_discount_packages():
 # ============================================================
 st.markdown("""
 <style>
-    html, body, .stApp, .stApp *, .stApp p, .stApp span, .stApp div,
+    /* ---------- Base Text ---------- */
+    html, body, .stApp, .stApp p, .stApp span, .stApp div,
     .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
     .stApp label, .stApp li, .stApp a, [class*="css"] *,
     [data-testid="stMarkdownContainer"] *,
     [data-testid="stText"], [data-testid="stCaptionContainer"] *,
     [data-testid="stWidgetLabel"] *, [data-testid="stSelectbox"] *,
     [data-testid="stTextInput"] *, [data-testid="stNumberInput"] * {
-        color: #000000 !important;
+        color: #000000;
     }
 
+    /* ---------- Date inputs ---------- */
     .stDateInput, .stDateInput > div, .stDateInput > div > div,
     .stDateInput > div > div > input,
     [data-testid="stDateInput"], [data-testid="stDateInput"] > div,
@@ -145,6 +139,7 @@ st.markdown("""
         color: #1976d2 !important;
     }
 
+    /* ---------- Buttons ---------- */
     .stButton > button, .stButton > button p, .stButton > button span, .stButton > button div,
     .stDownloadButton > button, .stDownloadButton > button p,
     .stDownloadButton > button span, .stDownloadButton > button div {
@@ -199,18 +194,6 @@ st.markdown("""
     .stApp hr { margin: 6px 0 !important; }
     .stApp p { margin-bottom: 3px !important; }
     .stApp h3 { margin-top: 6px !important; margin-bottom: 4px !important; font-size: 18px !important; }
-
-    section[data-testid="stSidebar"] { background: linear-gradient(180deg, #bbdefb 0%, #90caf9 100%) !important; }
-    section[data-testid="stSidebar"] * { color: #000000 !important; }
-    section[data-testid="stSidebar"] .stRadio label { font-size: 15px !important; font-weight: 600 !important; }
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label {
-        background-color: #ffffff !important; border: 1px solid #90caf9 !important;
-        border-radius: 8px !important; margin-bottom: 6px !important; padding: 6px 10px !important;
-    }
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover {
-        background-color: #e3f2fd !important; border-color: #2196f3 !important;
-    }
-    section[data-testid="stSidebar"] div[role="radiogroup"] input[type="radio"] { accent-color: #2196f3 !important; }
 
     .stTextInput > div > div > input, .stNumberInput > div > div > input,
     .stSelectbox > div > div > div, .stSelectbox > div > div,
@@ -290,9 +273,6 @@ st.markdown("""
         background: #e3f2fd; border-left: 4px solid #2196f3; padding: 6px 10px;
         border-radius: 6px; font-size: 12px; margin-top: 2px;
     }
-    .hint-box.whole {
-        background: #f3e5f5; border-left: 4px solid #8e24aa; color: #4a148c !important;
-    }
     .summary-box {
         background: #ffffff; border: 2px solid #2196f3; border-radius: 12px;
         padding: 12px 18px; margin-bottom: 12px;
@@ -318,6 +298,8 @@ st.markdown("""
     .lf-simple-card.credit-pending .lf-boxes { background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); }
     .lf-simple-card.credit-paid { border-left-color: #2e7d32; background: #f1f8e9; }
     .lf-simple-card.credit-paid .lf-boxes { background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%); }
+    .lf-simple-card.wholesaler { border-left-color: #6a1b9a; }
+    .lf-simple-card.wholesaler .lf-boxes { background: linear-gradient(135deg, #8e24aa 0%, #6a1b9a 100%); }
 
     .sal-metric {
         display: inline-block; padding: 8px 14px; margin-right: 8px; margin-bottom: 6px;
@@ -382,12 +364,14 @@ st.markdown("""
     .full-bill-box.dsr { border-color: #f57c00; box-shadow: 0 6px 20px rgba(245,124,0,0.25); }
     .full-bill-box.credit { border-color: #e65100; box-shadow: 0 6px 20px rgba(230,81,0,0.25); }
     .full-bill-box.credit-paid { border-color: #2e7d32; box-shadow: 0 6px 20px rgba(46,125,50,0.25); }
+    .full-bill-box.wholesaler { border-color: #8e24aa; box-shadow: 0 6px 20px rgba(142,36,170,0.25); }
     .full-bill-title {
         font-size: 20px; font-weight: 800; color: #1976d2; margin-bottom: 8px;
     }
     .full-bill-box.dsr .full-bill-title { color: #e65100; }
     .full-bill-box.credit .full-bill-title { color: #e65100; }
     .full-bill-box.credit-paid .full-bill-title { color: #2e7d32; }
+    .full-bill-box.wholesaler .full-bill-title { color: #6a1b9a; }
     .full-bill-meta {
         font-size: 13px; color: #0277bd; margin-bottom: 12px;
     }
@@ -414,7 +398,7 @@ st.markdown("""
         color: #ffffff !important; padding: 3px 10px;
         border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px;
     }
-    .badge-wholeseller {
+    .badge-wholesaler {
         background: linear-gradient(135deg, #8e24aa 0%, #6a1b9a 100%);
         color: #ffffff !important; padding: 3px 10px;
         border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px;
@@ -427,9 +411,6 @@ st.markdown("""
     .dsr-summary-line.total {
         background: #e8f5e9; font-weight: 800; font-size: 16px; color: #1b5e20 !important;
         border: 2px solid #4caf50;
-    }
-    .dsr-summary-line.whole {
-        background: #f3e5f5;
     }
 
     .auth-title {
@@ -458,6 +439,286 @@ st.markdown("""
 
     .stAlert { border-radius: 10px !important; }
     hr { border-color: #90caf9 !important; opacity: 0.6 !important; }
+
+    /* ============================================================
+       PROFESSIONAL DARK SIDEBAR
+       ============================================================ */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0b1220 0%, #111a2e 50%, #0b1220 100%) !important;
+        border-right: 1px solid rgba(59,130,246,0.15) !important;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.25) !important;
+    }
+    section[data-testid="stSidebar"] > div:first-child { padding-top: 0 !important; }
+    section[data-testid="stSidebar"] .block-container { padding: 0 !important; }
+
+    /* Sidebar scrollbar */
+    section[data-testid="stSidebar"] ::-webkit-scrollbar { width: 6px; }
+    section[data-testid="stSidebar"] ::-webkit-scrollbar-thumb {
+        background: rgba(59,130,246,0.35); border-radius: 3px;
+    }
+
+    /* Brand header */
+    .sb-brand {
+        text-align: center;
+        padding: 22px 16px 18px;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        position: relative;
+        background: radial-gradient(circle at 50% 0%, rgba(59,130,246,0.18) 0%, transparent 70%);
+    }
+    .sb-brand-logo {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 56px; height: 56px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        font-size: 28px;
+        margin-bottom: 10px;
+        box-shadow: 0 8px 24px rgba(59,130,246,0.45),
+                    inset 0 1px 0 rgba(255,255,255,0.25);
+    }
+    .sb-brand-name {
+        font-size: 17px;
+        font-weight: 800;
+        color: #ffffff !important;
+        letter-spacing: 2px;
+        margin: 0;
+        text-shadow: 0 2px 8px rgba(59,130,246,0.3);
+    }
+    .sb-brand-sub {
+        font-size: 9px;
+        color: #64748b !important;
+        letter-spacing: 4px;
+        font-weight: 700;
+        margin-top: 3px;
+    }
+    .sb-brand-dot {
+        display: inline-block;
+        width: 6px; height: 6px;
+        background: #22c55e;
+        border-radius: 50%;
+        margin-right: 4px;
+        box-shadow: 0 0 8px #22c55e;
+        vertical-align: middle;
+    }
+    .sb-brand-status {
+        font-size: 9px;
+        color: #94a3b8 !important;
+        letter-spacing: 1px;
+        margin-top: 6px;
+        font-weight: 600;
+    }
+
+    /* User card */
+    .sb-user {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: linear-gradient(135deg, rgba(59,130,246,0.12) 0%, rgba(29,78,216,0.06) 100%);
+        border: 1px solid rgba(59,130,246,0.22);
+        border-radius: 12px;
+        padding: 10px 12px;
+        margin: 14px 14px 16px;
+        position: relative;
+        overflow: hidden;
+    }
+    .sb-user::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 3px;
+        background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+    }
+    .sb-user-avatar {
+        width: 40px; height: 40px;
+        border-radius: 11px;
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 16px;
+        color: #ffffff !important;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(59,130,246,0.4),
+                    inset 0 1px 0 rgba(255,255,255,0.3);
+        text-transform: uppercase;
+    }
+    .sb-user-info { display: flex; flex-direction: column; min-width: 0; }
+    .sb-user-label {
+        font-size: 9px;
+        color: #64748b !important;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        font-weight: 700;
+        margin-bottom: 2px;
+    }
+    .sb-user-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: #ffffff !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Menu label */
+    .sb-section-label {
+        font-size: 9px;
+        color: #475569 !important;
+        letter-spacing: 2.5px;
+        font-weight: 800;
+        padding: 0 20px 8px;
+        text-transform: uppercase;
+    }
+
+    /* Radio group = menu */
+    section[data-testid="stSidebar"] div[role="radiogroup"] {
+        gap: 2px !important;
+        padding: 0 10px 8px !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label {
+        background-color: transparent !important;
+        border: 1px solid transparent !important;
+        border-radius: 10px !important;
+        margin-bottom: 2px !important;
+        padding: 9px 12px !important;
+        transition: all 0.18s ease !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        width: 100% !important;
+        position: relative !important;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover {
+        background-color: rgba(59,130,246,0.10) !important;
+        border-color: rgba(59,130,246,0.22) !important;
+        transform: translateX(2px);
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label p {
+        color: #cbd5e1 !important;
+        font-size: 13.5px !important;
+        font-weight: 500 !important;
+        margin: 0 !important;
+        letter-spacing: 0.2px !important;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover p {
+        color: #ffffff !important;
+    }
+    /* Hide the radio circle */
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child {
+        display: none !important;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label > div[data-testid="stMarkdownContainer"] {
+        width: 100% !important;
+    }
+    /* Active state */
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+        border-color: #3b82f6 !important;
+        box-shadow: 0 6px 18px rgba(59,130,246,0.45),
+                    inset 0 1px 0 rgba(255,255,255,0.2) !important;
+        transform: translateX(0) !important;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) p {
+        color: #ffffff !important;
+        font-weight: 700 !important;
+    }
+    /* fallback active state (older browsers) */
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label[data-checked="true"] {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+        border-color: #3b82f6 !important;
+        box-shadow: 0 6px 18px rgba(59,130,246,0.45) !important;
+    }
+
+    /* Sidebar divider */
+    section[data-testid="stSidebar"] hr {
+        border-color: rgba(255,255,255,0.06) !important;
+        margin: 10px 14px !important;
+        opacity: 1 !important;
+    }
+
+    /* Stats block */
+    .sb-stats {
+        padding: 4px 14px 12px;
+    }
+    .sb-stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+    .sb-stat-card {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 10px;
+        padding: 10px 10px;
+        text-align: center;
+        transition: all 0.2s ease;
+    }
+    .sb-stat-card:hover {
+        background: rgba(59,130,246,0.10);
+        border-color: rgba(59,130,246,0.30);
+        transform: translateY(-1px);
+    }
+    .sb-stat-card .sb-stat-icon {
+        font-size: 16px;
+        margin-bottom: 4px;
+        line-height: 1;
+    }
+    .sb-stat-card .sb-stat-value {
+        font-size: 16px;
+        font-weight: 800;
+        color: #ffffff !important;
+        line-height: 1.1;
+    }
+    .sb-stat-card .sb-stat-label {
+        font-size: 8.5px;
+        color: #64748b !important;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 700;
+        margin-top: 3px;
+    }
+    .sb-stat-card.warn .sb-stat-value { color: #fbbf24 !important; }
+    .sb-stat-card.good .sb-stat-value { color: #4ade80 !important; }
+    .sb-stat-card.blue .sb-stat-value { color: #60a5fa !important; }
+
+    /* Date line */
+    .sb-date {
+        text-align: center;
+        padding: 10px 14px 6px;
+        font-size: 10px;
+        color: #64748b !important;
+        letter-spacing: 1px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    /* Logout button - make it red & clean */
+    section[data-testid="stSidebar"] .stButton > button {
+        background: linear-gradient(135deg, rgba(239,68,68,0.18) 0%, rgba(220,38,38,0.12) 100%) !important;
+        border: 1px solid rgba(239,68,68,0.35) !important;
+        color: #fca5a5 !important;
+        font-weight: 700 !important;
+        border-radius: 10px !important;
+        transition: all 0.2s ease !important;
+        margin: 0 14px 16px !important;
+        width: calc(100% - 28px) !important;
+    }
+    section[data-testid="stSidebar"] .stButton > button:hover {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+        border-color: #ef4444 !important;
+        color: #ffffff !important;
+        box-shadow: 0 6px 18px rgba(239,68,68,0.4) !important;
+    }
+    section[data-testid="stSidebar"] .stButton > button p,
+    section[data-testid="stSidebar"] .stButton > button span,
+    section[data-testid="stSidebar"] .stButton > button div {
+        color: inherit !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -512,10 +773,10 @@ components.html("""
             btn.innerHTML = '\\u2630';
             var s = {
                 'position':'fixed','top':'14px','left':'14px','z-index':'2147483647',
-                'background':'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
+                'background':'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
                 'color':'#fff','border':'none','border-radius':'10px','padding':'8px 14px',
-                'font-size':'20px','font-weight':'bold','cursor':'pointer',
-                'box-shadow':'0 3px 10px rgba(33,150,243,0.5)'
+                'font-size':'18px','font-weight':'bold','cursor':'pointer',
+                'box-shadow':'0 4px 14px rgba(59,130,246,0.5)'
             };
             for (var k in s) btn.style.setProperty(k, s[k], 'important');
             btn.onclick = function() {
@@ -781,14 +1042,6 @@ def load_database(username):
                 if "next_bill_no" not in data: data["next_bill_no"] = 1
                 if "next_credit_id" not in data:
                     data["next_credit_id"] = max([c.get("id", 0) for c in data.get("credit_bills", [])] + [0]) + 1
-                if "wholeseller_discount" not in data or not isinstance(data["wholeseller_discount"], dict):
-                    data["wholeseller_discount"] = default_wholeseller_config()
-                else:
-                    wd = data["wholeseller_discount"]
-                    if "active" not in wd: wd["active"] = False
-                    if "pct" not in wd: wd["pct"] = 6.0
-                    if "keywords" not in wd or not wd["keywords"]:
-                        wd["keywords"] = default_wholeseller_config()["keywords"]
                 return data
         except Exception:
             pass
@@ -847,12 +1100,25 @@ for p in db["discount_packages"]:
     if "tier3_pct" not in p: p["tier3_pct"] = 0.0
 if "next_credit_id" not in db:
     db["next_credit_id"] = max([c.get("id", 0) for c in db.get("credit_bills", [])] + [0]) + 1
-if "wholeseller_discount" not in db or not isinstance(db["wholeseller_discount"], dict):
-    db["wholeseller_discount"] = default_wholeseller_config()
 
 # ============================================================
 # HELPERS
 # ============================================================
+def is_wholesaler(shop_name):
+    """Shop name mein 'whole seller' (any spelling/space) ho to True."""
+    if not shop_name:
+        return False
+    s = str(shop_name).lower()
+    s_compact = "".join(ch for ch in s if ch.isalnum())
+    # Common spellings
+    for token in ["wholeseller", "wholesaler", "wholseller", "wholsaler",
+                  "whole seller", "whole saler", "holeseller", "holesaler"]:
+        if token.replace(" ", "") in s_compact:
+            return True
+    return False
+
+WHOLESALER_DISCOUNT_PCT = 6.0
+
 def get_all_products():
     try:
         custom = db.get("custom_products", [])
@@ -905,36 +1171,11 @@ def get_package_discount_pct(bill_total):
         return best_pct, best_name, best_tier
     return 0.0, (active_pkgs[0].get("name") if active_pkgs else None), None
 
-def get_wholeseller_pct(shop_name):
-    """Returns wholeseller extra discount pct if shop name matches keywords, else 0.0"""
-    try:
-        cfg = db.get("wholeseller_discount", {}) or {}
-    except Exception:
-        return 0.0
-    if not cfg.get("active"):
-        return 0.0
-    s = str(shop_name or "").lower()
-    s_norm = s.replace("-", " ").replace("_", " ")
-    while "  " in s_norm:
-        s_norm = s_norm.replace("  ", " ")
-    s_norm = s_norm.strip()
-    if not s_norm:
-        return 0.0
-    keywords = cfg.get("keywords", []) or []
-    for kw in keywords:
-        kw_norm = str(kw).lower().replace("-", " ").replace("_", " ")
-        while "  " in kw_norm:
-            kw_norm = kw_norm.replace("  ", " ")
-        kw_norm = kw_norm.strip()
-        if kw_norm and kw_norm in s_norm:
-            try:
-                return float(cfg.get("pct", 0) or 0)
-            except Exception:
-                return 0.0
-    return 0.0
-
-def is_wholeseller_shop(shop_name):
-    return get_wholeseller_pct(shop_name) > 0
+def get_effective_discount_pct(shop_name, bill_total):
+    """Wholesaler ho to 6% fixed, warna package discount."""
+    if is_wholesaler(shop_name):
+        return WHOLESALER_DISCOUNT_PCT, "Wholesaler (6%)", "Wholesaler Rule"
+    return get_package_discount_pct(bill_total)
 
 def show_auto_download():
     if st.session_state.get("download_file"):
@@ -965,13 +1206,11 @@ def show_auto_download():
         """, height=0)
 
 # ============================================================
-# EXPORT SINGLE GROUP BILL (with wholeseller discount)
+# EXPORT SINGLE GROUP BILL
 # ============================================================
 def export_single_group_bill(shop, date_str, booker, salesman, items, bill_no):
     bill_total_net = sum(float(it.get("Net", 0)) for it in items)
-    pkg_pct, pkg_name, tier_label = get_package_discount_pct(bill_total_net)
-    whole_pct = get_wholeseller_pct(shop)
-    total_pct = pkg_pct + whole_pct
+    pkg_pct, pkg_name, tier_label = get_effective_discount_pct(shop, bill_total_net)
 
     output = BytesIO()
     workbook = xlsxwriter.Workbook(output, {'in_memory': True})
@@ -989,9 +1228,7 @@ def export_single_group_bill(shop, date_str, booker, salesman, items, bill_no):
     cell_center = workbook.add_format({"font_size":12, "border":1, "align":"center"})
     total = workbook.add_format({"bold":True, "font_size":12, "bg_color":"#FFF2CC", "align":"center", "border":2})
     disc_hl = workbook.add_format({"font_size":12, "border":1, "align":"center", "bg_color":"#E8F5E9", "bold": True})
-    whole_hl = workbook.add_format({"font_size":12, "border":1, "align":"center", "bg_color":"#F3E5F5", "bold": True})
     pkg_info = workbook.add_format({"font_size":10, "italic": True, "align":"left", "font_color":"#1b5e20"})
-    whole_info = workbook.add_format({"font_size":10, "italic": True, "align":"left", "font_color":"#6a1b9a"})
 
     worksheet.merge_range("A1:J1", COMPANY_NAME, title)
     worksheet.write("A3","Shop Name",header); worksheet.write("B3", shop, cell_center)
@@ -999,17 +1236,15 @@ def export_single_group_bill(shop, date_str, booker, salesman, items, bill_no):
     worksheet.write("G3","Bill No",header); worksheet.write("H3", bill_no, cell_center)
     worksheet.write("I3","Date",header); worksheet.write("J3", date_str, cell_center)
 
-    if pkg_pct > 0 or whole_pct > 0:
-        parts = []
-        if pkg_pct > 0: parts.append(f"🎁 {pkg_name} {tier_label} {pkg_pct}%")
-        if whole_pct > 0: parts.append(f"🏪 Wholeseller Extra {whole_pct}%")
-        worksheet.merge_range("A4:J4", f"Best Discount: {' | '.join(parts)} | Total {total_pct}% per product", pkg_info)
+    if is_wholesaler(shop):
+        worksheet.merge_range("A4:J4", f"🏢 Wholesaler — Flat {pkg_pct}% discount applied", pkg_info)
+    elif pkg_pct > 0:
+        worksheet.merge_range("A4:J4", f"🎁 Best Discount Applied: {pkg_name} | {tier_label} | {pkg_pct}% on each product", pkg_info)
     else:
         worksheet.merge_range("A4:J4", "💡 Koi discount apply nahi hua", pkg_info)
 
     start_row = 6
-    headers = ["Product", "Code", "Boxes", "TP/Box", "Gross", "Disc %", "Net",
-               "Pkg Disc %", "Whole %", "After Disc Net", "Saved"]
+    headers = ["Product", "Code", "Boxes", "TP/Box", "Gross", "Disc %", "Net", "Pkg Disc %", "After Disc Net", "Saved"]
     for col, h in enumerate(headers):
         worksheet.write(start_row, col, h, header)
     row = start_row + 1
@@ -1019,7 +1254,7 @@ def export_single_group_bill(shop, date_str, booker, salesman, items, bill_no):
         b_net = float(it.get("Net", 0))
         b_gross = float(it.get("Gross", 0))
         b_boxes = int(it.get("Boxes", 0))
-        after_net = b_net - (b_net * pkg_pct / 100) - (b_net * whole_pct / 100)
+        after_net = b_net - (b_net * pkg_pct / 100)
         saved = b_net - after_net
 
         worksheet.write(row, 0, it.get("Product",""), cell_left)
@@ -1031,14 +1266,12 @@ def export_single_group_bill(shop, date_str, booker, salesman, items, bill_no):
         worksheet.write(row, 6, b_net, cell_center)
         if pkg_pct > 0:
             worksheet.write(row, 7, pkg_pct, disc_hl)
+            worksheet.write(row, 8, after_net, disc_hl)
+            worksheet.write(row, 9, saved, disc_hl)
         else:
             worksheet.write(row, 7, 0, cell_center)
-        if whole_pct > 0:
-            worksheet.write(row, 8, whole_pct, whole_hl)
-        else:
-            worksheet.write(row, 8, 0, cell_center)
-        worksheet.write(row, 9, after_net, disc_hl if total_pct > 0 else cell_center)
-        worksheet.write(row, 10, saved, disc_hl if total_pct > 0 else cell_center)
+            worksheet.write(row, 8, b_net, cell_center)
+            worksheet.write(row, 9, 0, cell_center)
 
         gross_total += b_gross; total_boxes += b_boxes
         net_total += b_net; after_disc_total += after_net; saved_total += saved
@@ -1048,35 +1281,27 @@ def export_single_group_bill(shop, date_str, booker, salesman, items, bill_no):
     worksheet.write(row, 2, total_boxes, total)
     worksheet.write(row, 4, gross_total, total)
     worksheet.write(row, 6, net_total, total)
-    worksheet.write(row, 7, pkg_pct if pkg_pct > 0 else "", total)
-    worksheet.write(row, 8, whole_pct if whole_pct > 0 else "", total)
-    worksheet.write(row, 9, after_disc_total, total)
-    worksheet.write(row, 10, saved_total, total)
+    worksheet.write(row, 7, "", total)
+    worksheet.write(row, 8, after_disc_total, total)
+    worksheet.write(row, 9, saved_total, total)
 
     row += 2
-    worksheet.merge_range(row, 0, row, 7, "NET AMOUNT (After Package Discount)", header)
-    worksheet.merge_range(row, 8, row, 10, f"Rs {after_disc_total:,.0f}", total)
+    worksheet.merge_range(row, 0, row, 6, "NET AMOUNT (After Discount)", header)
+    worksheet.merge_range(row, 7, row, 9, f"Rs {after_disc_total:,.0f}", total)
     row += 1
     if pkg_pct > 0:
-        worksheet.merge_range(row, 0, row, 7, f"PACKAGE DISCOUNT ({pkg_pct}%)", header)
-        worksheet.merge_range(row, 8, row, 10, f"Rs {net_total * pkg_pct / 100:,.0f}", total)
-        row += 1
-    if whole_pct > 0:
-        worksheet.merge_range(row, 0, row, 7, f"WHOLESELLER EXTRA DISCOUNT ({whole_pct}%)", header)
-        worksheet.merge_range(row, 8, row, 10, f"Rs {net_total * whole_pct / 100:,.0f}", total)
-        row += 1
-    if total_pct > 0:
-        worksheet.merge_range(row, 0, row, 7, "TOTAL SAVED BY DISCOUNT", header)
-        worksheet.merge_range(row, 8, row, 10, f"Rs {saved_total:,.0f}", total)
+        worksheet.merge_range(row, 0, row, 6, "TOTAL SAVED BY DISCOUNT", header)
+        worksheet.merge_range(row, 7, row, 9, f"Rs {saved_total:,.0f}", total)
 
     workbook.close(); output.seek(0)
     fname = f"{shop}_{date_str.replace('-','')}.xlsx".replace("/","-").replace(" ","_").replace(":","")
     st.session_state["download_file"] = (fname, output.getvalue())
-    msgs = []
-    if pkg_pct > 0: msgs.append(f"Pkg {pkg_pct}%")
-    if whole_pct > 0: msgs.append(f"Whole {whole_pct}%")
-    extra = f" | {' + '.join(msgs)}" if msgs else ""
-    st.session_state["success_msg"] = f"✅ Excel ready | {shop}{extra}"
+    if is_wholesaler(shop):
+        st.session_state["success_msg"] = f"✅ Excel ready | {shop} | Wholesaler {pkg_pct}% applied"
+    elif pkg_pct > 0:
+        st.session_state["success_msg"] = f"✅ Excel ready | {shop} | {pkg_pct}% discount applied"
+    else:
+        st.session_state["success_msg"] = f"✅ Excel ready | {shop}"
 
 # ============================================================
 # EXPORT DSR EXCEL
@@ -1143,16 +1368,14 @@ def export_dsr_excel(dsr):
     ws.merge_range(row, 0, row, 6, "Shop-wise Discount", header); row += 1
     ws.write(row, 0, "Shop", header); ws.write(row, 1, "Gross", header)
     ws.write(row, 2, "Net", header); ws.write(row, 3, "Bill Disc", header)
-    ws.write(row, 4, "Pkg Disc", header); ws.write(row, 5, "Whole Disc", header)
-    ws.write(row, 6, "Total Disc", header); row += 1
+    ws.write(row, 4, "Pkg Disc", header); ws.write(row, 5, "Total Disc", header); row += 1
     for s in dsr.get("shop_discounts", []):
         ws.write(row, 0, s.get("shop",""), cell_left)
         ws.write(row, 1, float(s.get("gross",0)), cell_num)
         ws.write(row, 2, float(s.get("net",0)), cell_num)
         ws.write(row, 3, float(s.get("individual_discount",0)), cell_num)
         ws.write(row, 4, float(s.get("package_discount",0)), cell_num)
-        ws.write(row, 5, float(s.get("wholeseller_discount",0)), cell_num)
-        ws.write(row, 6, float(s.get("total_discount",0)), cell_num)
+        ws.write(row, 5, float(s.get("total_discount",0)), cell_num)
         row += 1
 
     wb.close(); output.seek(0)
@@ -1227,24 +1450,37 @@ def export_credit_bill_excel(credit):
     st.session_state["success_msg"] = f"✅ Credit Bill #{credit['id']} Excel ready"
 
 # ============================================================
-# SIDEBAR
+# PROFESSIONAL SIDEBAR
 # ============================================================
 with st.sidebar:
     display_name = st.session_state.get("display_name", CURRENT_USER)
-    st.markdown(f"""
-    <div style='text-align:center; padding: 15px 0;'>
-        <h2 style='color:#1976d2 !important; margin:0;'>🧾 AL-BARAKAH</h2>
-        <p style='color:#0277bd !important; font-size:12px; margin:0; font-weight:600;'>ENTERPRISES</p>
-    </div>
-    """, unsafe_allow_html=True)
-    st.markdown(f"""
-    <div style='background:#ffffff;border:1px solid #90caf9;border-radius:8px;padding:8px 12px;margin-bottom:8px;text-align:center;'>
-        <div style='font-size:11px;color:#0277bd;'>Logged in as</div>
-        <div style='font-size:15px;font-weight:800;color:#1976d2;'>👤 {display_name}</div>
-    </div>
-    """, unsafe_allow_html=True)
-    st.markdown("---")
+    avatar_letter = (display_name[0] if display_name else "A").upper()
 
+    # ---- Brand Header ----
+    st.markdown(f"""
+    <div class="sb-brand">
+        <div class="sb-brand-logo">🧾</div>
+        <div class="sb-brand-name">AL-BARAKAH</div>
+        <div class="sb-brand-sub">ENTERPRISES</div>
+        <div class="sb-brand-status"><span class="sb-brand-dot"></span>ACTIVE SESSION</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ---- User Card ----
+    st.markdown(f"""
+    <div class="sb-user">
+        <div class="sb-user-avatar">{avatar_letter}</div>
+        <div class="sb-user-info">
+            <div class="sb-user-label">Logged in as</div>
+            <div class="sb-user-name">{display_name}</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ---- Menu Label ----
+    st.markdown('<div class="sb-section-label">Main Menu</div>', unsafe_allow_html=True)
+
+    # ---- Menu (radio) ----
     page = st.radio(
         "MENU",
         [
@@ -1261,31 +1497,71 @@ with st.sidebar:
     )
     st.session_state["page"] = page
 
-    st.markdown("---")
+    # ---- Date ----
+    st.markdown(f"""
+    <div class="sb-date">📅 {datetime.now().strftime('%A, %d %b %Y')}</div>
+    """, unsafe_allow_html=True)
+
+    # ---- Stats Block ----
     active_pkgs = get_all_active_packages()
     all_prod_count = len(get_all_products())
     custom_prod_count = len(db.get("custom_products", []))
     pending_credit = sum(1 for c in db.get("credit_bills", []) if c.get("status") == "pending")
     pending_amt = sum(float(c.get("total_net", 0)) for c in db.get("credit_bills", []) if c.get("status") == "pending")
-    wd_cfg = db.get("wholeseller_discount", {}) or {}
-    wd_status = "✅ ON" if wd_cfg.get("active") else "OFF"
+
     st.markdown(f"""
-    <div style='padding:6px 10px; color:#0277bd !important; font-size:12px;'>
-        <p>📅 {datetime.now().strftime('%d-%m-%Y')}</p>
-        <p>🎁 Active Packages: <b>{len(active_pkgs)}</b></p>
-        <p>📦 Products: {all_prod_count} <span style="color:#2e7d32;">(🆕 {custom_prod_count})</span></p>
-        <p>👤 Bookers: {len(db.get('bookers', []))}</p>
-        <p>🧑‍💼 Salesmen: {len(db.get('salesmen', []))}</p>
-        <p>🧾 Total Bills: {len(db['bills'])}</p>
-        <p>📦 Load Forms: {len(db.get('load_forms', []))}</p>
-        <p>📋 DSR Forms: {len(db.get('dsr_forms', []))}</p>
-        <p>💳 Credit Pending: <b style="color:#e65100;">{pending_credit}</b> (Rs {pending_amt:,.0f})</p>
-        <p>🏪 Wholeseller: <b>{wd_status}</b> ({wd_cfg.get('pct', 0)}%)</p>
+    <div class="sb-stats">
+        <div class="sb-section-label" style="padding: 0 6px 10px;">Overview</div>
+        <div class="sb-stats-grid">
+            <div class="sb-stat-card blue">
+                <div class="sb-stat-icon">📦</div>
+                <div class="sb-stat-value">{all_prod_count}</div>
+                <div class="sb-stat-label">Products</div>
+            </div>
+            <div class="sb-stat-card">
+                <div class="sb-stat-icon">🧾</div>
+                <div class="sb-stat-value">{len(db['bills'])}</div>
+                <div class="sb-stat-label">Bills</div>
+            </div>
+            <div class="sb-stat-card">
+                <div class="sb-stat-icon">👤</div>
+                <div class="sb-stat-value">{len(db.get('bookers', []))}</div>
+                <div class="sb-stat-label">Bookers</div>
+            </div>
+            <div class="sb-stat-card">
+                <div class="sb-stat-icon">🧑‍💼</div>
+                <div class="sb-stat-value">{len(db.get('salesmen', []))}</div>
+                <div class="sb-stat-label">Salesmen</div>
+            </div>
+            <div class="sb-stat-card">
+                <div class="sb-stat-icon">📦</div>
+                <div class="sb-stat-value">{len(db.get('load_forms', []))}</div>
+                <div class="sb-stat-label">Load Forms</div>
+            </div>
+            <div class="sb-stat-card">
+                <div class="sb-stat-icon">📋</div>
+                <div class="sb-stat-value">{len(db.get('dsr_forms', []))}</div>
+                <div class="sb-stat-label">DSR</div>
+            </div>
+            <div class="sb-stat-card warn">
+                <div class="sb-stat-icon">💳</div>
+                <div class="sb-stat-value">{pending_credit}</div>
+                <div class="sb-stat-label">Cr. Pending</div>
+            </div>
+            <div class="sb-stat-card good">
+                <div class="sb-stat-icon">🎁</div>
+                <div class="sb-stat-value">{len(active_pkgs)}</div>
+                <div class="sb-stat-label">Pkgs Active</div>
+            </div>
+        </div>
+        <div style="text-align:center;font-size:10px;color:#94a3b8;padding:4px 0 8px;">
+            Pending Credit: <b style="color:#fbbf24;">Rs {pending_amt:,.0f}</b>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("---")
-    if st.button("🚪 Logout", key="btn_logout", use_container_width=True):
+    # ---- Logout ----
+    if st.button("🚪  Logout", key="btn_logout", use_container_width=True):
         st.session_state["logged_in_user"] = None
         st.session_state["display_name"] = None
         st.session_state["database"] = None
@@ -1376,7 +1652,7 @@ def render_dashboard():
                 """, unsafe_allow_html=True)
 
 # ============================================================
-# PAGE: DISCOUNT (with Wholeseller inside Package 2)
+# PAGE: DISCOUNT
 # ============================================================
 def render_discount():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🎁 Discount Packages</h1>", unsafe_allow_html=True)
@@ -1396,18 +1672,15 @@ def render_discount():
     active_names = [p.get("name", "Package") for p in pkgs if p.get("active")]
     active_str = ", ".join(active_names) if active_names else "Koi nahi"
 
-    wd_cfg = db.get("wholeseller_discount", default_wholeseller_config())
-    wd_str = f"🏪 Wholeseller {wd_cfg.get('pct', 0)}% — {'ON' if wd_cfg.get('active') else 'OFF'}"
-
     st.markdown(f"""
     <div class='summary-box'>
         <b style='color:#1976d2;font-size:15px;'>🎁 Active Packages:</b>
         <span style='color:#2e7d32;font-size:15px;font-weight:700;'>{active_str}</span>
-        &nbsp;&nbsp;|&nbsp;&nbsp;
-        <b style='color:#6a1b9a;font-size:15px;'>{wd_str}</b>
         <br><span style='font-size:12px;color:#0277bd;'>
             Har package apne aap check hoga — jo sabse zyada % de raha ho, wahi apply hoga.
-            Agar shop name mein "whole seller" ho to extra wholeseller discount bhi milega.
+        </span>
+        <br><span style='font-size:12px;color:#6a1b9a;font-weight:700;'>
+            🏢 Wholesaler Rule: Agar shop name mein "whole seller" ho to 6% flat discount.
         </span>
     </div>
     """, unsafe_allow_html=True)
@@ -1501,46 +1774,6 @@ def render_discount():
                 f"&gt; Rs {ta1:,.0f} → {tp1}% &nbsp;|&nbsp; "
                 f"&gt; Rs {ta2:,.0f} → {tp2}% &nbsp;|&nbsp; "
                 f"&gt; Rs {ta3:,.0f} → {tp3}%</div>",
-                unsafe_allow_html=True
-            )
-
-        # ====================================================
-        # WHOLESELLER DISCOUNT — only inside Package 2
-        # ====================================================
-        if pid == 2:
-            st.markdown("---")
-            st.markdown("##### 🏪 Wholeseller Discount (extra)")
-            st.caption("💡 Agar shop name mein 'whole seller' / 'wholeseller' / 'wholesaler' / 'wholesale' ho to bill pe extra discount cut hoga.")
-
-            w_cfg = db.get("wholeseller_discount", default_wholeseller_config())
-            wc1, wc2, wc3 = st.columns([1, 2, 1])
-            with wc1:
-                w_active = st.checkbox("Enable", value=bool(w_cfg.get("active", False)), key=f"whole_active_{pid}")
-            with wc2:
-                w_pct = st.number_input("Wholeseller Disc %", min_value=0.0, max_value=100.0,
-                                        value=float(w_cfg.get("pct", 6.0)), step=0.5,
-                                        key=f"whole_pct_{pid}")
-                st.caption("Default: 6.0%")
-            with wc3:
-                st.markdown("<br>", unsafe_allow_html=True)
-                if st.button("💾 Save Whole", key=f"save_whole_{pid}", use_container_width=True, type="primary"):
-                    db["wholeseller_discount"] = {
-                        "active": bool(w_active),
-                        "pct": float(w_pct),
-                        "keywords": ["wholeseller", "wholesaler", "whole seller", "whole saler",
-                                     "wholesale", "whole sale", "whole-seller", "whole_seller"]
-                    }
-                    save_database(db)
-                    st.session_state["success_msg"] = f"✅ Wholeseller discount {'ON' if w_active else 'OFF'} ({w_pct}%)"
-                    st.rerun()
-
-            cur_w = db.get("wholeseller_discount", {}) or {}
-            cur_status = "✅ ENABLED" if cur_w.get("active") else "❌ DISABLED"
-            cur_pct = cur_w.get("pct", 0)
-            st.markdown(
-                f"<div class='hint-box whole'>🏪 Current: <b>{cur_status}</b> &nbsp;·&nbsp; "
-                f"Extra Discount: <b>{cur_pct}%</b> &nbsp;·&nbsp; "
-                f"Match keywords: wholeseller, wholesaler, whole seller, wholesaler, wholesale</div>",
                 unsafe_allow_html=True
             )
 
@@ -2240,18 +2473,11 @@ def render_billing():
     st.markdown(f"<h2 style='color:#1976d2 !important;margin:0 0 6px 0;'>🧾 Billing</h2>", unsafe_allow_html=True)
 
     active_pkgs = get_all_active_packages()
-    wd_cfg = db.get("wholeseller_discount", {}) or {}
-    wd_active = wd_cfg.get("active", False)
-    wd_pct = wd_cfg.get("pct", 6.0)
-
     if active_pkgs:
         names = ", ".join([p.get("name", "Package") for p in active_pkgs])
         st.markdown(f"<div class='hint-box'>🎁 Active Packages ({len(active_pkgs)}): <b>{names}</b> — Bill export pe best discount apply hoga</div>", unsafe_allow_html=True)
     else:
         st.markdown("<div class='hint-box'>💡 Koi discount package active nahi. '🎁 Discount' page se activate karo.</div>", unsafe_allow_html=True)
-
-    if wd_active:
-        st.markdown(f"<div class='hint-box whole'>🏪 Wholeseller Discount <b>ON</b> — Agar shop name mein 'whole seller' ho to extra <b>{wd_pct}%</b> cut hoga</div>", unsafe_allow_html=True)
 
     c1, c2 = st.columns(2)
     with c1: st.text_input("Bill No:", value=str(db["next_bill_no"]), disabled=True, key="dash_bill_no")
@@ -2260,9 +2486,8 @@ def render_billing():
     c1, c2, c3 = st.columns(3)
     with c1:
         shop_name = st.text_input("Shop:", key="shop_name", placeholder="Shop Name")
-        if shop_name.strip():
-            if is_wholeseller_shop(shop_name):
-                st.caption(f"🏪 Wholeseller shop detected — extra {wd_pct}% discount apply hoga")
+        if shop_name and is_wholesaler(shop_name):
+            st.markdown(f"<div class='hint-box' style='background:#f3e5f5;border-left-color:#8e24aa;color:#6a1b9a !important;font-weight:700;'>🏢 Wholesaler detected — {WHOLESALER_DISCOUNT_PCT}% flat discount lagega</div>", unsafe_allow_html=True)
     with c2:
         saved_bookers = db.get("bookers", [])
         if saved_bookers:
@@ -2466,20 +2691,20 @@ def render_bills_list():
                 credit_badge = '<span class="badge-paid-credit">✅ Credit PAID</span>'
             else:
                 credit_badge = '<span class="badge-credit-tag">💳 Credit PENDING</span>'
-
-        whole_badge = ""
-        if is_wholeseller_shop(g["shop"]):
-            whole_badge = f'<span class="badge-wholeseller">🏪 Whole {get_wholeseller_pct(g["shop"])}%</span>'
+        if is_wholesaler(g["shop"]):
+            credit_badge += '<span class="badge-wholesaler">🏢 Wholesaler</span>'
 
         wkey = f"{shop}_{date_str}_{booker}_{bill_no}_{idx}".replace(" ","_").replace("/","_").replace(":","")
         is_viewing = st.session_state.get("view_bill_key") == wkey
 
+        card_extra = " wholesaler" if is_wholesaler(g["shop"]) else ""
+
         c1, c2, c3, c4, c5 = st.columns([3.5, 0.6, 1, 1.1, 1])
         with c1:
             st.markdown(f"""
-            <div class='lf-simple-card'>
+            <div class='lf-simple-card{card_extra}'>
                 <div class='lf-info'>
-                    <div class='lf-line1'>🏪 {shop} {whole_badge} {credit_badge}</div>
+                    <div class='lf-line1'>🏪 {shop} {credit_badge}</div>
                     <div class='lf-line2'>📅 {date_str} &nbsp;·&nbsp; 👤 {booker} &nbsp;·&nbsp; 🧑‍💼 {salesman}</div>
                 </div>
                 <div class='lf-boxes'>{total_b}<small>BOXES</small></div>
@@ -2512,9 +2737,11 @@ def render_bills_list():
                 st.session_state["_confirm_group_label"] = f"{shop} | {date_str} | {booker}"
 
         if is_viewing:
+            is_whole = is_wholesaler(g["shop"])
+            box_class = "wholesaler" if is_whole else ""
             st.markdown(f"""
-            <div class='full-bill-box'>
-                <div class='full-bill-title'>👁️ {shop} — Full Bill View {whole_badge} {credit_badge}</div>
+            <div class='full-bill-box {box_class}'>
+                <div class='full-bill-title'>👁️ {shop} — Full Bill View {credit_badge}</div>
                 <div class='full-bill-meta'>
                     📅 {date_str} &nbsp;·&nbsp; 👤 Booker: <b>{booker}</b> &nbsp;·&nbsp; 🧑‍💼 Salesman: <b>{salesman}</b> &nbsp;·&nbsp; 🧾 Bill No: <b>{bill_no}</b>
                 </div>
@@ -2524,10 +2751,8 @@ def render_bills_list():
             df_items = pd.DataFrame(items)
             st.dataframe(df_items, use_container_width=True, hide_index=True)
 
-            pkg_pct_preview, pkg_name_preview, _tier = get_package_discount_pct(total_n)
-            whole_pct_preview = get_wholeseller_pct(shop)
-            total_pct_preview = pkg_pct_preview + whole_pct_preview
-            after_disc = total_n - (total_n * pkg_pct_preview / 100) - (total_n * whole_pct_preview / 100)
+            pkg_pct_preview, pkg_name_preview, _tier = get_effective_discount_pct(g["shop"], total_n)
+            after_disc = total_n - (total_n * pkg_pct_preview / 100)
             saved = total_n - after_disc
 
             cc1, cc2, cc3 = st.columns(3)
@@ -2536,17 +2761,15 @@ def render_bills_list():
             with cc2:
                 st.markdown(f"<div class='metric-card'><h3>NET TOTAL</h3><h1>Rs {total_n:,.0f}</h1></div>", unsafe_allow_html=True)
             with cc3:
-                if total_pct_preview > 0:
-                    st.markdown(f"<div class='metric-card'><h3>AFTER DISC ({total_pct_preview}%)</h3><h1>Rs {after_disc:,.0f}</h1></div>", unsafe_allow_html=True)
+                if pkg_pct_preview > 0:
+                    st.markdown(f"<div class='metric-card'><h3>AFTER DISC ({pkg_pct_preview}%)</h3><h1>Rs {after_disc:,.0f}</h1></div>", unsafe_allow_html=True)
                 else:
                     st.markdown(f"<div class='metric-card'><h3>AFTER DISC</h3><h1>Rs {total_n:,.0f}</h1></div>", unsafe_allow_html=True)
 
-            if pkg_pct_preview > 0:
-                st.markdown(f"<div class='hint-box'>🎁 Package: <b>{pkg_name_preview}</b> | {pkg_pct_preview}% discount</div>", unsafe_allow_html=True)
-            if whole_pct_preview > 0:
-                st.markdown(f"<div class='hint-box whole'>🏪 Wholeseller: <b>{whole_pct_preview}%</b> extra discount (shop name match)</div>", unsafe_allow_html=True)
-            if total_pct_preview > 0:
-                st.markdown(f"<div class='hint-box'>💰 Total Saved: <b>Rs {saved:,.0f}</b></div>", unsafe_allow_html=True)
+            if is_whole:
+                st.markdown(f"<div class='hint-box' style='background:#f3e5f5;border-left-color:#8e24aa;color:#6a1b9a !important;font-weight:700;'>🏢 Wholesaler — Flat {WHOLESALER_DISCOUNT_PCT}% discount | Saved: <b>Rs {saved:,.0f}</b></div>", unsafe_allow_html=True)
+            elif pkg_pct_preview > 0:
+                st.markdown(f"<div class='hint-box'>🎁 Package: <b>{pkg_name_preview}</b> | {pkg_pct_preview}% discount | Saved: <b>Rs {saved:,.0f}</b></div>", unsafe_allow_html=True)
 
             close_c1, close_c2, close_c3 = st.columns([1, 1, 3])
             with close_c1:
@@ -2745,16 +2968,13 @@ def render_credit_bills():
         card_class = "lf-simple-card credit-paid" if is_paid else "lf-simple-card credit-pending"
         badge = '<span class="badge-paid-credit">✅ PAID</span>' if is_paid else '<span class="badge-pending">⏳ PENDING</span>'
         paid_line = f" &nbsp;·&nbsp; ✅ Paid At: {paid_at}" if is_paid and paid_at else ""
-        whole_badge = ""
-        if is_wholeseller_shop(shop):
-            whole_badge = f' <span class="badge-wholeseller">🏪 Whole {get_wholeseller_pct(shop)}%</span>'
 
         c1, c2, c3, c4, c5 = st.columns([3.5, 0.6, 1.1, 1.1, 0.9])
         with c1:
             st.markdown(f"""
             <div class='{card_class}'>
                 <div class='lf-info'>
-                    <div class='lf-line1'>🏪 {shop} {whole_badge} {badge}</div>
+                    <div class='lf-line1'>🏪 {shop} {badge}</div>
                     <div class='lf-line2'>📅 {date_str} &nbsp;·&nbsp; 👤 {booker} &nbsp;·&nbsp; 🧑‍💼 {salesman} &nbsp;·&nbsp; 🧾 Bill: {bill_no} &nbsp;·&nbsp; 💰 Rs {total_n:,.0f}{paid_line}</div>
                 </div>
                 <div class='lf-boxes'>{total_b}<small>BOXES</small></div>
@@ -2820,13 +3040,10 @@ def render_credit_detail(credit):
 
     box_class = "credit-paid" if is_paid else "credit"
     badge_html = '<span class="badge-paid-credit">✅ PAID</span>' if is_paid else '<span class="badge-pending">⏳ PENDING</span>'
-    shop = credit.get("shop", "")
-    whole_pct = get_wholeseller_pct(shop)
-    whole_html = f' <span class="badge-wholeseller">🏪 Whole {whole_pct}%</span>' if whole_pct > 0 else ""
 
     st.markdown(f"""
     <div class='full-bill-box {box_class}'>
-        <div class='full-bill-title'>💳 Credit Bill #{cid} — {shop} {whole_html} {badge_html}</div>
+        <div class='full-bill-title'>💳 Credit Bill #{cid} — {credit.get('shop','')} {badge_html}</div>
         <div class='full-bill-meta'>
             📅 {credit.get('date','')} &nbsp;·&nbsp; 👤 Booker: <b>{credit.get('booker','')}</b>
             &nbsp;·&nbsp; 🧑‍💼 Salesman: <b>{credit.get('salesman','')}</b>
@@ -2848,9 +3065,6 @@ def render_credit_detail(credit):
         st.markdown(f"<div class='metric-card'><h3>GROSS</h3><h1>Rs {float(credit.get('total_gross',0)):,.0f}</h1></div>", unsafe_allow_html=True)
     with cc3:
         st.markdown(f"<div class='metric-card'><h3>NET (LENA HAI)</h3><h1>Rs {float(credit.get('total_net',0)):,.0f}</h1></div>", unsafe_allow_html=True)
-
-    if whole_pct > 0:
-        st.markdown(f"<div class='hint-box whole'>🏪 Wholeseller shop — extra {whole_pct}% discount bill mein apply hoga</div>", unsafe_allow_html=True)
 
     ac1, ac2, ac3 = st.columns([1, 1, 2])
     with ac1:
@@ -3046,7 +3260,7 @@ def render_load_form():
                 st.dataframe(df_items, use_container_width=True, hide_index=True)
 
             total_net = sum(float(it.get("Net", 0)) for it in bill_items)
-            pkg_pct_preview, pkg_name_preview, _tier = get_package_discount_pct(total_net)
+            pkg_pct_preview, pkg_name_preview, _tier = get_effective_discount_pct(booker, total_net)
             after_disc = total_net - (total_net * pkg_pct_preview / 100)
 
             cc1, cc2, cc3 = st.columns(3)
@@ -3083,7 +3297,7 @@ def render_load_form():
     show_auto_download()
 
 # ============================================================
-# TRANSFER LOAD FORM → DSR (with wholeseller)
+# TRANSFER LOAD FORM → DSR
 # ============================================================
 def transfer_load_form_to_dsr(lf_id):
     db = st.session_state.database
@@ -3142,11 +3356,9 @@ def transfer_load_form_to_dsr(lf_id):
     shop_discounts = []
     total_discount = 0.0
     for shop, g in shop_groups.items():
-        pkg_pct, pkg_name, _ = get_package_discount_pct(g["net"])
-        whole_pct = get_wholeseller_pct(shop)
+        pkg_pct, pkg_name, _ = get_effective_discount_pct(shop, g["net"])
         pkg_discount = g["net"] * pkg_pct / 100
-        whole_discount = g["net"] * whole_pct / 100
-        shop_total_discount = g["individual_discount"] + pkg_discount + whole_discount
+        shop_total_discount = g["individual_discount"] + pkg_discount
         shop_discounts.append({
             "shop": shop,
             "gross": g["gross"],
@@ -3155,8 +3367,6 @@ def transfer_load_form_to_dsr(lf_id):
             "package_pct": pkg_pct,
             "package_name": pkg_name or "",
             "package_discount": pkg_discount,
-            "wholeseller_pct": whole_pct,
-            "wholeseller_discount": whole_discount,
             "total_discount": shop_total_discount,
             "bill_nos": sorted([str(x) for x in g["bill_nos"]]),
         })
@@ -3456,18 +3666,12 @@ def render_dsr_detail(dsr):
     else:
         shop_rows = []
         for s in shop_discs:
-            whole_p = s.get("wholeseller_pct", 0)
-            is_whole = whole_p > 0
-            shop_name_txt = s.get("shop", "-")
-            if is_whole:
-                shop_name_txt = f"🏪 {shop_name_txt}"
             shop_rows.append({
-                "Shop": shop_name_txt,
+                "Shop": s.get("shop", "-"),
                 "Gross": f"Rs {float(s.get('gross',0)):,.0f}",
                 "Net": f"Rs {float(s.get('net',0)):,.0f}",
                 "Bill Disc": f"Rs {float(s.get('individual_discount',0)):,.0f}",
                 "Pkg Disc": f"Rs {float(s.get('package_discount',0)):,.0f} ({s.get('package_pct',0)}%)",
-                "Whole Disc": f"Rs {float(s.get('wholeseller_discount',0)):,.0f} ({whole_p}%)" if is_whole else "—",
                 "Total Disc": f"Rs {float(s.get('total_discount',0)):,.0f}",
             })
         st.dataframe(pd.DataFrame(shop_rows), use_container_width=True, hide_index=True)
@@ -3573,9 +3777,7 @@ def export_bill_callback():
         st.session_state["error_msg"] = "❌ Is shop ke liye koi bill nahi mila"; return
 
     bill_total_net = sum(float(b.get("Net", 0)) for b in shop_bills)
-    pkg_pct, pkg_name, tier_label = get_package_discount_pct(bill_total_net)
-    whole_pct = get_wholeseller_pct(shop)
-    total_pct = pkg_pct + whole_pct
+    pkg_pct, pkg_name, tier_label = get_effective_discount_pct(shop, bill_total_net)
 
     output = BytesIO()
     workbook = xlsxwriter.Workbook(output, {'in_memory': True})
@@ -3586,7 +3788,6 @@ def export_bill_callback():
     worksheet.set_column("E:E", 11.71); worksheet.set_column("F:F", 11.14)
     worksheet.set_column("G:G", 11.14); worksheet.set_column("H:H", 12.14)
     worksheet.set_column("I:I", 13.14); worksheet.set_column("J:J", 13.14)
-    worksheet.set_column("K:K", 13.14)
 
     title = workbook.add_format({"bold":True, "font_size":18, "align":"center", "border":2})
     header = workbook.add_format({"bold":True, "font_size":11, "bg_color":"#BBDEFB", "align":"center", "border":2, "text_wrap": True})
@@ -3594,10 +3795,9 @@ def export_bill_callback():
     cell_center = workbook.add_format({"font_size":12, "border":1, "align":"center"})
     total = workbook.add_format({"bold":True, "font_size":12, "bg_color":"#FFF2CC", "align":"center", "border":2})
     disc_hl = workbook.add_format({"font_size":12, "border":1, "align":"center", "bg_color":"#E8F5E9", "bold": True})
-    whole_hl = workbook.add_format({"font_size":12, "border":1, "align":"center", "bg_color":"#F3E5F5", "bold": True})
     pkg_info = workbook.add_format({"font_size":10, "italic": True, "align":"left", "font_color":"#1b5e20"})
 
-    worksheet.merge_range("A1:K1", COMPANY_NAME, title)
+    worksheet.merge_range("A1:J1", COMPANY_NAME, title)
     worksheet.write("A3","Shop Name",header); worksheet.write("B3", shop, cell_center)
     worksheet.write("D3","Booker",header); worksheet.write("E3", st.session_state.get("order_booker", ""), cell_center)
     worksheet.write("G3","Bill No",header)
@@ -3605,17 +3805,15 @@ def export_bill_callback():
     worksheet.write("H3", last_bill, cell_center)
     worksheet.write("I3","Date",header); worksheet.write("J3", datetime.now().strftime("%d-%m-%Y"), cell_center)
 
-    if pkg_pct > 0 or whole_pct > 0:
-        parts = []
-        if pkg_pct > 0: parts.append(f"🎁 {pkg_name} {tier_label} {pkg_pct}%")
-        if whole_pct > 0: parts.append(f"🏪 Wholeseller Extra {whole_pct}%")
-        worksheet.merge_range("A4:K4", f"Best Discount: {' | '.join(parts)} | Total {total_pct}% per product", pkg_info)
+    if is_wholesaler(shop):
+        worksheet.merge_range("A4:J4", f"🏢 Wholesaler — Flat {pkg_pct}% discount applied", pkg_info)
+    elif pkg_pct > 0:
+        worksheet.merge_range("A4:J4", f"🎁 Best Discount Applied: {pkg_name} | {tier_label} | {pkg_pct}% on each product", pkg_info)
     else:
-        worksheet.merge_range("A4:K4", "💡 Koi discount apply nahi hua", pkg_info)
+        worksheet.merge_range("A4:J4", "💡 Koi discount apply nahi hua", pkg_info)
 
     start_row = 6
-    headers = ["Product", "Code", "Boxes", "TP/Box", "Gross", "Disc %", "Net",
-               "Pkg Disc %", "Whole %", "After Disc Net", "Saved"]
+    headers = ["Product", "Code", "Boxes", "TP/Box", "Gross", "Disc %", "Net", "Pkg Disc %", "After Disc Net", "Saved"]
     for col, h in enumerate(headers):
         worksheet.write(start_row, col, h, header)
     row = start_row + 1
@@ -3625,7 +3823,7 @@ def export_bill_callback():
         b_net = float(bill.get("Net", 0))
         b_gross = float(bill.get("Gross", 0))
         b_boxes = int(bill.get("Boxes", 0))
-        after_net = b_net - (b_net * pkg_pct / 100) - (b_net * whole_pct / 100)
+        after_net = b_net - (b_net * pkg_pct / 100)
         saved = b_net - after_net
 
         worksheet.write(row, 0, bill["Product"], cell_left)
@@ -3635,10 +3833,14 @@ def export_bill_callback():
         worksheet.write(row, 4, b_gross, cell_center)
         worksheet.write(row, 5, bill.get("Discount %", 0), cell_center)
         worksheet.write(row, 6, b_net, cell_center)
-        worksheet.write(row, 7, pkg_pct if pkg_pct > 0 else 0, disc_hl if pkg_pct > 0 else cell_center)
-        worksheet.write(row, 8, whole_pct if whole_pct > 0 else 0, whole_hl if whole_pct > 0 else cell_center)
-        worksheet.write(row, 9, after_net, disc_hl if total_pct > 0 else cell_center)
-        worksheet.write(row, 10, saved, disc_hl if total_pct > 0 else cell_center)
+        if pkg_pct > 0:
+            worksheet.write(row, 7, pkg_pct, disc_hl)
+            worksheet.write(row, 8, after_net, disc_hl)
+            worksheet.write(row, 9, saved, disc_hl)
+        else:
+            worksheet.write(row, 7, 0, cell_center)
+            worksheet.write(row, 8, b_net, cell_center)
+            worksheet.write(row, 9, 0, cell_center)
 
         gross_total += b_gross; total_boxes += b_boxes
         net_total += b_net; after_disc_total += after_net; saved_total += saved
@@ -3648,36 +3850,28 @@ def export_bill_callback():
     worksheet.write(row, 2, total_boxes, total)
     worksheet.write(row, 4, gross_total, total)
     worksheet.write(row, 6, net_total, total)
-    worksheet.write(row, 7, pkg_pct if pkg_pct > 0 else "", total)
-    worksheet.write(row, 8, whole_pct if whole_pct > 0 else "", total)
-    worksheet.write(row, 9, after_disc_total, total)
-    worksheet.write(row, 10, saved_total, total)
+    worksheet.write(row, 7, "", total)
+    worksheet.write(row, 8, after_disc_total, total)
+    worksheet.write(row, 9, saved_total, total)
 
     row += 2
-    worksheet.merge_range(row, 0, row, 7, "NET AMOUNT (After Package Discount)", header)
-    worksheet.merge_range(row, 8, row, 10, f"Rs {after_disc_total:,.0f}", total)
+    worksheet.merge_range(row, 0, row, 6, "NET AMOUNT (After Discount)", header)
+    worksheet.merge_range(row, 7, row, 9, f"Rs {after_disc_total:,.0f}", total)
     row += 1
     if pkg_pct > 0:
-        worksheet.merge_range(row, 0, row, 7, f"PACKAGE DISCOUNT ({pkg_pct}%)", header)
-        worksheet.merge_range(row, 8, row, 10, f"Rs {net_total * pkg_pct / 100:,.0f}", total)
-        row += 1
-    if whole_pct > 0:
-        worksheet.merge_range(row, 0, row, 7, f"WHOLESELLER EXTRA DISCOUNT ({whole_pct}%)", header)
-        worksheet.merge_range(row, 8, row, 10, f"Rs {net_total * whole_pct / 100:,.0f}", total)
-        row += 1
-    if total_pct > 0:
-        worksheet.merge_range(row, 0, row, 7, "TOTAL SAVED BY DISCOUNT", header)
-        worksheet.merge_range(row, 8, row, 10, f"Rs {saved_total:,.0f}", total)
+        worksheet.merge_range(row, 0, row, 6, "TOTAL SAVED BY DISCOUNT", header)
+        worksheet.merge_range(row, 7, row, 9, f"Rs {saved_total:,.0f}", total)
 
     workbook.close(); output.seek(0)
     st.session_state["download_file"] = (f"{shop}.xlsx", output.getvalue())
     db["next_bill_no"] += 1; save_database(db)
     st.session_state["last_bill_no"] = None
-    msgs = []
-    if pkg_pct > 0: msgs.append(f"Pkg {pkg_pct}%")
-    if whole_pct > 0: msgs.append(f"Whole {whole_pct}%")
-    extra = f" | {' + '.join(msgs)}" if msgs else ""
-    st.session_state["success_msg"] = f"✅ Bill Exported{extra} | Net: Rs {after_disc_total:,.0f} | Next: {db['next_bill_no']}"
+    if is_wholesaler(shop):
+        st.session_state["success_msg"] = f"✅ Bill Exported | Wholesaler {pkg_pct}% | Net: Rs {after_disc_total:,.0f} (Saved Rs {saved_total:,.0f})"
+    elif pkg_pct > 0:
+        st.session_state["success_msg"] = f"✅ Bill Exported | {pkg_name} {tier_label} | {pkg_pct}% | Net: Rs {after_disc_total:,.0f} (Saved Rs {saved_total:,.0f})"
+    else:
+        st.session_state["success_msg"] = f"✅ Bill Exported | Next Bill No: {db['next_bill_no']}"
 
 def export_load_form_from_billing_callback():
     db = st.session_state.database
