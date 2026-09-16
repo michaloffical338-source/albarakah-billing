@@ -3,7 +3,7 @@
 # + Multi-User Login (Signup/Login + Per-User Data)
 # + Custom Products (Add Single / Bulk Upload)
 # + DSR (Daily Sales Report) with Return Boxes & Discounts
-# + Credit Bills (Pending / Paid)
+# + Credit Bills (Pending / Paid) — bill stays in Bills List
 # ============================================================
 
 import os
@@ -394,6 +394,11 @@ st.markdown("""
     }
     .badge-paid-credit {
         background: #c8e6c9; color: #1b5e20 !important; padding: 3px 10px;
+        border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px;
+    }
+    .badge-credit-tag {
+        background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        color: #ffffff !important; padding: 3px 10px;
         border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px;
     }
 
@@ -1223,7 +1228,6 @@ def render_dashboard():
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Credit summary cards
     pending_credits = [c for c in db.get("credit_bills", []) if c.get("status") == "pending"]
     paid_credits = [c for c in db.get("credit_bills", []) if c.get("status") == "paid"]
     pending_amt = sum(float(c.get("total_net", 0)) for c in pending_credits)
@@ -2193,12 +2197,24 @@ def render_billing():
 # ============================================================
 def render_bills_list():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📋 Bills List</h1>", unsafe_allow_html=True)
-    st.markdown(f"<p style='color:#0277bd;font-weight:500;'>Saved bills — 👁️ Eye = dekho | ⬇️ Excel | 💳 Credit = Credit list mein bhejo</p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color:#0277bd;font-weight:500;'>Saved bills — 👁️ Eye = dekho | ⬇️ Excel | 💳 Credit = Credit list mein bhejo (bill yahan bhi rahega)</p>", unsafe_allow_html=True)
     st.markdown("---")
 
     if len(db["bills"]) == 0:
         st.info("❌ Koi bill nahi mila. Pehle 'Billing' page pe jaake bill banao.")
         return
+
+    # Compute credit tags for current bill groups
+    credit_bills = db.get("credit_bills", [])
+    credit_map = {}
+    for cb in credit_bills:
+        k = (
+            cb.get("shop", ""),
+            cb.get("date", ""),
+            cb.get("booker", ""),
+            cb.get("bill_no", ""),
+        )
+        credit_map[k] = cb
 
     st.markdown("### 🔎 Filter Bills")
     today = date.today()
@@ -2284,7 +2300,7 @@ def render_bills_list():
     """, unsafe_allow_html=True)
 
     st.markdown(f"### 📋 Bills ({len(groups)})")
-    st.caption("👇 👁️ = Poora bill dekho | ⬇️ = Excel | 💳 = Credit Bill banao | 🗑 = Delete")
+    st.caption("👇 👁️ = Poora bill dekho | ⬇️ = Excel | 💳 = Credit Bill banao (bill yahan bhi rahega) | 🗑 = Delete")
 
     sorted_keys = sorted(groups.keys(), key=lambda k: (parse_date(k[1]) or date.min, k[0]), reverse=True)
 
@@ -2299,6 +2315,17 @@ def render_bills_list():
         total_b = sum(int(it.get("Boxes",0)) for it in items)
         total_n = sum(float(it.get("Net",0)) for it in items)
 
+        # Check if this group is in credit
+        credit_key = (g["shop"] or "", g["date"] or "", g["booker"] or "", g["bill_no"] or "")
+        existing_credit = credit_map.get(credit_key)
+        credit_badge = ""
+        if existing_credit:
+            c_status = existing_credit.get("status", "pending")
+            if c_status == "paid":
+                credit_badge = '<span class="badge-paid-credit">✅ Credit PAID</span>'
+            else:
+                credit_badge = '<span class="badge-credit-tag">💳 Credit PENDING</span>'
+
         wkey = f"{shop}_{date_str}_{booker}_{bill_no}_{idx}".replace(" ","_").replace("/","_").replace(":","")
         is_viewing = st.session_state.get("view_bill_key") == wkey
 
@@ -2307,7 +2334,7 @@ def render_bills_list():
             st.markdown(f"""
             <div class='lf-simple-card'>
                 <div class='lf-info'>
-                    <div class='lf-line1'>🏪 {shop}</div>
+                    <div class='lf-line1'>🏪 {shop} {credit_badge}</div>
                     <div class='lf-line2'>📅 {date_str} &nbsp;·&nbsp; 👤 {booker} &nbsp;·&nbsp; 🧑‍💼 {salesman}</div>
                 </div>
                 <div class='lf-boxes'>{total_b}<small>BOXES</small></div>
@@ -2327,10 +2354,13 @@ def render_bills_list():
                 export_single_group_bill(shop, date_str, booker, salesman, items, bill_no)
                 st.rerun()
         with c4:
-            if st.button("💳 Credit", key=f"credit_bill_{wkey}", use_container_width=True,
-                         help="Is bill ko Credit Bills mein bhejo"):
-                move_group_to_credit(g)
-                st.rerun()
+            if existing_credit:
+                st.button("💳 Already Credit", key=f"credit_done_{wkey}", use_container_width=True, disabled=True)
+            else:
+                if st.button("💳 Credit", key=f"credit_bill_{wkey}", use_container_width=True,
+                             help="Is bill ka credit copy banao (bill yahan rahega)"):
+                    move_group_to_credit(g)
+                    st.rerun()
         with c5:
             if st.button("🗑 Delete", key=f"del_bill_{wkey}", use_container_width=True):
                 st.session_state["confirm_delete_group"] = g["orig_indices"]
@@ -2339,7 +2369,7 @@ def render_bills_list():
         if is_viewing:
             st.markdown(f"""
             <div class='full-bill-box'>
-                <div class='full-bill-title'>👁️ {shop} — Full Bill View</div>
+                <div class='full-bill-title'>👁️ {shop} — Full Bill View {credit_badge}</div>
                 <div class='full-bill-meta'>
                     📅 {date_str} &nbsp;·&nbsp; 👤 Booker: <b>{booker}</b> &nbsp;·&nbsp; 🧑‍💼 Salesman: <b>{salesman}</b> &nbsp;·&nbsp; 🧾 Bill No: <b>{bill_no}</b>
                 </div>
@@ -2377,10 +2407,13 @@ def render_bills_list():
                     export_single_group_bill(shop, date_str, booker, salesman, items, bill_no)
                     st.rerun()
             with close_c3:
-                if st.button("💳 Send to Credit Bills", key=f"credit_from_view_{wkey}",
-                             use_container_width=True, type="primary"):
-                    move_group_to_credit(g)
-                    st.rerun()
+                if existing_credit:
+                    st.markdown(f"<div class='hint-box' style='margin-top:8px;'>💳 Ye bill already Credit Bills mein hai (Status: <b>{existing_credit.get('status','').upper()}</b>).</div>", unsafe_allow_html=True)
+                else:
+                    if st.button("💳 Send to Credit Bills (bill yahan bhi rahega)", key=f"credit_from_view_{wkey}",
+                                 use_container_width=True, type="primary"):
+                        move_group_to_credit(g)
+                        st.rerun()
 
             st.markdown("---")
 
@@ -2411,7 +2444,7 @@ def render_bills_list():
     show_auto_download()
 
 # ============================================================
-# MOVE BILL GROUP → CREDIT
+# MOVE BILL GROUP → CREDIT (bill list mein bhi rahega)
 # ============================================================
 def move_group_to_credit(group):
     db = st.session_state.database
@@ -2421,7 +2454,13 @@ def move_group_to_credit(group):
     salesman = group.get("salesman", "") or "-"
     bill_no = group.get("bill_no", "")
     items = group.get("items", [])
-    orig_indices = group.get("orig_indices", [])
+
+    # Duplicate check — same shop+date+booker+bill_no already credit mein hai?
+    for cb in db.get("credit_bills", []):
+        if (cb.get("shop") == shop and cb.get("date") == date_str
+                and cb.get("booker") == booker and cb.get("bill_no") == bill_no):
+            st.session_state["error_msg"] = f"⚠️ Ye bill already Credit Bills mein hai (Credit #{cb.get('id')})"
+            return
 
     total_boxes = sum(int(it.get("Boxes", 0)) for it in items)
     total_gross = sum(float(it.get("Gross", 0)) for it in items)
@@ -2450,14 +2489,11 @@ def move_group_to_credit(group):
     db["credit_bills"].append(credit_record)
     db["next_credit_id"] = credit_id + 1
 
-    # Remove those lines from bills
-    idx_set = set(orig_indices)
-    db["bills"] = [b for i, b in enumerate(db["bills"]) if i not in idx_set]
+    # *** IMPORTANT: bills se remove NAHI karte — bill list mein bhi rahega ***
 
     save_database(db)
-    st.session_state["view_bill_key"] = None
     st.session_state["success_msg"] = (
-        f"💳 {shop} | Rs {total_net:,.0f} — Credit Bills mein bhej diya (Pending) | Credit ID #{credit_id}"
+        f"💳 {shop} | Rs {total_net:,.0f} — Credit Bills mein bhi add ho gaya (Pending) | Credit ID #{credit_id}"
     )
 
 # ============================================================
@@ -2534,10 +2570,6 @@ def render_credit_bills():
     </div>
     """, unsafe_allow_html=True)
 
-    # Sort: pending first, then by created_at desc
-    filtered_sorted = sorted(filtered, key=lambda x: (0 if x.get("status") == "pending" else 1,
-                                                       x.get("created_at", "")), reverse=False)
-    # Actually we want pending first but newest first inside each group
     pending_sorted = sorted(pending_list, key=lambda x: x.get("created_at", ""), reverse=True)
     paid_sorted = sorted(paid_list, key=lambda x: x.get("created_at", ""), reverse=True)
     display_list = pending_sorted + paid_sorted
@@ -2636,7 +2668,6 @@ def render_credit_detail(credit):
     is_paid = credit.get("status") == "paid"
 
     box_class = "credit-paid" if is_paid else "credit"
-    title_color = "#2e7d32" if is_paid else "#e65100"
     badge_html = '<span class="badge-paid-credit">✅ PAID</span>' if is_paid else '<span class="badge-pending">⏳ PENDING</span>'
 
     st.markdown(f"""
