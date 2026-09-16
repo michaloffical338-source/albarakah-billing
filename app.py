@@ -3,6 +3,7 @@
 # + Multi-User Login (Signup/Login + Per-User Data)
 # + Custom Products (Add Single / Bulk Upload)
 # + DSR (Daily Sales Report) with Return Boxes & Discounts
+# + Credit Bills (Pending / Paid)
 # ============================================================
 
 import os
@@ -58,7 +59,9 @@ def default_blank_db():
         "product_prices": {}, "petrol_expenses": [], "lunch_expenses": [],
         "discount_packages": default_discount_packages(),
         "custom_products": [],
-        "dsr_forms": []
+        "dsr_forms": [],
+        "credit_bills": [],
+        "next_credit_id": 1
     }
 
 # ============================================================
@@ -298,6 +301,10 @@ st.markdown("""
     .lf-simple-card .lf-boxes small { display: block; font-size: 10px; font-weight: 500; opacity: 0.9; }
     .lf-simple-card.dsr { border-left-color: #e65100; }
     .lf-simple-card.dsr .lf-boxes { background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); }
+    .lf-simple-card.credit-pending { border-left-color: #e65100; }
+    .lf-simple-card.credit-pending .lf-boxes { background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); }
+    .lf-simple-card.credit-paid { border-left-color: #2e7d32; background: #f1f8e9; }
+    .lf-simple-card.credit-paid .lf-boxes { background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%); }
 
     .sal-metric {
         display: inline-block; padding: 8px 14px; margin-right: 8px; margin-bottom: 6px;
@@ -360,10 +367,14 @@ st.markdown("""
         box-shadow: 0 6px 20px rgba(33,150,243,0.25);
     }
     .full-bill-box.dsr { border-color: #f57c00; box-shadow: 0 6px 20px rgba(245,124,0,0.25); }
+    .full-bill-box.credit { border-color: #e65100; box-shadow: 0 6px 20px rgba(230,81,0,0.25); }
+    .full-bill-box.credit-paid { border-color: #2e7d32; box-shadow: 0 6px 20px rgba(46,125,50,0.25); }
     .full-bill-title {
         font-size: 20px; font-weight: 800; color: #1976d2; margin-bottom: 8px;
     }
     .full-bill-box.dsr .full-bill-title { color: #e65100; }
+    .full-bill-box.credit .full-bill-title { color: #e65100; }
+    .full-bill-box.credit-paid .full-bill-title { color: #2e7d32; }
     .full-bill-meta {
         font-size: 13px; color: #0277bd; margin-bottom: 12px;
     }
@@ -374,6 +385,14 @@ st.markdown("""
         font-size: 11px; font-weight: 700; margin-left: 8px;
     }
     .badge-transferred {
+        background: #c8e6c9; color: #1b5e20 !important; padding: 3px 10px;
+        border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px;
+    }
+    .badge-pending {
+        background: #ffe0b2; color: #e65100 !important; padding: 3px 10px;
+        border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px;
+    }
+    .badge-paid-credit {
         background: #c8e6c9; color: #1b5e20 !important; padding: 3px 10px;
         border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px;
     }
@@ -722,7 +741,7 @@ def load_database(username):
             with open(fpath, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 for k in ["bookers", "salesmen", "load_forms", "petrol_expenses",
-                          "lunch_expenses", "custom_products", "dsr_forms"]:
+                          "lunch_expenses", "custom_products", "dsr_forms", "credit_bills"]:
                     if k not in data: data[k] = []
                 for k in ["bookers_salaries", "salesmen_salaries", "product_prices"]:
                     if k not in data: data[k] = {}
@@ -734,6 +753,8 @@ def load_database(username):
                         if "tier3_pct" not in p: p["tier3_pct"] = 0.0
                 if "bills" not in data: data["bills"] = []
                 if "next_bill_no" not in data: data["next_bill_no"] = 1
+                if "next_credit_id" not in data:
+                    data["next_credit_id"] = max([c.get("id", 0) for c in data.get("credit_bills", [])] + [0]) + 1
                 return data
         except Exception:
             pass
@@ -776,10 +797,12 @@ if "view_lf_key" not in st.session_state:
     st.session_state["view_lf_key"] = None
 if "view_dsr_key" not in st.session_state:
     st.session_state["view_dsr_key"] = None
+if "view_credit_key" not in st.session_state:
+    st.session_state["view_credit_key"] = None
 
 db = st.session_state.database
 for k in ["bookers", "salesmen", "load_forms", "petrol_expenses",
-          "lunch_expenses", "custom_products", "dsr_forms"]:
+          "lunch_expenses", "custom_products", "dsr_forms", "credit_bills"]:
     if k not in db: db[k] = []
 for k in ["bookers_salaries", "salesmen_salaries", "product_prices"]:
     if k not in db: db[k] = {}
@@ -788,6 +811,8 @@ if "discount_packages" not in db or not db["discount_packages"]:
 for p in db["discount_packages"]:
     if "tier3_amount" not in p: p["tier3_amount"] = 0.0
     if "tier3_pct" not in p: p["tier3_pct"] = 0.0
+if "next_credit_id" not in db:
+    db["next_credit_id"] = max([c.get("id", 0) for c in db.get("credit_bills", [])] + [0]) + 1
 
 # ============================================================
 # HELPERS
@@ -1028,7 +1053,6 @@ def export_dsr_excel(dsr):
     ws.merge_range(row, 5, row, 6, f"Rs {float(dsr.get('amount_to_collect',0)):,.0f}", highlight)
     row += 2
 
-    # Shop discounts
     ws.merge_range(row, 0, row, 6, "Shop-wise Discount", header); row += 1
     ws.write(row, 0, "Shop", header); ws.write(row, 1, "Gross", header)
     ws.write(row, 2, "Net", header); ws.write(row, 3, "Bill Disc", header)
@@ -1046,6 +1070,72 @@ def export_dsr_excel(dsr):
     fname = f"DSR_{dsr['id']}_{dsr.get('booker','')}.xlsx".replace("/","-").replace(" ","_")
     st.session_state["download_file"] = (fname, output.getvalue())
     st.session_state["success_msg"] = f"✅ DSR #{dsr['id']} Excel ready"
+
+# ============================================================
+# EXPORT CREDIT BILLS EXCEL
+# ============================================================
+def export_credit_bill_excel(credit):
+    output = BytesIO()
+    wb = xlsxwriter.Workbook(output, {'in_memory': True})
+    ws = wb.add_worksheet("Credit Bill")
+
+    is_paid = credit.get("status") == "paid"
+    title_bg = "#C8E6C9" if is_paid else "#FFE0B2"
+
+    title = wb.add_format({"bold":True, "font_size":16, "align":"center", "border":2, "bg_color": title_bg})
+    header = wb.add_format({"bold":True, "font_size":11, "bg_color":"#BBDEFB", "align":"center", "border":2, "text_wrap": True})
+    cell_left = wb.add_format({"font_size":11, "border":1, "align":"left"})
+    cell_center = wb.add_format({"font_size":11, "border":1, "align":"center"})
+    cell_num = wb.add_format({"font_size":11, "border":1, "align":"right", "num_format": "#,##0"})
+    total_fmt = wb.add_format({"bold":True, "font_size":11, "bg_color":"#FFF2CC", "align":"center", "border":2})
+
+    ws.set_column("A:A", 10); ws.set_column("B:B", 40); ws.set_column("C:C", 10)
+    ws.set_column("D:D", 12); ws.set_column("E:E", 12); ws.set_column("F:F", 10); ws.set_column("G:G", 14)
+
+    ws.merge_range("A1:G1", f"{COMPANY_NAME} — Credit Bill #{credit['id']}", title)
+    ws.write("A3", "Shop", header); ws.write("B3", credit.get("shop",""), cell_left)
+    ws.write("C3", "Date", header); ws.write("D3", credit.get("date",""), cell_center)
+    ws.write("E3", "Status", header)
+    ws.write("F3", "PAID ✅" if is_paid else "PENDING ⏳", cell_center)
+    ws.write("A4", "Booker", header); ws.write("B4", credit.get("booker",""), cell_left)
+    ws.write("C4", "Salesman", header); ws.write("D4", credit.get("salesman",""), cell_left)
+    ws.write("E4", "Bill No", header); ws.write("F4", credit.get("bill_no",""), cell_center)
+    if is_paid:
+        ws.write("G4", "Paid At", header); ws.write("H4", credit.get("paid_at",""), cell_center)
+
+    ws.write("A6", "Code", header); ws.write("B6", "Product", header)
+    ws.write("C6", "Boxes", header); ws.write("D6", "TP/Box", header)
+    ws.write("E6", "Gross", header); ws.write("F6", "Disc %", header); ws.write("G6", "Net", header)
+
+    row = 6
+    total_boxes = 0; total_net = 0
+    for it in credit.get("items", []):
+        ws.write(row, 0, str(it.get("Code","")), cell_center)
+        ws.write(row, 1, it.get("Product",""), cell_left)
+        ws.write(row, 2, int(it.get("Boxes",0)), cell_center)
+        ws.write(row, 3, float(it.get("TP/Box",0)), cell_num)
+        ws.write(row, 4, float(it.get("Gross",0)), cell_num)
+        ws.write(row, 5, float(it.get("Discount %",0)), cell_center)
+        ws.write(row, 6, float(it.get("Net",0)), cell_num)
+        total_boxes += int(it.get("Boxes",0))
+        total_net += float(it.get("Net",0))
+        row += 1
+
+    ws.write(row, 2, "TOTAL", total_fmt)
+    ws.write(row, 4, "", total_fmt)
+    ws.write(row, 5, "", total_fmt)
+    ws.write(row, 6, total_net, total_fmt)
+    row += 2
+    ws.merge_range(row, 0, row, 5, "TOTAL CREDIT AMOUNT", header)
+    ws.merge_range(row, 6, row, 6, f"Rs {total_net:,.0f}", total_fmt)
+    row += 1
+    ws.merge_range(row, 0, row, 5, "STATUS", header)
+    ws.merge_range(row, 6, row, 6, "PAID ✅" if is_paid else "PENDING ⏳", total_fmt)
+
+    wb.close(); output.seek(0)
+    fname = f"Credit_{credit['id']}_{credit.get('shop','')}.xlsx".replace("/","-").replace(" ","_")
+    st.session_state["download_file"] = (fname, output.getvalue())
+    st.session_state["success_msg"] = f"✅ Credit Bill #{credit['id']} Excel ready"
 
 # ============================================================
 # SIDEBAR
@@ -1074,7 +1164,8 @@ with st.sidebar:
             "👤 Bookers", "💰 Bookers Salary",
             "🧑‍💼 Salesmen", "💰 Salesmen Salary",
             "💵 Daily Expense",
-            "📋 Bills List", "📦 Load Form", "📋 DSR",
+            "📋 Bills List", "💳 Credit Bills",
+            "📦 Load Form", "📋 DSR",
         ],
         key="page_selector",
         label_visibility="collapsed"
@@ -1085,6 +1176,8 @@ with st.sidebar:
     active_pkgs = get_all_active_packages()
     all_prod_count = len(get_all_products())
     custom_prod_count = len(db.get("custom_products", []))
+    pending_credit = sum(1 for c in db.get("credit_bills", []) if c.get("status") == "pending")
+    pending_amt = sum(float(c.get("total_net", 0)) for c in db.get("credit_bills", []) if c.get("status") == "pending")
     st.markdown(f"""
     <div style='padding:6px 10px; color:#0277bd !important; font-size:12px;'>
         <p>📅 {datetime.now().strftime('%d-%m-%Y')}</p>
@@ -1095,6 +1188,7 @@ with st.sidebar:
         <p>🧾 Total Bills: {len(db['bills'])}</p>
         <p>📦 Load Forms: {len(db.get('load_forms', []))}</p>
         <p>📋 DSR Forms: {len(db.get('dsr_forms', []))}</p>
+        <p>💳 Credit Pending: <b style="color:#e65100;">{pending_credit}</b> (Rs {pending_amt:,.0f})</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -1126,6 +1220,22 @@ def render_dashboard():
         st.markdown(f"<div class='metric-card'><h3>TOTAL SALESMEN</h3><h1>{len(salesmen)}</h1></div>", unsafe_allow_html=True)
     with c3:
         st.markdown(f"<div class='metric-card'><h3>TOTAL PRODUCTS</h3><h1>{total_products}</h1></div>", unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Credit summary cards
+    pending_credits = [c for c in db.get("credit_bills", []) if c.get("status") == "pending"]
+    paid_credits = [c for c in db.get("credit_bills", []) if c.get("status") == "paid"]
+    pending_amt = sum(float(c.get("total_net", 0)) for c in pending_credits)
+    paid_amt = sum(float(c.get("total_net", 0)) for c in paid_credits)
+
+    cc1, cc2, cc3 = st.columns(3)
+    with cc1:
+        st.markdown(f"<div class='metric-card'><h3>⏳ PENDING CREDIT</h3><h1>{len(pending_credits)}</h1><p style='color:#e65100;font-weight:700;'>Rs {pending_amt:,.0f}</p></div>", unsafe_allow_html=True)
+    with cc2:
+        st.markdown(f"<div class='metric-card'><h3>✅ PAID CREDIT</h3><h1>{len(paid_credits)}</h1><p style='color:#1b5e20;font-weight:700;'>Rs {paid_amt:,.0f}</p></div>", unsafe_allow_html=True)
+    with cc3:
+        st.markdown(f"<div class='metric-card'><h3>🧾 TOTAL BILLS</h3><h1>{len(db['bills'])}</h1></div>", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
     c1, c2 = st.columns(2)
@@ -2079,11 +2189,11 @@ def render_billing():
     show_auto_download()
 
 # ============================================================
-# PAGE: BILLS LIST
+# PAGE: BILLS LIST (with Credit option)
 # ============================================================
 def render_bills_list():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📋 Bills List</h1>", unsafe_allow_html=True)
-    st.markdown(f"<p style='color:#0277bd;font-weight:500;'>Saved bills — 👁️ Eye button se poora bill dekho</p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color:#0277bd;font-weight:500;'>Saved bills — 👁️ Eye = dekho | ⬇️ Excel | 💳 Credit = Credit list mein bhejo</p>", unsafe_allow_html=True)
     st.markdown("---")
 
     if len(db["bills"]) == 0:
@@ -2174,7 +2284,7 @@ def render_bills_list():
     """, unsafe_allow_html=True)
 
     st.markdown(f"### 📋 Bills ({len(groups)})")
-    st.caption("👇 👁️ = Poora bill dekho | ⬇️ = Excel download | 🗑 = Delete")
+    st.caption("👇 👁️ = Poora bill dekho | ⬇️ = Excel | 💳 = Credit Bill banao | 🗑 = Delete")
 
     sorted_keys = sorted(groups.keys(), key=lambda k: (parse_date(k[1]) or date.min, k[0]), reverse=True)
 
@@ -2192,7 +2302,7 @@ def render_bills_list():
         wkey = f"{shop}_{date_str}_{booker}_{bill_no}_{idx}".replace(" ","_").replace("/","_").replace(":","")
         is_viewing = st.session_state.get("view_bill_key") == wkey
 
-        c1, c2, c3, c4 = st.columns([4, 0.7, 1, 1])
+        c1, c2, c3, c4, c5 = st.columns([3.5, 0.6, 1, 1.1, 1])
         with c1:
             st.markdown(f"""
             <div class='lf-simple-card'>
@@ -2217,6 +2327,11 @@ def render_bills_list():
                 export_single_group_bill(shop, date_str, booker, salesman, items, bill_no)
                 st.rerun()
         with c4:
+            if st.button("💳 Credit", key=f"credit_bill_{wkey}", use_container_width=True,
+                         help="Is bill ko Credit Bills mein bhejo"):
+                move_group_to_credit(g)
+                st.rerun()
+        with c5:
             if st.button("🗑 Delete", key=f"del_bill_{wkey}", use_container_width=True):
                 st.session_state["confirm_delete_group"] = g["orig_indices"]
                 st.session_state["_confirm_group_label"] = f"{shop} | {date_str} | {booker}"
@@ -2252,14 +2367,19 @@ def render_bills_list():
             if pkg_pct_preview > 0:
                 st.markdown(f"<div class='hint-box'>🎁 Package: <b>{pkg_name_preview}</b> | {pkg_pct_preview}% discount | Saved: <b>Rs {saved:,.0f}</b></div>", unsafe_allow_html=True)
 
-            close_c1, close_c2 = st.columns([1, 4])
+            close_c1, close_c2, close_c3 = st.columns([1, 1, 3])
             with close_c1:
                 if st.button("❌ Close View", key=f"close_view_bill_{wkey}", use_container_width=True):
                     st.session_state["view_bill_key"] = None
                     st.rerun()
             with close_c2:
-                if st.button("⬇️ Download Excel", key=f"dl_from_view_{wkey}", use_container_width=True, type="primary"):
+                if st.button("⬇️ Excel", key=f"dl_from_view_{wkey}", use_container_width=True, type="primary"):
                     export_single_group_bill(shop, date_str, booker, salesman, items, bill_no)
+                    st.rerun()
+            with close_c3:
+                if st.button("💳 Send to Credit Bills", key=f"credit_from_view_{wkey}",
+                             use_container_width=True, type="primary"):
+                    move_group_to_credit(g)
                     st.rerun()
 
             st.markdown("---")
@@ -2291,7 +2411,292 @@ def render_bills_list():
     show_auto_download()
 
 # ============================================================
-# PAGE: LOAD FORM  (with Transfer to DSR)
+# MOVE BILL GROUP → CREDIT
+# ============================================================
+def move_group_to_credit(group):
+    db = st.session_state.database
+    shop = group.get("shop", "") or "-"
+    date_str = group.get("date", "") or "-"
+    booker = group.get("booker", "") or "-"
+    salesman = group.get("salesman", "") or "-"
+    bill_no = group.get("bill_no", "")
+    items = group.get("items", [])
+    orig_indices = group.get("orig_indices", [])
+
+    total_boxes = sum(int(it.get("Boxes", 0)) for it in items)
+    total_gross = sum(float(it.get("Gross", 0)) for it in items)
+    total_net = sum(float(it.get("Net", 0)) for it in items)
+
+    if "credit_bills" not in db: db["credit_bills"] = []
+    if "next_credit_id" not in db:
+        db["next_credit_id"] = max([c.get("id", 0) for c in db["credit_bills"]] + [0]) + 1
+    credit_id = db["next_credit_id"]
+
+    credit_record = {
+        "id": credit_id,
+        "shop": shop,
+        "date": date_str,
+        "booker": booker,
+        "salesman": salesman,
+        "bill_no": bill_no,
+        "items": [dict(it) for it in items],
+        "total_boxes": total_boxes,
+        "total_gross": total_gross,
+        "total_net": total_net,
+        "status": "pending",
+        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "paid_at": None,
+    }
+    db["credit_bills"].append(credit_record)
+    db["next_credit_id"] = credit_id + 1
+
+    # Remove those lines from bills
+    idx_set = set(orig_indices)
+    db["bills"] = [b for i, b in enumerate(db["bills"]) if i not in idx_set]
+
+    save_database(db)
+    st.session_state["view_bill_key"] = None
+    st.session_state["success_msg"] = (
+        f"💳 {shop} | Rs {total_net:,.0f} — Credit Bills mein bhej diya (Pending) | Credit ID #{credit_id}"
+    )
+
+# ============================================================
+# PAGE: CREDIT BILLS
+# ============================================================
+def render_credit_bills():
+    st.markdown(f"<h1 style='color:#1976d2 !important;'>💳 Credit Bills</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#0277bd;font-weight:500;'>Bills List se Credit mein bheje gaye bills — Pending / Paid manage karo</p>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    credit_bills = db.get("credit_bills", [])
+    if not credit_bills:
+        st.info("❌ Abhi tak koi credit bill nahi. '📋 Bills List' page pe jao aur kisi bill pe 💳 Credit button dabao.")
+        return
+
+    today = date.today()
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        filter_mode = st.selectbox("Filter Mode:",
+            ["📋 All Credit Bills", "📅 Aaj (Today)", "📆 Custom Date Range", "🗓️ Specific Date"],
+            key="credit_filter_mode")
+    with c2: from_date = st.date_input("From Date:", value=today - timedelta(days=30), key="credit_from_date")
+    with c3: to_date = st.date_input("To Date:", value=today, key="credit_to_date")
+
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        status_filter = st.selectbox("Status:", ["All", "⏳ Pending Only", "✅ Paid Only"], key="credit_status_filter")
+    with c2:
+        shops_list = sorted(set(c.get("shop", "") for c in credit_bills if c.get("shop")))
+        shop_filter = st.selectbox("Shop:", ["All"] + shops_list, key="credit_shop_filter")
+    with c3:
+        search = st.text_input("🔍 Search (Shop / Booker / Bill No):", key="credit_search")
+
+    filtered = []
+    for c in credit_bills:
+        cdate = parse_date(c.get("date", ""))
+        if filter_mode == "📅 Aaj (Today)":
+            if cdate != today: continue
+        elif filter_mode == "🗓️ Specific Date":
+            if cdate != from_date: continue
+        elif filter_mode == "📆 Custom Date Range":
+            if cdate is None or not (from_date <= cdate <= to_date): continue
+
+        if status_filter == "⏳ Pending Only" and c.get("status") != "pending": continue
+        if status_filter == "✅ Paid Only" and c.get("status") != "paid": continue
+
+        if shop_filter != "All" and c.get("shop", "") != shop_filter: continue
+
+        if search:
+            s = search.upper()
+            if not (s in str(c.get("shop", "")).upper() or
+                    s in str(c.get("booker", "")).upper() or
+                    s in str(c.get("bill_no", "")).upper()):
+                continue
+        filtered.append(c)
+
+    if not filtered:
+        st.warning("❌ Is filter ke hisaab se koi credit bill nahi mila.")
+        return
+
+    pending_list = [c for c in filtered if c.get("status") == "pending"]
+    paid_list = [c for c in filtered if c.get("status") == "paid"]
+    pending_amt = sum(float(c.get("total_net", 0)) for c in pending_list)
+    paid_amt = sum(float(c.get("total_net", 0)) for c in paid_list)
+
+    st.markdown(f"""
+    <div class='summary-box'>
+        <b style='color:#1976d2;font-size:16px;'>📊 Summary</b><br>
+        <span style='color:#0277bd;'>
+            Total: <b>{len(filtered)}</b> &nbsp;|&nbsp;
+            ⏳ Pending: <b style="color:#e65100;">{len(pending_list)}</b> (Rs {pending_amt:,.0f}) &nbsp;|&nbsp;
+            ✅ Paid: <b style="color:#1b5e20;">{len(paid_list)}</b> (Rs {paid_amt:,.0f})
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Sort: pending first, then by created_at desc
+    filtered_sorted = sorted(filtered, key=lambda x: (0 if x.get("status") == "pending" else 1,
+                                                       x.get("created_at", "")), reverse=False)
+    # Actually we want pending first but newest first inside each group
+    pending_sorted = sorted(pending_list, key=lambda x: x.get("created_at", ""), reverse=True)
+    paid_sorted = sorted(paid_list, key=lambda x: x.get("created_at", ""), reverse=True)
+    display_list = pending_sorted + paid_sorted
+
+    st.markdown("---")
+    st.markdown(f"### 💳 Credit Bills ({len(display_list)})")
+    st.caption("👇 👁️ = Poora bill dekho | ✅ Mark Paid = Paid mark karo | 📤 Excel | 🗑 = Delete")
+
+    for idx, c in enumerate(display_list):
+        cid = c.get("id", idx)
+        shop = c.get("shop", "-")
+        date_str = c.get("date", "-")
+        booker = c.get("booker", "-")
+        salesman = c.get("salesman", "-")
+        bill_no = c.get("bill_no", "")
+        total_b = c.get("total_boxes", 0)
+        total_n = float(c.get("total_net", 0))
+        status = c.get("status", "pending")
+        is_paid = status == "paid"
+        paid_at = c.get("paid_at", "")
+
+        wkey = f"credit_{cid}_{idx}"
+        is_viewing = st.session_state.get("view_credit_key") == wkey
+
+        card_class = "lf-simple-card credit-paid" if is_paid else "lf-simple-card credit-pending"
+        badge = '<span class="badge-paid-credit">✅ PAID</span>' if is_paid else '<span class="badge-pending">⏳ PENDING</span>'
+        paid_line = f" &nbsp;·&nbsp; ✅ Paid At: {paid_at}" if is_paid and paid_at else ""
+
+        c1, c2, c3, c4, c5 = st.columns([3.5, 0.6, 1.1, 1.1, 0.9])
+        with c1:
+            st.markdown(f"""
+            <div class='{card_class}'>
+                <div class='lf-info'>
+                    <div class='lf-line1'>🏪 {shop} {badge}</div>
+                    <div class='lf-line2'>📅 {date_str} &nbsp;·&nbsp; 👤 {booker} &nbsp;·&nbsp; 🧑‍💼 {salesman} &nbsp;·&nbsp; 🧾 Bill: {bill_no} &nbsp;·&nbsp; 💰 Rs {total_n:,.0f}{paid_line}</div>
+                </div>
+                <div class='lf-boxes'>{total_b}<small>BOXES</small></div>
+            </div>
+            """, unsafe_allow_html=True)
+        with c2:
+            eye_icon = "🔽" if is_viewing else "👁️"
+            if st.button(eye_icon, key=f"eye_credit_{wkey}", use_container_width=True,
+                         help="Poora credit bill dekho"):
+                if is_viewing:
+                    st.session_state["view_credit_key"] = None
+                else:
+                    st.session_state["view_credit_key"] = wkey
+                st.rerun()
+        with c3:
+            if is_paid:
+                if st.button("↩️ Pending", key=f"unpay_{wkey}", use_container_width=True,
+                             help="Wapas Pending karo"):
+                    for cc in db["credit_bills"]:
+                        if cc.get("id") == cid:
+                            cc["status"] = "pending"
+                            cc["paid_at"] = None
+                            break
+                    save_database(db)
+                    st.session_state["success_msg"] = f"↩️ Credit #{cid} wapas Pending"
+                    st.rerun()
+            else:
+                if st.button("✅ Mark Paid", key=f"pay_{wkey}", use_container_width=True,
+                             type="primary", help="Is bill ko Paid mark karo"):
+                    for cc in db["credit_bills"]:
+                        if cc.get("id") == cid:
+                            cc["status"] = "paid"
+                            cc["paid_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            break
+                    save_database(db)
+                    st.session_state["success_msg"] = f"✅ Credit #{cid} PAID mark ho gaya | Rs {total_n:,.0f}"
+                    st.rerun()
+        with c4:
+            if st.button("📤 Excel", key=f"exp_credit_{wkey}", use_container_width=True):
+                export_credit_bill_excel(c)
+                st.rerun()
+        with c5:
+            if st.button("🗑", key=f"del_credit_{wkey}", use_container_width=True,
+                         help="Credit bill delete karo"):
+                db["credit_bills"] = [x for x in db["credit_bills"] if x.get("id") != cid]
+                save_database(db)
+                st.session_state["success_msg"] = f"🗑 Credit #{cid} deleted"
+                st.session_state["view_credit_key"] = None
+                st.rerun()
+
+        if is_viewing:
+            render_credit_detail(c)
+            st.markdown("---")
+
+    if st.session_state.get("success_msg"):
+        st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
+
+    show_auto_download()
+
+def render_credit_detail(credit):
+    cid = credit["id"]
+    is_paid = credit.get("status") == "paid"
+
+    box_class = "credit-paid" if is_paid else "credit"
+    title_color = "#2e7d32" if is_paid else "#e65100"
+    badge_html = '<span class="badge-paid-credit">✅ PAID</span>' if is_paid else '<span class="badge-pending">⏳ PENDING</span>'
+
+    st.markdown(f"""
+    <div class='full-bill-box {box_class}'>
+        <div class='full-bill-title'>💳 Credit Bill #{cid} — {credit.get('shop','')} {badge_html}</div>
+        <div class='full-bill-meta'>
+            📅 {credit.get('date','')} &nbsp;·&nbsp; 👤 Booker: <b>{credit.get('booker','')}</b>
+            &nbsp;·&nbsp; 🧑‍💼 Salesman: <b>{credit.get('salesman','')}</b>
+            &nbsp;·&nbsp; 🧾 Bill No: <b>{credit.get('bill_no','')}</b>
+            {("&nbsp;·&nbsp; ✅ Paid At: <b>" + credit.get('paid_at','') + "</b>") if is_paid and credit.get('paid_at') else ""}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    items = credit.get("items", [])
+    if items:
+        df = pd.DataFrame(items)
+        st.dataframe(df, use_container_width=True, hide_index=True)
+
+    cc1, cc2, cc3 = st.columns(3)
+    with cc1:
+        st.markdown(f"<div class='metric-card'><h3>TOTAL BOXES</h3><h1>{credit.get('total_boxes',0)}</h1></div>", unsafe_allow_html=True)
+    with cc2:
+        st.markdown(f"<div class='metric-card'><h3>GROSS</h3><h1>Rs {float(credit.get('total_gross',0)):,.0f}</h1></div>", unsafe_allow_html=True)
+    with cc3:
+        st.markdown(f"<div class='metric-card'><h3>NET (LENA HAI)</h3><h1>Rs {float(credit.get('total_net',0)):,.0f}</h1></div>", unsafe_allow_html=True)
+
+    ac1, ac2, ac3 = st.columns([1, 1, 2])
+    with ac1:
+        if st.button("❌ Close View", key=f"close_credit_view_{cid}", use_container_width=True):
+            st.session_state["view_credit_key"] = None
+            st.rerun()
+    with ac2:
+        if st.button("📤 Download Excel", key=f"dl_credit_view_{cid}", use_container_width=True, type="primary"):
+            export_credit_bill_excel(credit)
+            st.rerun()
+    with ac3:
+        if is_paid:
+            if st.button("↩️ Wapas Pending Karo", key=f"unpay_view_{cid}", use_container_width=True):
+                for cc in db["credit_bills"]:
+                    if cc.get("id") == cid:
+                        cc["status"] = "pending"
+                        cc["paid_at"] = None
+                        break
+                save_database(db)
+                st.session_state["success_msg"] = f"↩️ Credit #{cid} Pending"
+                st.rerun()
+        else:
+            if st.button("✅ Mark as Paid", key=f"pay_view_{cid}", use_container_width=True, type="primary"):
+                for cc in db["credit_bills"]:
+                    if cc.get("id") == cid:
+                        cc["status"] = "paid"
+                        cc["paid_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        break
+                save_database(db)
+                st.session_state["success_msg"] = f"✅ Credit #{cid} PAID"
+                st.rerun()
+
+# ============================================================
+# PAGE: LOAD FORM
 # ============================================================
 def render_load_form():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📦 Load Forms</h1>", unsafe_allow_html=True)
@@ -2391,7 +2796,6 @@ def render_load_form():
         wkey = f"lf_{lf_id}_{idx}"
         is_viewing = st.session_state.get("view_lf_key") == wkey
 
-        # Card
         badge_html = ""
         if is_transferred:
             badge_html = f'<span class="badge-transferred">✅ DSR #{dsr_id}</span>'
@@ -2602,7 +3006,7 @@ def transfer_load_form_to_dsr(lf_id):
     st.session_state["success_msg"] = f"✅ Load Form #{lf_id} → DSR #{next_id} transfer ho gaya | Stock: Rs {total_amount:,.0f} | To Collect: Rs {dsr_record['amount_to_collect']:,.0f}"
 
 # ============================================================
-# PAGE: DSR (Daily Sales Report)
+# PAGE: DSR
 # ============================================================
 def render_dsr():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📋 DSR — Daily Sales Report</h1>", unsafe_allow_html=True)
@@ -2709,7 +3113,6 @@ def render_dsr():
         with c4:
             if st.button("🗑 Delete", key=f"del_dsr_{wkey}", use_container_width=True):
                 db["dsr_forms"] = [x for x in db["dsr_forms"] if x.get("id") != dsr_id]
-                # Optionally un-mark the load form
                 for x in db.get("load_forms", []):
                     if x.get("dsr_id") == dsr_id:
                         x["transferred_to_dsr"] = False
@@ -2754,7 +3157,6 @@ def render_dsr_detail(dsr):
     with cc4:
         st.markdown(f"<div class='metric-card'><h3>YE LENA HAI</h3><h1>Rs {float(dsr.get('amount_to_collect',0)):,.0f}</h1></div>", unsafe_allow_html=True)
 
-    # ============ ITEMS + RETURN BOXES INPUT ============
     st.markdown("### 📦 Items — Return Boxes Daalo")
     st.caption("👇 'Return' column mein return boxes daal ke 'Save Returns' button dabao")
 
@@ -2768,6 +3170,7 @@ def render_dsr_detail(dsr):
     } for it in dsr.get("items", [])])
 
     editor_key = f"dsr_editor_{dsr_id}"
+    edited = None
     try:
         edited = st.data_editor(
             df,
@@ -2784,13 +3187,11 @@ def render_dsr_detail(dsr):
             key=editor_key
         )
     except Exception:
-        # Fallback for older streamlit versions — plain dataframe + manual number inputs
         st.dataframe(df, use_container_width=True, hide_index=True)
-        edited = None
         st.warning("⚠️ Aapka Streamlit version purana hai. Neeche se return boxes manually daalo:")
         for j, it in enumerate(dsr.get("items", [])):
             key = f"fallback_return_{dsr_id}_{j}"
-            val = st.number_input(
+            _ = st.number_input(
                 f"Return: {it.get('Product','')} (max {it.get('Boxes',0)})",
                 min_value=0, max_value=int(it.get("Boxes", 0)),
                 value=int(it.get("ReturnBoxes", 0)),
@@ -2856,7 +3257,6 @@ def render_dsr_detail(dsr):
         </div>
         """, unsafe_allow_html=True)
 
-    # ============ SHOP DISCOUNTS ============
     st.markdown("### 🏪 Shop-wise Discount (kis shop ko kitna discount diya)")
     shop_discs = dsr.get("shop_discounts", [])
     if not shop_discs:
@@ -2879,7 +3279,6 @@ def render_dsr_detail(dsr):
         </div>
         """, unsafe_allow_html=True)
 
-    # ============ FINAL CALCULATION ============
     st.markdown("### 🧮 Final Calculation")
     st.markdown(f"""
     <div class='summary-box'>
@@ -2906,7 +3305,6 @@ def render_dsr_detail(dsr):
     </div>
     """, unsafe_allow_html=True)
 
-    # ============ ACTION BUTTONS ============
     st.markdown("---")
     ac1, ac2 = st.columns([1, 1])
     with ac1:
@@ -3196,6 +3594,8 @@ elif st.session_state["page"] == "💵 Daily Expense":
     render_daily_expense()
 elif st.session_state["page"] == "📋 Bills List":
     render_bills_list()
+elif st.session_state["page"] == "💳 Credit Bills":
+    render_credit_bills()
 elif st.session_state["page"] == "📦 Load Form":
     render_load_form()
 elif st.session_state["page"] == "📋 DSR":
