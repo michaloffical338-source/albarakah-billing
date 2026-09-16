@@ -6,6 +6,7 @@
 # + Credit Bills (Pending / Paid) — bill stays in Bills List
 # + Wholesaler Rule: shop name mein "whole seller" ho to 6% discount
 # + Professional Dark Sidebar
+# + Professional Dashboard
 # ============================================================
 
 import os
@@ -451,13 +452,11 @@ st.markdown("""
     section[data-testid="stSidebar"] > div:first-child { padding-top: 0 !important; }
     section[data-testid="stSidebar"] .block-container { padding: 0 !important; }
 
-    /* Sidebar scrollbar */
     section[data-testid="stSidebar"] ::-webkit-scrollbar { width: 6px; }
     section[data-testid="stSidebar"] ::-webkit-scrollbar-thumb {
         background: rgba(59,130,246,0.35); border-radius: 3px;
     }
 
-    /* Brand header */
     .sb-brand {
         text-align: center;
         padding: 22px 16px 18px;
@@ -509,7 +508,6 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* User card */
     .sb-user {
         display: flex;
         align-items: center;
@@ -562,7 +560,6 @@ st.markdown("""
         white-space: nowrap;
     }
 
-    /* Menu label */
     .sb-section-label {
         font-size: 9px;
         color: #475569 !important;
@@ -572,7 +569,6 @@ st.markdown("""
         text-transform: uppercase;
     }
 
-    /* Radio group = menu */
     section[data-testid="stSidebar"] div[role="radiogroup"] {
         gap: 2px !important;
         padding: 0 10px 8px !important;
@@ -607,14 +603,12 @@ st.markdown("""
     section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover p {
         color: #ffffff !important;
     }
-    /* Hide the radio circle */
     section[data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child {
         display: none !important;
     }
     section[data-testid="stSidebar"] div[role="radiogroup"] > label > div[data-testid="stMarkdownContainer"] {
         width: 100% !important;
     }
-    /* Active state */
     section[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) {
         background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
         border-color: #3b82f6 !important;
@@ -626,24 +620,19 @@ st.markdown("""
         color: #ffffff !important;
         font-weight: 700 !important;
     }
-    /* fallback active state (older browsers) */
     section[data-testid="stSidebar"] div[role="radiogroup"] > label[data-checked="true"] {
         background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
         border-color: #3b82f6 !important;
         box-shadow: 0 6px 18px rgba(59,130,246,0.45) !important;
     }
 
-    /* Sidebar divider */
     section[data-testid="stSidebar"] hr {
         border-color: rgba(255,255,255,0.06) !important;
         margin: 10px 14px !important;
         opacity: 1 !important;
     }
 
-    /* Stats block */
-    .sb-stats {
-        padding: 4px 14px 12px;
-    }
+    .sb-stats { padding: 4px 14px 12px; }
     .sb-stats-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -686,7 +675,6 @@ st.markdown("""
     .sb-stat-card.good .sb-stat-value { color: #4ade80 !important; }
     .sb-stat-card.blue .sb-stat-value { color: #60a5fa !important; }
 
-    /* Date line */
     .sb-date {
         text-align: center;
         padding: 10px 14px 6px;
@@ -697,7 +685,6 @@ st.markdown("""
         text-transform: uppercase;
     }
 
-    /* Logout button - make it red & clean */
     section[data-testid="stSidebar"] .stButton > button {
         background: linear-gradient(135deg, rgba(239,68,68,0.18) 0%, rgba(220,38,38,0.12) 100%) !important;
         border: 1px solid rgba(239,68,68,0.35) !important;
@@ -718,6 +705,203 @@ st.markdown("""
     section[data-testid="stSidebar"] .stButton > button span,
     section[data-testid="stSidebar"] .stButton > button div {
         color: inherit !important;
+    }
+
+    /* ============================================================
+       PROFESSIONAL DASHBOARD
+       ============================================================ */
+    .dash-hero {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%);
+        border-radius: 20px;
+        padding: 26px 32px;
+        margin-bottom: 22px;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 12px 32px rgba(37, 99, 235, 0.35);
+    }
+    .dash-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%; right: -10%;
+        width: 420px; height: 420px;
+        background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    .dash-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -80%; left: -10%;
+        width: 320px; height: 320px;
+        background: radial-gradient(circle, rgba(255,255,255,0.10) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    .dash-hero-content {
+        position: relative; z-index: 2;
+        display: flex; justify-content: space-between; align-items: center;
+        gap: 24px; flex-wrap: wrap;
+    }
+    .dash-hero-left { display: flex; flex-direction: column; gap: 6px; }
+    .dash-hero-welcome {
+        font-size: 11px; font-weight: 800; letter-spacing: 2.5px;
+        text-transform: uppercase; color: rgba(255,255,255,0.75) !important;
+    }
+    .dash-hero-title {
+        font-size: 28px; font-weight: 800; margin: 0;
+        color: #fff !important; letter-spacing: -0.6px;
+    }
+    .dash-hero-sub {
+        font-size: 13px; color: rgba(255,255,255,0.9) !important; font-weight: 500;
+    }
+    .dash-hero-right { display: flex; gap: 22px; align-items: center; }
+    .dash-hero-stat { text-align: right; }
+    .dash-hero-stat-label {
+        font-size: 10px; text-transform: uppercase; letter-spacing: 1.6px;
+        color: rgba(255,255,255,0.7) !important; font-weight: 700;
+    }
+    .dash-hero-stat-val {
+        font-size: 24px; font-weight: 800; color: #fff !important; line-height: 1.1;
+    }
+
+    .dash-section-title {
+        display: flex; align-items: center; gap: 10px;
+        font-size: 15px; font-weight: 800;
+        color: #1e3a8a !important;
+        margin: 10px 0 14px 0;
+        letter-spacing: 0.3px;
+    }
+    .dash-section-title::before {
+        content: ''; display: inline-block;
+        width: 4px; height: 18px;
+        background: linear-gradient(180deg, #2563eb 0%, #3b82f6 100%);
+        border-radius: 3px;
+    }
+
+    .kpi-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 20px 22px;
+        border: 1px solid rgba(37,99,235,0.12);
+        box-shadow: 0 4px 16px rgba(37,99,235,0.08);
+        display: flex; flex-direction: column; gap: 12px;
+        transition: all 0.2s ease;
+        position: relative; overflow: hidden;
+        height: 100%;
+    }
+    .kpi-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 28px rgba(37,99,235,0.18);
+        border-color: rgba(37,99,235,0.30);
+    }
+    .kpi-card::after {
+        content: ''; position: absolute; top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%);
+        opacity: 0; transition: opacity 0.2s ease;
+    }
+    .kpi-card:hover::after { opacity: 1; }
+
+    .kpi-top { display: flex; align-items: center; justify-content: space-between; }
+    .kpi-icon {
+        width: 44px; height: 44px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px;
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        color: #1e40af !important;
+        box-shadow: 0 3px 8px rgba(37,99,235,0.15);
+    }
+    .kpi-icon.green { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color: #065f46 !important; }
+    .kpi-icon.orange { background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%); color: #9a3412 !important; }
+    .kpi-icon.purple { background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%); color: #6b21a8 !important; }
+    .kpi-icon.teal { background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%); color: #115e59 !important; }
+    .kpi-icon.red { background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%); color: #991b1b !important; }
+
+    .kpi-label {
+        font-size: 10.5px; font-weight: 800;
+        color: #64748b !important;
+        text-transform: uppercase; letter-spacing: 1.2px;
+    }
+    .kpi-value {
+        font-size: 32px; font-weight: 800;
+        color: #0f172a !important;
+        line-height: 1; letter-spacing: -1.2px;
+    }
+    .kpi-sub {
+        font-size: 11.5px; color: #64748b !important; font-weight: 600;
+    }
+    .kpi-sub.blue { color: #2563eb !important; }
+    .kpi-sub.green { color: #059669 !important; }
+    .kpi-sub.orange { color: #ea580c !important; }
+    .kpi-sub.red { color: #dc2626 !important; }
+
+    .kpi-value-group { display: flex; align-items: baseline; gap: 6px; }
+    .kpi-value-unit {
+        font-size: 12px; color: #94a3b8 !important; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    .team-card {
+        background: #ffffff;
+        border-radius: 14px;
+        padding: 14px 18px;
+        border: 1px solid rgba(37,99,235,0.10);
+        box-shadow: 0 2px 10px rgba(37,99,235,0.06);
+        display: flex; align-items: center; gap: 14px;
+        margin-bottom: 10px;
+        transition: all 0.18s ease;
+    }
+    .team-card:hover {
+        transform: translateX(3px);
+        box-shadow: 0 8px 22px rgba(37,99,235,0.15);
+        border-color: rgba(37,99,235,0.28);
+    }
+    .team-avatar {
+        width: 46px; height: 46px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 800; font-size: 17px; color: #fff !important;
+        flex-shrink: 0; text-transform: uppercase;
+        box-shadow: 0 4px 10px rgba(37,99,235,0.3);
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    }
+    .team-avatar.booker { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
+    .team-avatar.salesman {
+        background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+        box-shadow: 0 4px 10px rgba(139,92,246,0.3);
+    }
+    .team-info { flex: 1; min-width: 0; }
+    .team-name {
+        font-size: 14.5px; font-weight: 700; color: #0f172a !important;
+        margin-bottom: 3px;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .team-meta { font-size: 11.5px; color: #64748b !important; font-weight: 500; }
+    .team-meta b { color: #2563eb !important; font-weight: 700; }
+    .team-meta.warn b { color: #ea580c !important; }
+    .team-meta.good b { color: #059669 !important; }
+
+    .team-badge {
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        color: #1e40af !important;
+        font-size: 10px; font-weight: 800;
+        padding: 5px 10px; border-radius: 8px;
+        letter-spacing: 0.8px;
+        border: 1px solid rgba(37,99,235,0.15);
+        flex-shrink: 0;
+    }
+    .team-badge.orange {
+        background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+        color: #9a3412 !important;
+        border-color: rgba(234,88,12,0.2);
+    }
+
+    .empty-team {
+        background: #ffffff;
+        border: 2px dashed rgba(37,99,235,0.25);
+        border-radius: 14px;
+        padding: 28px;
+        text-align: center;
+        color: #64748b !important;
+        font-size: 13px; font-weight: 600;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -1110,7 +1294,6 @@ def is_wholesaler(shop_name):
         return False
     s = str(shop_name).lower()
     s_compact = "".join(ch for ch in s if ch.isalnum())
-    # Common spellings
     for token in ["wholeseller", "wholesaler", "wholseller", "wholsaler",
                   "whole seller", "whole saler", "holeseller", "holesaler"]:
         if token.replace(" ", "") in s_compact:
@@ -1456,7 +1639,6 @@ with st.sidebar:
     display_name = st.session_state.get("display_name", CURRENT_USER)
     avatar_letter = (display_name[0] if display_name else "A").upper()
 
-    # ---- Brand Header ----
     st.markdown(f"""
     <div class="sb-brand">
         <div class="sb-brand-logo">🧾</div>
@@ -1466,7 +1648,6 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    # ---- User Card ----
     st.markdown(f"""
     <div class="sb-user">
         <div class="sb-user-avatar">{avatar_letter}</div>
@@ -1477,10 +1658,8 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    # ---- Menu Label ----
     st.markdown('<div class="sb-section-label">Main Menu</div>', unsafe_allow_html=True)
 
-    # ---- Menu (radio) ----
     page = st.radio(
         "MENU",
         [
@@ -1497,12 +1676,10 @@ with st.sidebar:
     )
     st.session_state["page"] = page
 
-    # ---- Date ----
     st.markdown(f"""
     <div class="sb-date">📅 {datetime.now().strftime('%A, %d %b %Y')}</div>
     """, unsafe_allow_html=True)
 
-    # ---- Stats Block ----
     active_pkgs = get_all_active_packages()
     all_prod_count = len(get_all_products())
     custom_prod_count = len(db.get("custom_products", []))
@@ -1560,7 +1737,6 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    # ---- Logout ----
     if st.button("🚪  Logout", key="btn_logout", use_container_width=True):
         st.session_state["logged_in_user"] = None
         st.session_state["display_name"] = None
@@ -1570,84 +1746,251 @@ with st.sidebar:
         st.rerun()
 
 # ============================================================
-# PAGE: DASHBOARD
+# PAGE: DASHBOARD (Professional Redesign)
 # ============================================================
 def render_dashboard():
-    st.markdown(f"<h1 style='color:#1976d2 !important;'>📊 Dashboard</h1>", unsafe_allow_html=True)
-    st.markdown(f"<p style='color:#0277bd;font-weight:500;'>Welcome to {COMPANY_NAME}</p>", unsafe_allow_html=True)
-    st.markdown("---")
+    display_name = st.session_state.get("display_name", CURRENT_USER)
+    today = date.today()
+    today_str = today.strftime("%A, %d %B %Y")
 
     bookers = db.get("bookers", [])
     salesmen = db.get("salesmen", [])
     total_products = len(get_all_products())
-
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.markdown(f"<div class='metric-card'><h3>TOTAL BOOKERS</h3><h1>{len(bookers)}</h1></div>", unsafe_allow_html=True)
-    with c2:
-        st.markdown(f"<div class='metric-card'><h3>TOTAL SALESMEN</h3><h1>{len(salesmen)}</h1></div>", unsafe_allow_html=True)
-    with c3:
-        st.markdown(f"<div class='metric-card'><h3>TOTAL PRODUCTS</h3><h1>{total_products}</h1></div>", unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
+    total_bills = len(db["bills"])
+    total_load_forms = len(db.get("load_forms", []))
+    total_dsr = len(db.get("dsr_forms", []))
 
     pending_credits = [c for c in db.get("credit_bills", []) if c.get("status") == "pending"]
     paid_credits = [c for c in db.get("credit_bills", []) if c.get("status") == "paid"]
     pending_amt = sum(float(c.get("total_net", 0)) for c in pending_credits)
     paid_amt = sum(float(c.get("total_net", 0)) for c in paid_credits)
 
-    cc1, cc2, cc3 = st.columns(3)
-    with cc1:
-        st.markdown(f"<div class='metric-card'><h3>⏳ PENDING CREDIT</h3><h1>{len(pending_credits)}</h1><p style='color:#e65100;font-weight:700;'>Rs {pending_amt:,.0f}</p></div>", unsafe_allow_html=True)
-    with cc2:
-        st.markdown(f"<div class='metric-card'><h3>✅ PAID CREDIT</h3><h1>{len(paid_credits)}</h1><p style='color:#1b5e20;font-weight:700;'>Rs {paid_amt:,.0f}</p></div>", unsafe_allow_html=True)
-    with cc3:
-        st.markdown(f"<div class='metric-card'><h3>🧾 TOTAL BILLS</h3><h1>{len(db['bills'])}</h1></div>", unsafe_allow_html=True)
+    # ---------- HERO BANNER ----------
+    st.markdown(f"""
+    <div class="dash-hero">
+        <div class="dash-hero-content">
+            <div class="dash-hero-left">
+                <div class="dash-hero-welcome">Welcome back</div>
+                <h1 class="dash-hero-title">👋 {display_name}</h1>
+                <div class="dash-hero-sub">🏢 {COMPANY_NAME} &nbsp;·&nbsp; 📅 {today_str}</div>
+            </div>
+            <div class="dash-hero-right">
+                <div class="dash-hero-stat">
+                    <div class="dash-hero-stat-label">Total Bills</div>
+                    <div class="dash-hero-stat-val">{total_bills}</div>
+                </div>
+                <div class="dash-hero-stat">
+                    <div class="dash-hero-stat-label">Products</div>
+                    <div class="dash-hero-stat-val">{total_products}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    # ---------- KPI SECTION 1: BUSINESS OVERVIEW ----------
+    st.markdown('<div class="dash-section-title">Business Overview</div>', unsafe_allow_html=True)
+
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-top">
+                <div class="kpi-icon">👤</div>
+                <div class="kpi-label">Bookers</div>
+            </div>
+            <div class="kpi-value-group">
+                <div class="kpi-value">{len(bookers)}</div>
+                <div class="kpi-value-unit">members</div>
+            </div>
+            <div class="kpi-sub blue">Order booking team</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with c2:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-top">
+                <div class="kpi-icon purple">🧑‍💼</div>
+                <div class="kpi-label">Salesmen</div>
+            </div>
+            <div class="kpi-value-group">
+                <div class="kpi-value">{len(salesmen)}</div>
+                <div class="kpi-value-unit">members</div>
+            </div>
+            <div class="kpi-sub blue">Field sales team</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with c3:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-top">
+                <div class="kpi-icon teal">📦</div>
+                <div class="kpi-label">Products</div>
+            </div>
+            <div class="kpi-value-group">
+                <div class="kpi-value">{total_products}</div>
+                <div class="kpi-value-unit">items</div>
+            </div>
+            <div class="kpi-sub blue">Active catalog</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with c4:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-top">
+                <div class="kpi-icon">🧾</div>
+                <div class="kpi-label">Total Bills</div>
+            </div>
+            <div class="kpi-value-group">
+                <div class="kpi-value">{total_bills}</div>
+                <div class="kpi-value-unit">bills</div>
+            </div>
+            <div class="kpi-sub blue">Generated so far</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+
+    # ---------- KPI SECTION 2: CREDIT & OPERATIONS ----------
+    st.markdown('<div class="dash-section-title">Credit & Operations</div>', unsafe_allow_html=True)
+
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-top">
+                <div class="kpi-icon orange">⏳</div>
+                <div class="kpi-label">Pending Credit</div>
+            </div>
+            <div class="kpi-value-group">
+                <div class="kpi-value">{len(pending_credits)}</div>
+                <div class="kpi-value-unit">bills</div>
+            </div>
+            <div class="kpi-sub orange">Rs {pending_amt:,.0f} receivable</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with c2:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-top">
+                <div class="kpi-icon green">✅</div>
+                <div class="kpi-label">Paid Credit</div>
+            </div>
+            <div class="kpi-value-group">
+                <div class="kpi-value">{len(paid_credits)}</div>
+                <div class="kpi-value-unit">bills</div>
+            </div>
+            <div class="kpi-sub green">Rs {paid_amt:,.0f} settled</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with c3:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-top">
+                <div class="kpi-icon">📦</div>
+                <div class="kpi-label">Load Forms</div>
+            </div>
+            <div class="kpi-value-group">
+                <div class="kpi-value">{total_load_forms}</div>
+                <div class="kpi-value-unit">saved</div>
+            </div>
+            <div class="kpi-sub blue">Stock dispatch forms</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with c4:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-top">
+                <div class="kpi-icon red">📋</div>
+                <div class="kpi-label">DSR Forms</div>
+            </div>
+            <div class="kpi-value-group">
+                <div class="kpi-value">{total_dsr}</div>
+                <div class="kpi-value-unit">active</div>
+            </div>
+            <div class="kpi-sub blue">Daily sales reports</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    # ---------- TEAM SECTION ----------
     c1, c2 = st.columns(2)
 
     with c1:
-        st.markdown("### 👤 Bookers")
+        st.markdown('<div class="dash-section-title">👤 Order Booker Team</div>', unsafe_allow_html=True)
         if not bookers:
-            st.markdown("<div class='empty-box'>Abhi tak koi booker add nahi hua.</div>", unsafe_allow_html=True)
+            st.markdown('<div class="empty-team">Abhi tak koi booker add nahi hua</div>', unsafe_allow_html=True)
         else:
-            for i, b_name in enumerate(bookers):
+            for b_name in bookers:
                 sd = db.get("bookers_salaries", {}).get(b_name, {})
                 base = sd.get("base_salary", 0)
                 txns = sd.get("transactions", [])
                 adv_p = sum(t["amount"] for t in txns if t.get("type") == "advanced" and t.get("status", "pending") == "pending")
                 short_p = sum(t["amount"] for t in txns if t.get("type") == "shortage" and t.get("status", "pending") == "pending")
                 remaining = base - adv_p - short_p
+
+                if base == 0:
+                    sub_class = ""
+                    sub_text = 'Salary not set'
+                elif remaining > base * 0.7:
+                    sub_class = "good"
+                    sub_text = f'Remaining Salary: <b>Rs {remaining:,.0f}</b>'
+                elif remaining > 0:
+                    sub_class = ""
+                    sub_text = f'Remaining Salary: <b>Rs {remaining:,.0f}</b>'
+                else:
+                    sub_class = "warn"
+                    sub_text = f'Over Paid: <b>Rs {abs(remaining):,.0f}</b>'
+
+                avatar_letter = (b_name[0] if b_name else "?").upper()
                 st.markdown(f"""
-                <div class='person-card'>
-                    <div class='info'>
-                        <div class='name'>👤 {b_name}</div>
-                        <div class='sub'>Remaining Salary: Rs {remaining:,.0f}</div>
+                <div class="team-card">
+                    <div class="team-avatar booker">{avatar_letter}</div>
+                    <div class="team-info">
+                        <div class="team-name">{b_name}</div>
+                        <div class="team-meta {sub_class}">{sub_text}</div>
                     </div>
-                    <div class='badge'>#{i+1}</div>
+                    <div class="team-badge">BOOKER</div>
                 </div>
                 """, unsafe_allow_html=True)
 
     with c2:
-        st.markdown("### 🧑‍💼 Salesmen")
+        st.markdown('<div class="dash-section-title">🧑‍💼 Salesmen Team</div>', unsafe_allow_html=True)
         if not salesmen:
-            st.markdown("<div class='empty-box'>Abhi tak koi salesman add nahi hua.</div>", unsafe_allow_html=True)
+            st.markdown('<div class="empty-team">Abhi tak koi salesman add nahi hua</div>', unsafe_allow_html=True)
         else:
-            for i, s_name in enumerate(salesmen):
+            for s_name in salesmen:
                 sd = db.get("salesmen_salaries", {}).get(s_name, {})
                 base = sd.get("base_salary", 0)
                 txns = sd.get("transactions", [])
                 adv_p = sum(t["amount"] for t in txns if t.get("type") == "advanced" and t.get("status", "pending") == "pending")
                 short_p = sum(t["amount"] for t in txns if t.get("type") == "shortage" and t.get("status", "pending") == "pending")
                 remaining = base - adv_p - short_p
+
+                if base == 0:
+                    sub_class = ""
+                    sub_text = 'Salary not set'
+                elif remaining > base * 0.7:
+                    sub_class = "good"
+                    sub_text = f'Remaining Salary: <b>Rs {remaining:,.0f}</b>'
+                elif remaining > 0:
+                    sub_class = ""
+                    sub_text = f'Remaining Salary: <b>Rs {remaining:,.0f}</b>'
+                else:
+                    sub_class = "warn"
+                    sub_text = f'Over Paid: <b>Rs {abs(remaining):,.0f}</b>'
+
+                avatar_letter = (s_name[0] if s_name else "?").upper()
                 st.markdown(f"""
-                <div class='person-card'>
-                    <div class='info'>
-                        <div class='name'>🧑‍💼 {s_name}</div>
-                        <div class='sub'>Remaining Salary: Rs {remaining:,.0f}</div>
+                <div class="team-card">
+                    <div class="team-avatar salesman">{avatar_letter}</div>
+                    <div class="team-info">
+                        <div class="team-name">{s_name}</div>
+                        <div class="team-meta {sub_class}">{sub_text}</div>
                     </div>
-                    <div class='badge sal-badge'>#{i+1}</div>
+                    <div class="team-badge orange">SALESMAN</div>
                 </div>
                 """, unsafe_allow_html=True)
 
