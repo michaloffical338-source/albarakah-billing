@@ -1581,8 +1581,36 @@ def render_admin_expense():
     st.markdown("---")
     if "petrol_expenses" not in db: db["petrol_expenses"] = []
     if "lunch_expenses" not in db: db["lunch_expenses"] = []
-    total_petrol = sum(float(x.get("amount", 0)) for x in db["petrol_expenses"])
-    total_lunch = sum(float(x.get("amount", 0)) for x in db["lunch_expenses"])
+
+    # ================= DATE FILTER =================
+    today = date.today()
+    c1, c2, c3 = st.columns([2, 2, 2])
+    with c1:
+        filter_mode = st.selectbox(
+            "Filter:",
+            ["📅 Aaj (Today)", "📆 This Month", "🗓️ Last 30 Days", "📋 All"],
+            key="exp_filter_mode"
+        )
+    with c2:
+        from_date = st.date_input("From:", value=today - timedelta(days=30),
+                                  key="exp_from_date")
+    with c3:
+        to_date = st.date_input("To:", value=today, key="exp_to_date")
+
+    def date_match(dstr):
+        d = parse_date(dstr)
+        if d is None: return False
+        if filter_mode == "📅 Aaj (Today)":      return d == today
+        elif filter_mode == "📆 This Month":     return d.year == today.year and d.month == today.month
+        elif filter_mode == "🗓️ Last 30 Days":  return today - timedelta(days=30) <= d <= today
+        else:                                    return True
+
+    petrol_filtered = [x for x in db["petrol_expenses"] if date_match(x.get("date", ""))]
+    lunch_filtered  = [x for x in db["lunch_expenses"]  if date_match(x.get("date", ""))]
+    # ===============================================
+
+    total_petrol = sum(float(x.get("amount", 0)) for x in petrol_filtered)
+    total_lunch = sum(float(x.get("amount", 0)) for x in lunch_filtered)
     st.markdown(f"<div class='summary-box'><b>Petrol:</b> Rs {total_petrol:,.0f} | <b>Lunch:</b> Rs {total_lunch:,.0f} | <b>Total:</b> Rs {total_petrol+total_lunch:,.0f}</div>", unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     with c1:
@@ -1674,10 +1702,37 @@ def render_admin_bills_list():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📋 Bills List</h1>", unsafe_allow_html=True)
     st.markdown("---")
     if not db["bills"]: st.info("Koi bill nahi."); return
+
+    # ================= DATE FILTER =================
+    today = date.today()
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        filter_mode = st.selectbox(
+            "Filter Mode:",
+            ["📅 Aaj (Today)", "📆 Custom Range", "🗓️ Specific", "📋 All Bills"],
+            key="bills_filter_mode"
+        )
+    with c2:
+        from_date = st.date_input("From:", value=today - timedelta(days=7),
+                                  key="bills_from_date")
+    with c3:
+        to_date = st.date_input("To:", value=today, key="bills_to_date")
+    # ===============================================
+
     credit_map = {(cb.get("shop",""), cb.get("date",""), cb.get("booker",""), cb.get("bill_no","")): cb
                   for cb in db.get("credit_bills", [])}
     groups = {}
     for bi, b in enumerate(db["bills"]):
+        bdate = parse_date(b.get("Date", ""))
+
+        if filter_mode == "📅 Aaj (Today)":
+            if bdate != today: continue
+        elif filter_mode == "🗓️ Specific":
+            if bdate != from_date: continue
+        elif filter_mode == "📆 Custom Range":
+            if bdate is None or not (from_date <= bdate <= to_date): continue
+        # "📋 All Bills" → continue nahi
+
         key = (b.get("Shop",""), b.get("Date",""), b.get("Order Booker",""), b.get("Bill No",""))
         if key not in groups:
             groups[key] = {"shop": b.get("Shop",""), "date": b.get("Date",""), "booker": b.get("Order Booker",""),
@@ -1724,8 +1779,38 @@ def render_admin_credit():
     st.markdown("---")
     cbs = db.get("credit_bills", [])
     if not cbs: st.info("Koi credit bill nahi."); return
-    pend = [c for c in cbs if c.get("status") == "pending"]
-    paid = [c for c in cbs if c.get("status") == "paid"]
+
+    # ================= DATE FILTER =================
+    today = date.today()
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        filter_mode = st.selectbox(
+            "Filter:",
+            ["📋 All Credit Bills", "📅 Aaj", "📆 Custom Range", "🗓️ Specific"],
+            key="credit_filter_mode"
+        )
+    with c2:
+        from_date = st.date_input("From:", value=today - timedelta(days=30),
+                                  key="credit_from_date")
+    with c3:
+        to_date = st.date_input("To:", value=today, key="credit_to_date")
+    # ===============================================
+
+    filtered_cbs = []
+    for c in cbs:
+        cdate = parse_date(c.get("date", ""))
+
+        if filter_mode == "📅 Aaj":
+            if cdate != today: continue
+        elif filter_mode == "🗓️ Specific":
+            if cdate != from_date: continue
+        elif filter_mode == "📆 Custom Range":
+            if cdate is None or not (from_date <= cdate <= to_date): continue
+        # "📋 All Credit Bills" → continue nahi
+        filtered_cbs.append(c)
+
+    pend = [c for c in filtered_cbs if c.get("status") == "pending"]
+    paid = [c for c in filtered_cbs if c.get("status") == "paid"]
     st.markdown(f"<div class='summary-box'><b>Pending:</b> {len(pend)} (Rs {sum(float(c.get('total_net',0)) for c in pend):,.0f}) | <b>Paid:</b> {len(paid)} (Rs {sum(float(c.get('total_net',0)) for c in paid):,.0f})</div>", unsafe_allow_html=True)
     for c in pend + paid:
         cid = c["id"]; is_paid = c.get("status") == "paid"
@@ -1761,7 +1846,42 @@ def render_admin_load_form():
     st.markdown("---")
     lfs = db.get("load_forms", [])
     if not lfs: st.info("Koi load form nahi."); return
-    for i, lf in enumerate(sorted(lfs, key=lambda x: x.get("created_at",""), reverse=True)):
+
+    # ================= DATE FILTER =================
+    today = date.today()
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        filter_mode = st.selectbox(
+            "Filter Mode:",
+            ["📅 Aaj", "📆 Custom Range", "🗓️ Specific", "📋 All"],
+            key="lf_filter_mode"
+        )
+    with c2:
+        from_date = st.date_input("From:", value=today - timedelta(days=7),
+                                  key="lf_from_date")
+    with c3:
+        to_date = st.date_input("To:", value=today, key="lf_to_date")
+    # ===============================================
+
+    filtered_lfs = []
+    for lf in lfs:
+        lf_date = parse_date(lf.get("date", ""))
+        if lf_date is None: continue
+
+        if filter_mode == "📅 Aaj":
+            if lf_date != today: continue
+        elif filter_mode == "🗓️ Specific":
+            if lf_date != from_date: continue
+        elif filter_mode == "📆 Custom Range":
+            if not (from_date <= lf_date <= to_date): continue
+        # "📋 All" → continue nahi
+        filtered_lfs.append(lf)
+
+    if not filtered_lfs:
+        st.info("Is filter mein koi load form nahi mila.")
+        return
+
+    for i, lf in enumerate(sorted(filtered_lfs, key=lambda x: x.get("created_at",""), reverse=True)):
         lf_id = lf.get("id", i); bk = lf.get("booker", "?"); dt = lf.get("date", "")
         tb = lf.get("total_boxes", 0); items = lf.get("items", [])
         trf = lf.get("transferred_to_dsr", False); ref = lf.get("refreshed", False)
@@ -1791,7 +1911,42 @@ def render_admin_dsr():
     st.markdown("---")
     dsrs = db.get("dsr_forms", [])
     if not dsrs: st.info("Koi DSR nahi."); return
-    for i, d in enumerate(sorted(dsrs, key=lambda x: x.get("created_at",""), reverse=True)):
+
+    # ================= DATE FILTER =================
+    today = date.today()
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        filter_mode = st.selectbox(
+            "Filter Mode:",
+            ["📅 Aaj", "📆 Custom Range", "🗓️ Specific", "📋 All"],
+            key="dsr_filter_mode"
+        )
+    with c2:
+        from_date = st.date_input("From:", value=today - timedelta(days=7),
+                                  key="dsr_from_date")
+    with c3:
+        to_date = st.date_input("To:", value=today, key="dsr_to_date")
+    # ===============================================
+
+    filtered_dsrs = []
+    for d in dsrs:
+        d_date = parse_date(d.get("date", ""))
+        if d_date is None: continue
+
+        if filter_mode == "📅 Aaj":
+            if d_date != today: continue
+        elif filter_mode == "🗓️ Specific":
+            if d_date != from_date: continue
+        elif filter_mode == "📆 Custom Range":
+            if not (from_date <= d_date <= to_date): continue
+        # "📋 All" → continue nahi
+        filtered_dsrs.append(d)
+
+    if not filtered_dsrs:
+        st.info("Is filter mein koi DSR nahi mila.")
+        return
+
+    for i, d in enumerate(sorted(filtered_dsrs, key=lambda x: x.get("created_at",""), reverse=True)):
         did = d.get("id", i); bk = d.get("booker", "?"); dt = d.get("date", "")
         tb = d.get("total_boxes", 0); tot = float(d.get("total_amount", 0))
         ct, _, _ = get_dsr_credit_info(d)
