@@ -1,8 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# + Admin + Booker separate login
-# + Booker: Bill → admin Bills List (no download)
-# + Booker: Load Form → admin Load Form list
+# Full code with Admin + Booker login, sidebar toggle working
 # ============================================================
 
 import os
@@ -244,7 +242,6 @@ st.markdown("""
         padding: 4px 12px; border-radius: 6px;
     }
 
-    /* SIDEBAR (light green) */
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #f1f8e9 0%, #e8f5e9 50%, #dcedc8 100%) !important;
         border-right: 2px solid #a5d6a7 !important;
@@ -313,17 +310,8 @@ st.markdown("""
     section[data-testid="stSidebar"] .stButton > button span,
     section[data-testid="stSidebar"] .stButton > button div { color: inherit !important; }
 
-    /* ============================================================
-       PROFESSIONAL DASHBOARD
-       ============================================================ */
-    .dash-hero {
-        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%);
-        border-radius: 20px; padding: 26px 32px; margin-bottom: 22px;
-        color: #fff; position: relative; overflow: hidden;
-        box-shadow: 0 12px 32px rgba(37, 99, 235, 0.35);
-    }
+    .dash-hero { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%); border-radius: 20px; padding: 26px 32px; margin-bottom: 22px; color: #fff; position: relative; overflow: hidden; box-shadow: 0 12px 32px rgba(37, 99, 235, 0.35); }
     .dash-hero::before { content: ''; position: absolute; top: -50%; right: -10%; width: 420px; height: 420px; background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%); border-radius: 50%; }
-    .dash-hero::after { content: ''; position: absolute; bottom: -80%; left: -10%; width: 320px; height: 320px; background: radial-gradient(circle, rgba(255,255,255,0.10) 0%, transparent 70%); border-radius: 50%; }
     .dash-hero-content { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
     .dash-hero-left { display: flex; flex-direction: column; gap: 6px; }
     .dash-hero-welcome { font-size: 11px; font-weight: 800; letter-spacing: 2.5px; text-transform: uppercase; color: rgba(255,255,255,0.75) !important; }
@@ -339,8 +327,6 @@ st.markdown("""
 
     .kpi-card { background: #ffffff; border-radius: 16px; padding: 20px 22px; border: 1px solid rgba(37,99,235,0.12); box-shadow: 0 4px 16px rgba(37,99,235,0.08); display: flex; flex-direction: column; gap: 12px; transition: all 0.2s ease; position: relative; overflow: hidden; height: 100%; }
     .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(37,99,235,0.18); border-color: rgba(37,99,235,0.30); }
-    .kpi-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%); opacity: 0; transition: opacity 0.2s ease; }
-    .kpi-card:hover::after { opacity: 1; }
     .kpi-top { display: flex; align-items: center; justify-content: space-between; }
     .kpi-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); color: #1e40af !important; box-shadow: 0 3px 8px rgba(37,99,235,0.15); }
     .kpi-icon.green { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color: #065f46 !important; }
@@ -375,16 +361,85 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# ============================================================
+# SIDEBAR TOGGLE JS — works on admin AND booker pages
+# ============================================================
 components.html("""
 <script>
 (function(){
-    function killManageApp(){ try{ var doc=window.parent.document;
-        ['[data-testid="manage-app-button"]','[data-testid="stAppDeployButton"]',
-         '[data-testid="stCloudAppManageButton"]','.stAppDeployButton'].forEach(function(s){
-            doc.querySelectorAll(s).forEach(function(el){ el.style.setProperty('display','none','important'); }); });
-    }catch(e){} }
-    function tick(){ killManageApp(); }
-    setTimeout(tick,300); setTimeout(tick,1000); setInterval(tick,1500);
+    function killManageApp() {
+        try {
+            var doc = window.parent.document;
+            var sel = ['[data-testid="manage-app-button"]','[data-testid="stAppDeployButton"]',
+                       '[data-testid="stCloudAppManageButton"]','.stAppDeployButton',
+                       'iframe[title="streamlit_cloud_status"]',
+                       'div[class*="manageApp"]','div[class*="ManageApp"]',
+                       'button[class*="manageApp"]','button[class*="ManageApp"]'];
+            sel.forEach(function(s){
+                doc.querySelectorAll(s).forEach(function(el){
+                    el.style.setProperty('display','none','important');
+                    el.style.setProperty('visibility','hidden','important');
+                    el.style.setProperty('opacity','0','important');
+                });
+            });
+            doc.querySelectorAll('button, a').forEach(function(el){
+                try {
+                    var t = (el.textContent || '').trim();
+                    if (t === 'Manage app' || t === 'Manage App') {
+                        el.style.setProperty('display','none','important');
+                    }
+                } catch(e){}
+            });
+        } catch(e) {}
+    }
+
+    function attachToggle() {
+        try {
+            var doc = window.parent.document;
+            if (!doc.querySelector('section[data-testid="stSidebar"]')) {
+                var existing = doc.getElementById('custom-sidebar-toggle');
+                if (existing) existing.parentNode.removeChild(existing);
+                return;
+            }
+
+            var old = doc.getElementById('custom-sidebar-toggle');
+            if (old) old.parentNode.removeChild(old);
+
+            var btn = doc.createElement('button');
+            btn.id = 'custom-sidebar-toggle';
+            btn.title = 'Sidebar Open/Close';
+            btn.innerHTML = '\\u2630';
+            var s = {
+                'position':'fixed','top':'14px','left':'14px','z-index':'2147483647',
+                'background':'linear-gradient(135deg, #66bb6a 0%, #2e7d32 100%)',
+                'color':'#fff','border':'none','border-radius':'10px','padding':'8px 14px',
+                'font-size':'18px','font-weight':'bold','cursor':'pointer',
+                'box-shadow':'0 4px 14px rgba(76,175,80,0.5)'
+            };
+            for (var k in s) btn.style.setProperty(k, s[k], 'important');
+            btn.onclick = function() {
+                var targets = [
+                    '[data-testid="stSidebarCollapseButton"] button',
+                    '[data-testid="stSidebarCollapsedControl"] button',
+                    '[data-testid="collapsedControl"] button',
+                    '[data-testid="stExpandSidebarButton"] button',
+                    'button[kind="headerNoPadding"]'
+                ];
+                for (var i = 0; i < targets.length; i++) {
+                    var el = doc.querySelector(targets[i]);
+                    if (el) { el.click(); return; }
+                }
+            };
+            if (doc.body) doc.body.appendChild(btn);
+        } catch(e) {}
+    }
+
+    function tick() { killManageApp(); attachToggle(); }
+    setTimeout(tick, 300);
+    setTimeout(tick, 1000);
+    setTimeout(tick, 2000);
+    setTimeout(tick, 3000);
+    setInterval(tick, 1000);
 })();
 </script>
 """, height=0)
@@ -955,7 +1010,6 @@ def render_booker_new_bill():
             finalize_booker_load_form()
 
 def finalize_booker_bill(shop, draft):
-    """Save bill to admin DB. NO Excel download. Just save + reset draft."""
     global db
     bill_no = db["next_bill_no"]
     date_str = datetime.now().strftime("%d-%m-%Y")
@@ -971,7 +1025,6 @@ def finalize_booker_bill(shop, draft):
     db["next_bill_no"] += 1
     save_database(db)
 
-    # Add to load draft
     for it in draft:
         found = False
         for ld in st.session_state["bk_load_draft"]:
@@ -981,7 +1034,6 @@ def finalize_booker_bill(shop, draft):
             st.session_state["bk_load_draft"].append({
                 "Code": it["Code"], "Product": it["Product"], "Boxes": int(it["Boxes"])})
 
-    # NO EXCEL DOWNLOAD — just save and reset
     bill_total_net = sum(float(it["Net"]) for it in draft)
     pkg_pct, _, _ = get_effective_discount_pct(shop, bill_total_net)
     after_disc_total = bill_total_net - (bill_total_net * pkg_pct / 100)
@@ -992,7 +1044,6 @@ def finalize_booker_bill(shop, draft):
     st.rerun()
 
 def finalize_booker_load_form():
-    """Save load form to admin DB."""
     global db
     load_draft = st.session_state.get("bk_load_draft", [])
     if not load_draft:
@@ -1132,7 +1183,7 @@ with st.sidebar:
         st.rerun()
 
 # ============================================================
-# ADMIN DASHBOARD (RESTORED - PROFESSIONAL)
+# ADMIN DASHBOARD (PROFESSIONAL)
 # ============================================================
 def render_admin_dashboard():
     display_name = st.session_state.get("display_name", CURRENT_USER)
@@ -1145,7 +1196,6 @@ def render_admin_dashboard():
     pending_amt = sum(float(c.get("total_net", 0)) for c in pending_credits)
     paid_amt = sum(float(c.get("total_net", 0)) for c in paid_credits)
 
-    # HERO BANNER
     st.markdown(f"""
     <div class="dash-hero">
         <div class="dash-hero-content">
@@ -1155,81 +1205,55 @@ def render_admin_dashboard():
                 <div class="dash-hero-sub">🏢 {COMPANY_NAME} &nbsp;·&nbsp; 📅 {today_str}</div>
             </div>
             <div class="dash-hero-right">
-                <div class="dash-hero-stat">
-                    <div class="dash-hero-stat-label">Total Bills</div>
-                    <div class="dash-hero-stat-val">{total_bills}</div>
-                </div>
-                <div class="dash-hero-stat">
-                    <div class="dash-hero-stat-label">Products</div>
-                    <div class="dash-hero-stat-val">{total_products}</div>
-                </div>
+                <div class="dash-hero-stat"><div class="dash-hero-stat-label">Total Bills</div><div class="dash-hero-stat-val">{total_bills}</div></div>
+                <div class="dash-hero-stat"><div class="dash-hero-stat-label">Products</div><div class="dash-hero-stat-val">{total_products}</div></div>
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # KPI 1 - Business Overview
     st.markdown('<div class="dash-section-title">Business Overview</div>', unsafe_allow_html=True)
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        st.markdown(f"""<div class="kpi-card">
-            <div class="kpi-top"><div class="kpi-icon">👤</div><div class="kpi-label">Bookers</div></div>
+        st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">👤</div><div class="kpi-label">Bookers</div></div>
             <div class="kpi-value-group"><div class="kpi-value">{len(bookers)}</div><div class="kpi-value-unit">members</div></div>
-            <div class="kpi-sub blue">Order booking team</div>
-        </div>""", unsafe_allow_html=True)
+            <div class="kpi-sub blue">Order booking team</div></div>""", unsafe_allow_html=True)
     with c2:
-        st.markdown(f"""<div class="kpi-card">
-            <div class="kpi-top"><div class="kpi-icon purple">🧑‍💼</div><div class="kpi-label">Salesmen</div></div>
+        st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon purple">🧑‍💼</div><div class="kpi-label">Salesmen</div></div>
             <div class="kpi-value-group"><div class="kpi-value">{len(salesmen)}</div><div class="kpi-value-unit">members</div></div>
-            <div class="kpi-sub blue">Field sales team</div>
-        </div>""", unsafe_allow_html=True)
+            <div class="kpi-sub blue">Field sales team</div></div>""", unsafe_allow_html=True)
     with c3:
-        st.markdown(f"""<div class="kpi-card">
-            <div class="kpi-top"><div class="kpi-icon teal">📦</div><div class="kpi-label">Products</div></div>
+        st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon teal">📦</div><div class="kpi-label">Products</div></div>
             <div class="kpi-value-group"><div class="kpi-value">{total_products}</div><div class="kpi-value-unit">items</div></div>
-            <div class="kpi-sub blue">Active catalog</div>
-        </div>""", unsafe_allow_html=True)
+            <div class="kpi-sub blue">Active catalog</div></div>""", unsafe_allow_html=True)
     with c4:
-        st.markdown(f"""<div class="kpi-card">
-            <div class="kpi-top"><div class="kpi-icon">🧾</div><div class="kpi-label">Total Bills</div></div>
+        st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">🧾</div><div class="kpi-label">Total Bills</div></div>
             <div class="kpi-value-group"><div class="kpi-value">{total_bills}</div><div class="kpi-value-unit">bills</div></div>
-            <div class="kpi-sub blue">Generated so far</div>
-        </div>""", unsafe_allow_html=True)
+            <div class="kpi-sub blue">Generated so far</div></div>""", unsafe_allow_html=True)
 
     st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
-
-    # KPI 2 - Credit & Operations
     st.markdown('<div class="dash-section-title">Credit & Operations</div>', unsafe_allow_html=True)
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        st.markdown(f"""<div class="kpi-card">
-            <div class="kpi-top"><div class="kpi-icon orange">⏳</div><div class="kpi-label">Pending Credit</div></div>
+        st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon orange">⏳</div><div class="kpi-label">Pending Credit</div></div>
             <div class="kpi-value-group"><div class="kpi-value">{len(pending_credits)}</div><div class="kpi-value-unit">bills</div></div>
-            <div class="kpi-sub orange">Rs {pending_amt:,.0f} receivable</div>
-        </div>""", unsafe_allow_html=True)
+            <div class="kpi-sub orange">Rs {pending_amt:,.0f} receivable</div></div>""", unsafe_allow_html=True)
     with c2:
-        st.markdown(f"""<div class="kpi-card">
-            <div class="kpi-top"><div class="kpi-icon green">✅</div><div class="kpi-label">Paid Credit</div></div>
+        st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon green">✅</div><div class="kpi-label">Paid Credit</div></div>
             <div class="kpi-value-group"><div class="kpi-value">{len(paid_credits)}</div><div class="kpi-value-unit">bills</div></div>
-            <div class="kpi-sub green">Rs {paid_amt:,.0f} settled</div>
-        </div>""", unsafe_allow_html=True)
+            <div class="kpi-sub green">Rs {paid_amt:,.0f} settled</div></div>""", unsafe_allow_html=True)
     with c3:
-        st.markdown(f"""<div class="kpi-card">
-            <div class="kpi-top"><div class="kpi-icon">📦</div><div class="kpi-label">Load Forms</div></div>
+        st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">📦</div><div class="kpi-label">Load Forms</div></div>
             <div class="kpi-value-group"><div class="kpi-value">{total_load_forms}</div><div class="kpi-value-unit">saved</div></div>
-            <div class="kpi-sub blue">Stock dispatch forms</div>
-        </div>""", unsafe_allow_html=True)
+            <div class="kpi-sub blue">Stock dispatch forms</div></div>""", unsafe_allow_html=True)
     with c4:
-        st.markdown(f"""<div class="kpi-card">
-            <div class="kpi-top"><div class="kpi-icon red">📋</div><div class="kpi-label">DSR Forms</div></div>
+        st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon red">📋</div><div class="kpi-label">DSR Forms</div></div>
             <div class="kpi-value-group"><div class="kpi-value">{total_dsr}</div><div class="kpi-value-unit">active</div></div>
-            <div class="kpi-sub blue">Daily sales reports</div>
-        </div>""", unsafe_allow_html=True)
+            <div class="kpi-sub blue">Daily sales reports</div></div>""", unsafe_allow_html=True)
 
     st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
     st.markdown("---")
 
-    # TEAM SECTION
     c1, c2 = st.columns(2)
     with c1:
         st.markdown('<div class="dash-section-title">👤 Order Booker Team</div>', unsafe_allow_html=True)
