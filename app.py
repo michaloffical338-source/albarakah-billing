@@ -1,11 +1,7 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# + Multi-User Login
-# + Custom Products (Single + Bulk)
-# + DSR with Return Boxes & Discounts
-# + Credit Bills
-# + Wholesaler Rule (Configurable from Discount Page)
-# + Load Form: Refresh ke baad NEW form banta hai
+# + Credit → DSR Auto Deduction
+# + Cash Calculation Page
 # ============================================================
 
 import os
@@ -48,8 +44,7 @@ def save_users(users):
         json.dump(users, f, indent=4, ensure_ascii=False)
 
 def sanitize_username(u):
-    s = "".join(ch for ch in u if ch.isalnum() or ch in "_-.")
-    return s.lower()
+    return "".join(ch for ch in u if ch.isalnum() or ch in "_-.").lower()
 
 def user_data_file(username):
     return f"billing_database_{username}.json"
@@ -60,40 +55,22 @@ def default_blank_db():
         "load_forms": [], "bookers_salaries": {}, "salesmen_salaries": {},
         "product_prices": {}, "petrol_expenses": [], "lunch_expenses": [],
         "discount_packages": default_discount_packages(),
-        "custom_products": [],
-        "dsr_forms": [],
-        "credit_bills": [],
+        "custom_products": [], "dsr_forms": [], "credit_bills": [],
         "next_credit_id": 1,
-        # Wholesaler rule settings
         "wholesaler_rule_enabled": True,
         "wholesaler_discount_pct": 6.0,
     }
 
-# ============================================================
-# DEFAULT DISCOUNT PACKAGES
-# ============================================================
 def default_discount_packages():
     return [
-        {"id": 1, "name": "Package 1",
-         "tier1_amount": 1200.0, "tier1_pct": 1.0,
-         "tier2_amount": 2100.0, "tier2_pct": 2.0,
-         "tier3_amount": 3100.0, "tier3_pct": 3.0,
-         "active": True},
-        {"id": 2, "name": "Package 2",
-         "tier1_amount": 1200.0, "tier1_pct": 1.0,
-         "tier2_amount": 2100.0, "tier2_pct": 2.0,
-         "tier3_amount": 3100.0, "tier3_pct": 3.0,
-         "active": True},
-        {"id": 3, "name": "Package 3",
-         "tier1_amount": 1200.0, "tier1_pct": 1.0,
-         "tier2_amount": 2100.0, "tier2_pct": 2.0,
-         "tier3_amount": 3100.0, "tier3_pct": 3.0,
-         "active": True},
-        {"id": 4, "name": "Package 4",
-         "tier1_amount": 1200.0, "tier1_pct": 1.0,
-         "tier2_amount": 2100.0, "tier2_pct": 2.0,
-         "tier3_amount": 3100.0, "tier3_pct": 3.0,
-         "active": True},
+        {"id": 1, "name": "Package 1", "tier1_amount": 1200.0, "tier1_pct": 1.0,
+         "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
+        {"id": 2, "name": "Package 2", "tier1_amount": 1200.0, "tier1_pct": 1.0,
+         "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
+        {"id": 3, "name": "Package 3", "tier1_amount": 1200.0, "tier1_pct": 1.0,
+         "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
+        {"id": 4, "name": "Package 4", "tier1_amount": 1200.0, "tier1_pct": 1.0,
+         "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
     ]
 
 # ============================================================
@@ -107,44 +84,33 @@ st.markdown("""
     [data-testid="stMarkdownContainer"] *,
     [data-testid="stText"], [data-testid="stCaptionContainer"] *,
     [data-testid="stWidgetLabel"] *, [data-testid="stSelectbox"] *,
-    [data-testid="stTextInput"] *, [data-testid="stNumberInput"] * {
-        color: #000000;
-    }
+    [data-testid="stTextInput"] *, [data-testid="stNumberInput"] * { color: #000000; }
 
     .stDateInput, .stDateInput > div, .stDateInput > div > div,
     .stDateInput > div > div > input,
     [data-testid="stDateInput"], [data-testid="stDateInput"] > div,
-    [data-testid="stDateInput"] > div > div,
-    [data-testid="stDateInput"] input,
+    [data-testid="stDateInput"] > div > div, [data-testid="stDateInput"] input,
     [data-testid="stDateInput"] div[data-baseweb="input"],
     [data-testid="stDateInput"] div[data-baseweb="input"] > div,
     [data-testid="stDateInput"] div[data-baseweb="base-input"],
-    [data-baseweb="datepicker"] input,
-    div[data-baseweb="input"] > div,
-    div[data-baseweb="base-input"],
-    div[data-baseweb="base-input"] input {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-        -webkit-text-fill-color: #000000 !important;
-        border-color: #90caf9 !important;
+    [data-baseweb="datepicker"] input, div[data-baseweb="input"] > div,
+    div[data-baseweb="base-input"], div[data-baseweb="base-input"] input {
+        background-color: #ffffff !important; color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important; border-color: #90caf9 !important;
     }
     div[data-baseweb="calendar"], div[data-baseweb="calendar"] *,
     div[data-baseweb="datepicker"] *, div[data-baseweb="popover"] *,
     div[role="dialog"] *, div[role="dialog"] {
-        background-color: #ffffff !important;
-        color: #000000 !important;
+        background-color: #ffffff !important; color: #000000 !important;
         -webkit-text-fill-color: #000000 !important;
     }
     [data-testid="stDateInput"] svg, div[data-baseweb="datepicker"] svg {
-        fill: #1976d2 !important;
-        color: #1976d2 !important;
+        fill: #1976d2 !important; color: #1976d2 !important;
     }
 
     .stButton > button, .stButton > button p, .stButton > button span, .stButton > button div,
     .stDownloadButton > button, .stDownloadButton > button p,
-    .stDownloadButton > button span, .stDownloadButton > button div {
-        color: #ffffff !important;
-    }
+    .stDownloadButton > button span, .stDownloadButton > button div { color: #ffffff !important; }
 
     [data-testid="stToolbar"] { display: none !important; }
     [data-testid="stDecoration"] { display: none !important; }
@@ -195,12 +161,10 @@ st.markdown("""
         background: linear-gradient(135deg, #0288d1 0%, #0277bd 100%) !important;
         color: #ffffff !important; font-weight: bold !important; border-radius: 8px !important;
     }
-
     .stDataFrame, .stDataFrame * { color: #000000 !important; }
     .stDataFrame { background-color: #ffffff !important; border-radius: 10px !important; }
     label[data-baseweb="checkbox"] * { color: #000000 !important; }
     details summary, details summary * { color: #000000 !important; }
-
     .stAlert, .stAlert * { color: #000000 !important; }
     .stSuccess, .stSuccess * { color: #1b5e20 !important; }
     .stError, .stError * { color: #b71c1c !important; }
@@ -212,28 +176,16 @@ st.markdown("""
         position: absolute !important; left: -9999px !important; top: -9999px !important;
         opacity: 0 !important; height: 0 !important;
     }
-
     .metric-card {
         background: #ffffff; border: 2px solid #90caf9; border-radius: 14px;
         padding: 22px; text-align: center; box-shadow: 0 3px 10px rgba(33,150,243,0.15);
     }
     .metric-card h3 { font-size: 13px !important; margin: 0 !important; font-weight: 700 !important; text-transform: uppercase; color: #0277bd !important; }
     .metric-card h1 { font-size: 30px !important; margin: 10px 0 0 0 !important; font-weight: 800 !important; color: #1976d2 !important; }
-
     .booker-row { background: #ffffff; border: 1px solid #90caf9; border-radius: 10px; padding: 12px 18px; margin-bottom: 8px; }
-
-    .empty-box {
-        background: #ffffff; border: 2px dashed #90caf9; border-radius: 12px;
-        padding: 20px; text-align: center; font-size: 14px; color: #0277bd !important;
-    }
-    .hint-box {
-        background: #e3f2fd; border-left: 4px solid #2196f3; padding: 6px 10px;
-        border-radius: 6px; font-size: 12px; margin-top: 2px; color: #1976d2 !important;
-    }
-    .summary-box {
-        background: #ffffff; border: 2px solid #2196f3; border-radius: 12px;
-        padding: 12px 18px; margin-bottom: 12px; color: #000000 !important;
-    }
+    .empty-box { background: #ffffff; border: 2px dashed #90caf9; border-radius: 12px; padding: 20px; text-align: center; font-size: 14px; color: #0277bd !important; }
+    .hint-box { background: #e3f2fd; border-left: 4px solid #2196f3; padding: 6px 10px; border-radius: 6px; font-size: 12px; margin-top: 2px; color: #1976d2 !important; }
+    .summary-box { background: #ffffff; border: 2px solid #2196f3; border-radius: 12px; padding: 12px 18px; margin-bottom: 12px; color: #000000 !important; }
     .lf-simple-card {
         background: #ffffff; border-left: 6px solid #2196f3; border-radius: 12px;
         padding: 16px 22px; margin-bottom: 12px;
@@ -258,95 +210,38 @@ st.markdown("""
     .lf-simple-card.wholesaler { border-left-color: #6a1b9a; }
     .lf-simple-card.wholesaler .lf-boxes { background: linear-gradient(135deg, #8e24aa 0%, #6a1b9a 100%); }
 
-    .sal-metric {
-        display: inline-block; padding: 8px 14px; margin-right: 8px; margin-bottom: 6px;
-        border-radius: 8px; font-size: 13px; font-weight: 600;
-    }
+    .sal-metric { display: inline-block; padding: 8px 14px; margin-right: 8px; margin-bottom: 6px; border-radius: 8px; font-size: 13px; font-weight: 600; }
     .sal-metric.base { background: #e3f2fd; color: #0d47a1 !important; }
     .sal-metric.adv { background: #fff3e0; color: #e65100 !important; }
     .sal-metric.short { background: #ffebee; color: #c62828 !important; }
     .sal-metric.remain { background: #e8f5e9; color: #1b5e20 !important; }
     .sal-metric.paid { background: #c8e6c9; color: #2e7d32 !important; }
 
-    .exp-row {
-        background: #ffffff; border: 1px solid #90caf9; border-radius: 10px;
-        padding: 8px 14px; margin-bottom: 6px;
-        display: flex; align-items: center; justify-content: space-between;
-    }
+    .exp-row { background: #ffffff; border: 1px solid #90caf9; border-radius: 10px; padding: 8px 14px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; }
     .exp-row .exp-left { display: flex; flex-direction: column; gap: 2px; }
     .exp-row .exp-name { font-size: 14px; font-weight: 700; color: #1976d2; }
     .exp-row .exp-date { font-size: 11px; color: #0277bd; }
-    .exp-row .exp-amt {
-        background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
-        color: #ffffff !important; font-weight: 800; font-size: 15px;
-        padding: 5px 12px; border-radius: 8px; min-width: 80px; text-align: center;
-    }
+    .exp-row .exp-amt { background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); color: #ffffff !important; font-weight: 800; font-size: 15px; padding: 5px 12px; border-radius: 8px; min-width: 80px; text-align: center; }
     .exp-row.lunch .exp-amt { background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); }
     .exp-row.lunch .exp-name { color: #e65100; }
 
-    .status-pending {
-        background: #fff3e0; color: #e65100 !important; padding: 3px 10px;
-        border-radius: 6px; font-size: 11px; font-weight: 700;
-    }
-    .status-paid {
-        background: #c8e6c9; color: #1b5e20 !important; padding: 3px 10px;
-        border-radius: 6px; font-size: 11px; font-weight: 700;
-    }
+    .status-pending { background: #fff3e0; color: #e65100 !important; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+    .status-paid { background: #c8e6c9; color: #1b5e20 !important; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; }
 
-    .disc-card {
-        background: #ffffff; border: 2px solid #90caf9; border-radius: 12px;
-        padding: 10px 14px; margin-bottom: 10px;
-    }
-    .disc-card.active {
-        border: 3px solid #2e7d32;
-        box-shadow: 0 4px 14px rgba(46,125,50,0.25);
-        background: #f1f8e9;
-    }
-    .disc-badge-active {
-        background: #c8e6c9; color: #1b5e20 !important;
-        font-size: 11px; font-weight: 700; padding: 3px 10px;
-        border-radius: 6px; margin-left: 8px;
-    }
+    .disc-card { background: #ffffff; border: 2px solid #90caf9; border-radius: 12px; padding: 10px 14px; margin-bottom: 10px; }
+    .disc-card.active { border: 3px solid #2e7d32; box-shadow: 0 4px 14px rgba(46,125,50,0.25); background: #f1f8e9; }
+    .disc-badge-active { background: #c8e6c9; color: #1b5e20 !important; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 6px; margin-left: 8px; }
 
-    /* Wholesaler rule card */
-    .wholesaler-card {
-        background: linear-gradient(135deg, #f3e5f5 0%, #ede7f6 100%);
-        border: 2px solid #8e24aa;
-        border-radius: 14px;
-        padding: 16px 22px;
-        margin-bottom: 16px;
-        box-shadow: 0 4px 16px rgba(142,36,170,0.18);
-    }
-    .wholesaler-card.off {
-        background: linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%);
-        border-color: #bdbdbd;
-        box-shadow: none;
-    }
-    .wholesaler-title {
-        font-size: 16px; font-weight: 800; color: #6a1b9a !important;
-        margin-bottom: 4px;
-    }
+    .wholesaler-card { background: linear-gradient(135deg, #f3e5f5 0%, #ede7f6 100%); border: 2px solid #8e24aa; border-radius: 14px; padding: 16px 22px; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(142,36,170,0.18); }
+    .wholesaler-card.off { background: linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%); border-color: #bdbdbd; box-shadow: none; }
+    .wholesaler-title { font-size: 16px; font-weight: 800; color: #6a1b9a !important; margin-bottom: 4px; }
     .wholesaler-card.off .wholesaler-title { color: #616161 !important; }
-    .wholesaler-desc {
-        font-size: 12px; color: #4a148c !important; font-weight: 600;
-    }
+    .wholesaler-desc { font-size: 12px; color: #4a148c !important; font-weight: 600; }
     .wholesaler-card.off .wholesaler-desc { color: #757575 !important; }
-    .wholesaler-badge-on {
-        background: #c8e6c9; color: #1b5e20 !important;
-        font-size: 11px; font-weight: 700; padding: 3px 10px;
-        border-radius: 6px; margin-left: 8px;
-    }
-    .wholesaler-badge-off {
-        background: #eeeeee; color: #616161 !important;
-        font-size: 11px; font-weight: 700; padding: 3px 10px;
-        border-radius: 6px; margin-left: 8px;
-    }
+    .wholesaler-badge-on { background: #c8e6c9; color: #1b5e20 !important; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 6px; margin-left: 8px; }
+    .wholesaler-badge-off { background: #eeeeee; color: #616161 !important; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 6px; margin-left: 8px; }
 
-    .full-bill-box {
-        background: #ffffff; border: 3px solid #2196f3; border-radius: 14px;
-        padding: 18px 22px; margin: 10px 0 18px 0;
-        box-shadow: 0 6px 20px rgba(33,150,243,0.25);
-    }
+    .full-bill-box { background: #ffffff; border: 3px solid #2196f3; border-radius: 14px; padding: 18px 22px; margin: 10px 0 18px 0; box-shadow: 0 6px 20px rgba(33,150,243,0.25); }
     .full-bill-box.dsr { border-color: #f57c00; }
     .full-bill-box.credit { border-color: #e65100; }
     .full-bill-box.credit-paid { border-color: #2e7d32; }
@@ -354,62 +249,57 @@ st.markdown("""
     .full-bill-title { font-size: 20px; font-weight: 800; color: #1976d2; margin-bottom: 8px; }
     .full-bill-meta { font-size: 13px; color: #0277bd; margin-bottom: 12px; }
 
-    .badge-transferred {
-        background: #c8e6c9; color: #1b5e20 !important; padding: 3px 10px;
-        border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px;
-    }
-    .badge-pending {
-        background: #ffe0b2; color: #e65100 !important; padding: 3px 10px;
-        border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px;
-    }
-    .badge-refreshed {
-        background: #e1bee7; color: #6a1b9a !important; padding: 3px 10px;
-        border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px;
-    }
-    .badge-paid-credit {
-        background: #c8e6c9; color: #1b5e20 !important; padding: 3px 10px;
-        border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px;
-    }
-    .badge-credit-tag {
-        background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
-        color: #ffffff !important; padding: 3px 10px;
-        border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px;
-    }
-    .badge-wholesaler {
-        background: linear-gradient(135deg, #8e24aa 0%, #6a1b9a 100%);
-        color: #ffffff !important; padding: 3px 10px;
-        border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px;
-    }
+    .badge-transferred { background: #c8e6c9; color: #1b5e20 !important; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px; }
+    .badge-pending { background: #ffe0b2; color: #e65100 !important; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px; }
+    .badge-refreshed { background: #e1bee7; color: #6a1b9a !important; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px; }
+    .badge-paid-credit { background: #c8e6c9; color: #1b5e20 !important; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px; }
+    .badge-credit-tag { background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: #ffffff !important; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px; }
+    .badge-wholesaler { background: linear-gradient(135deg, #8e24aa 0%, #6a1b9a 100%); color: #ffffff !important; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px; }
 
-    .dsr-summary-line {
-        padding: 6px 12px; margin: 3px 0; border-radius: 6px;
-        background: #f5f5f5; font-size: 14px;
-    }
-    .dsr-summary-line.total {
-        background: #e8f5e9; font-weight: 800; font-size: 16px; color: #1b5e20 !important;
-        border: 2px solid #4caf50;
-    }
+    .dsr-summary-line { padding: 6px 12px; margin: 3px 0; border-radius: 6px; background: #f5f5f5; font-size: 14px; }
+    .dsr-summary-line.total { background: #e8f5e9; font-weight: 800; font-size: 16px; color: #1b5e20 !important; border: 2px solid #4caf50; }
+    .dsr-summary-line.credit { background: #f3e5f5; color: #6a1b9a !important; }
 
-    .auth-title {
-        text-align: center; font-size: 36px; font-weight: 900;
-        color: #1976d2; margin-bottom: 6px; margin-top: 20px;
-    }
-    .auth-subtitle {
-        text-align: center; font-size: 14px; color: #0277bd;
-        margin-bottom: 24px; font-weight: 600;
-    }
-    .auth-card {
-        background: #ffffff; border: 3px solid #90caf9; border-radius: 16px;
-        padding: 28px 32px; box-shadow: 0 8px 24px rgba(33,150,243,0.2);
-        margin: 0 auto;
-    }
+    .auth-title { text-align: center; font-size: 36px; font-weight: 900; color: #1976d2; margin-bottom: 6px; margin-top: 20px; }
+    .auth-subtitle { text-align: center; font-size: 14px; color: #0277bd; margin-bottom: 24px; font-weight: 600; }
+    .auth-card { background: #ffffff; border: 3px solid #90caf9; border-radius: 16px; padding: 28px 32px; box-shadow: 0 8px 24px rgba(33,150,243,0.2); margin: 0 auto; }
 
     .stAlert { border-radius: 10px !important; }
     hr { border-color: #90caf9 !important; opacity: 0.6 !important; }
 
-    /* ============================================================
-       PROFESSIONAL DARK SIDEBAR
-       ============================================================ */
+    /* CALCULATOR */
+    .calc-total-box {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+        border-radius: 16px; padding: 24px; text-align: center;
+        color: white; margin-top: 16px;
+        box-shadow: 0 8px 24px rgba(37,99,235,0.3);
+    }
+    .calc-total-box.locked {
+        background: linear-gradient(135deg, #065f46 0%, #10b981 100%);
+        box-shadow: 0 8px 24px rgba(16,185,129,0.4);
+    }
+    .calc-total-label {
+        font-size: 12px; text-transform: uppercase;
+        letter-spacing: 2px; color: rgba(255,255,255,0.85) !important; font-weight: 700;
+    }
+    .calc-total-value {
+        font-size: 42px; font-weight: 800;
+        color: #ffffff !important; margin-top: 6px; letter-spacing: -1px;
+    }
+    .calc-section-hdr {
+        font-size: 15px; font-weight: 800; color: #1e3a8a !important;
+        margin: 14px 0 8px 0;
+        padding-left: 10px;
+        border-left: 4px solid #2563eb;
+    }
+    .calc-row-amt {
+        padding-top: 8px; font-size: 15px; font-weight: 700; color: #2e7d32 !important;
+    }
+    .calc-row-label {
+        padding-top: 8px; font-size: 15px; font-weight: 700; color: #1976d2 !important;
+    }
+
+    /* SIDEBAR */
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #0b1220 0%, #111a2e 50%, #0b1220 100%) !important;
         border-right: 1px solid rgba(59,130,246,0.15) !important;
@@ -418,164 +308,45 @@ st.markdown("""
     section[data-testid="stSidebar"] > div:first-child { padding-top: 0 !important; }
     section[data-testid="stSidebar"] .block-container { padding: 0 !important; }
     section[data-testid="stSidebar"] ::-webkit-scrollbar { width: 6px; }
-    section[data-testid="stSidebar"] ::-webkit-scrollbar-thumb {
-        background: rgba(59,130,246,0.35); border-radius: 3px;
-    }
+    section[data-testid="stSidebar"] ::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.35); border-radius: 3px; }
 
-    .sb-brand {
-        text-align: center; padding: 22px 16px 18px;
-        border-bottom: 1px solid rgba(255,255,255,0.06);
-        position: relative;
-        background: radial-gradient(circle at 50% 0%, rgba(59,130,246,0.18) 0%, transparent 70%);
-    }
-    .sb-brand-logo {
-        display: inline-flex; align-items: center; justify-content: center;
-        width: 56px; height: 56px; border-radius: 16px;
-        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-        font-size: 28px; margin-bottom: 10px;
-        box-shadow: 0 8px 24px rgba(59,130,246,0.45),
-                    inset 0 1px 0 rgba(255,255,255,0.25);
-    }
-    .sb-brand-name {
-        font-size: 17px; font-weight: 800;
-        color: #ffffff !important; letter-spacing: 2px; margin: 0;
-        text-shadow: 0 2px 8px rgba(59,130,246,0.3);
-    }
-    .sb-brand-sub {
-        font-size: 9px; color: #64748b !important;
-        letter-spacing: 4px; font-weight: 700; margin-top: 3px;
-    }
-    .sb-brand-dot {
-        display: inline-block; width: 6px; height: 6px;
-        background: #22c55e; border-radius: 50%; margin-right: 4px;
-        box-shadow: 0 0 8px #22c55e; vertical-align: middle;
-    }
-    .sb-brand-status {
-        font-size: 9px; color: #94a3b8 !important;
-        letter-spacing: 1px; margin-top: 6px; font-weight: 600;
-    }
-
-    .sb-user {
-        display: flex; align-items: center; gap: 12px;
-        background: linear-gradient(135deg, rgba(59,130,246,0.12) 0%, rgba(29,78,216,0.06) 100%);
-        border: 1px solid rgba(59,130,246,0.22);
-        border-radius: 12px; padding: 10px 12px;
-        margin: 14px 14px 16px;
-        position: relative; overflow: hidden;
-    }
-    .sb-user::before {
-        content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-        background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
-    }
-    .sb-user-avatar {
-        width: 40px; height: 40px; border-radius: 11px;
-        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-        display: flex; align-items: center; justify-content: center;
-        font-weight: 800; font-size: 16px; color: #ffffff !important;
-        flex-shrink: 0;
-        box-shadow: 0 4px 12px rgba(59,130,246,0.4),
-                    inset 0 1px 0 rgba(255,255,255,0.3);
-        text-transform: uppercase;
-    }
+    .sb-brand { text-align: center; padding: 22px 16px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); position: relative; background: radial-gradient(circle at 50% 0%, rgba(59,130,246,0.18) 0%, transparent 70%); }
+    .sb-brand-logo { display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); font-size: 28px; margin-bottom: 10px; box-shadow: 0 8px 24px rgba(59,130,246,0.45), inset 0 1px 0 rgba(255,255,255,0.25); }
+    .sb-brand-name { font-size: 17px; font-weight: 800; color: #ffffff !important; letter-spacing: 2px; margin: 0; text-shadow: 0 2px 8px rgba(59,130,246,0.3); }
+    .sb-brand-sub { font-size: 9px; color: #64748b !important; letter-spacing: 4px; font-weight: 700; margin-top: 3px; }
+    .sb-brand-dot { display: inline-block; width: 6px; height: 6px; background: #22c55e; border-radius: 50%; margin-right: 4px; box-shadow: 0 0 8px #22c55e; vertical-align: middle; }
+    .sb-brand-status { font-size: 9px; color: #94a3b8 !important; letter-spacing: 1px; margin-top: 6px; font-weight: 600; }
+    .sb-user { display: flex; align-items: center; gap: 12px; background: linear-gradient(135deg, rgba(59,130,246,0.12) 0%, rgba(29,78,216,0.06) 100%); border: 1px solid rgba(59,130,246,0.22); border-radius: 12px; padding: 10px 12px; margin: 14px 14px 16px; position: relative; overflow: hidden; }
+    .sb-user::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%); }
+    .sb-user-avatar { width: 40px; height: 40px; border-radius: 11px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; color: #ffffff !important; flex-shrink: 0; box-shadow: 0 4px 12px rgba(59,130,246,0.4), inset 0 1px 0 rgba(255,255,255,0.3); text-transform: uppercase; }
     .sb-user-info { display: flex; flex-direction: column; min-width: 0; }
-    .sb-user-label {
-        font-size: 9px; color: #64748b !important;
-        text-transform: uppercase; letter-spacing: 1.5px;
-        font-weight: 700; margin-bottom: 2px;
-    }
-    .sb-user-name {
-        font-size: 13px; font-weight: 700; color: #ffffff !important;
-        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    }
+    .sb-user-label { font-size: 9px; color: #64748b !important; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 2px; }
+    .sb-user-name { font-size: 13px; font-weight: 700; color: #ffffff !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sb-section-label { font-size: 9px; color: #475569 !important; letter-spacing: 2.5px; font-weight: 800; padding: 0 20px 8px; text-transform: uppercase; }
 
-    .sb-section-label {
-        font-size: 9px; color: #475569 !important;
-        letter-spacing: 2.5px; font-weight: 800;
-        padding: 0 20px 8px; text-transform: uppercase;
-    }
-
-    section[data-testid="stSidebar"] div[role="radiogroup"] {
-        gap: 2px !important; padding: 0 10px 8px !important;
-        display: flex !important; flex-direction: column !important;
-    }
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label {
-        background-color: transparent !important;
-        border: 1px solid transparent !important;
-        border-radius: 10px !important;
-        margin-bottom: 2px !important;
-        padding: 9px 12px !important;
-        transition: all 0.18s ease !important;
-        cursor: pointer !important;
-        display: flex !important; align-items: center !important;
-        width: 100% !important; position: relative !important;
-    }
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover {
-        background-color: rgba(59,130,246,0.10) !important;
-        border-color: rgba(59,130,246,0.22) !important;
-        transform: translateX(2px);
-    }
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label p {
-        color: #cbd5e1 !important;
-        font-size: 13.5px !important; font-weight: 500 !important;
-        margin: 0 !important; letter-spacing: 0.2px !important;
-    }
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover p {
-        color: #ffffff !important;
-    }
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child {
-        display: none !important;
-    }
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label > div[data-testid="stMarkdownContainer"] {
-        width: 100% !important;
-    }
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) {
-        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
-        border-color: #3b82f6 !important;
-        box-shadow: 0 6px 18px rgba(59,130,246,0.45),
-                    inset 0 1px 0 rgba(255,255,255,0.2) !important;
-        transform: translateX(0) !important;
-    }
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) p {
-        color: #ffffff !important; font-weight: 700 !important;
-    }
-
-    section[data-testid="stSidebar"] hr {
-        border-color: rgba(255,255,255,0.06) !important;
-        margin: 10px 14px !important; opacity: 1 !important;
-    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] { gap: 2px !important; padding: 0 10px 8px !important; display: flex !important; flex-direction: column !important; }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label { background-color: transparent !important; border: 1px solid transparent !important; border-radius: 10px !important; margin-bottom: 2px !important; padding: 9px 12px !important; transition: all 0.18s ease !important; cursor: pointer !important; display: flex !important; align-items: center !important; width: 100% !important; position: relative !important; }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover { background-color: rgba(59,130,246,0.10) !important; border-color: rgba(59,130,246,0.22) !important; transform: translateX(2px); }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label p { color: #cbd5e1 !important; font-size: 13.5px !important; font-weight: 500 !important; margin: 0 !important; letter-spacing: 0.2px !important; }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover p { color: #ffffff !important; }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child { display: none !important; }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label > div[data-testid="stMarkdownContainer"] { width: 100% !important; }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important; border-color: #3b82f6 !important; box-shadow: 0 6px 18px rgba(59,130,246,0.45), inset 0 1px 0 rgba(255,255,255,0.2) !important; transform: translateX(0) !important; }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) p { color: #ffffff !important; font-weight: 700 !important; }
+    section[data-testid="stSidebar"] hr { border-color: rgba(255,255,255,0.06) !important; margin: 10px 14px !important; opacity: 1 !important; }
 
     .sb-stats { padding: 4px 14px 12px; }
-    .sb-stats-grid {
-        display: grid; grid-template-columns: 1fr 1fr;
-        gap: 8px; margin-bottom: 10px;
-    }
-    .sb-stat-card {
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 10px; padding: 10px 10px; text-align: center;
-        transition: all 0.2s ease;
-    }
-    .sb-stat-card:hover {
-        background: rgba(59,130,246,0.10);
-        border-color: rgba(59,130,246,0.30);
-        transform: translateY(-1px);
-    }
+    .sb-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+    .sb-stat-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 10px 10px; text-align: center; transition: all 0.2s ease; }
+    .sb-stat-card:hover { background: rgba(59,130,246,0.10); border-color: rgba(59,130,246,0.30); transform: translateY(-1px); }
     .sb-stat-card .sb-stat-icon { font-size: 16px; margin-bottom: 4px; line-height: 1; }
     .sb-stat-card .sb-stat-value { font-size: 16px; font-weight: 800; color: #ffffff !important; line-height: 1.1; }
-    .sb-stat-card .sb-stat-label {
-        font-size: 8.5px; color: #64748b !important;
-        text-transform: uppercase; letter-spacing: 1px;
-        font-weight: 700; margin-top: 3px;
-    }
+    .sb-stat-card .sb-stat-label { font-size: 8.5px; color: #64748b !important; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-top: 3px; }
     .sb-stat-card.warn .sb-stat-value { color: #fbbf24 !important; }
     .sb-stat-card.good .sb-stat-value { color: #4ade80 !important; }
     .sb-stat-card.blue .sb-stat-value { color: #60a5fa !important; }
 
-    .sb-date {
-        text-align: center; padding: 10px 14px 6px;
-        font-size: 10px; color: #64748b !important;
-        letter-spacing: 1px; font-weight: 600; text-transform: uppercase;
-    }
+    .sb-date { text-align: center; padding: 10px 14px 6px; font-size: 10px; color: #64748b !important; letter-spacing: 1px; font-weight: 600; text-transform: uppercase; }
 
     section[data-testid="stSidebar"] .stButton > button {
         background: linear-gradient(135deg, rgba(239,68,68,0.18) 0%, rgba(220,38,38,0.12) 100%) !important;
@@ -594,162 +365,57 @@ st.markdown("""
     }
     section[data-testid="stSidebar"] .stButton > button p,
     section[data-testid="stSidebar"] .stButton > button span,
-    section[data-testid="stSidebar"] .stButton > button div {
-        color: inherit !important;
-    }
+    section[data-testid="stSidebar"] .stButton > button div { color: inherit !important; }
 
-    /* ============================================================
-       PROFESSIONAL DASHBOARD
-       ============================================================ */
-    .dash-hero {
-        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%);
-        border-radius: 20px; padding: 26px 32px; margin-bottom: 22px;
-        color: #fff; position: relative; overflow: hidden;
-        box-shadow: 0 12px 32px rgba(37, 99, 235, 0.35);
-    }
-    .dash-hero::before {
-        content: ''; position: absolute; top: -50%; right: -10%;
-        width: 420px; height: 420px;
-        background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%);
-        border-radius: 50%;
-    }
-    .dash-hero-content {
-        position: relative; z-index: 2;
-        display: flex; justify-content: space-between; align-items: center;
-        gap: 24px; flex-wrap: wrap;
-    }
+    /* DASHBOARD */
+    .dash-hero { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%); border-radius: 20px; padding: 26px 32px; margin-bottom: 22px; color: #fff; position: relative; overflow: hidden; box-shadow: 0 12px 32px rgba(37, 99, 235, 0.35); }
+    .dash-hero::before { content: ''; position: absolute; top: -50%; right: -10%; width: 420px; height: 420px; background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%); border-radius: 50%; }
+    .dash-hero-content { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
     .dash-hero-left { display: flex; flex-direction: column; gap: 6px; }
-    .dash-hero-welcome {
-        font-size: 11px; font-weight: 800; letter-spacing: 2.5px;
-        text-transform: uppercase; color: rgba(255,255,255,0.75) !important;
-    }
-    .dash-hero-title {
-        font-size: 28px; font-weight: 800; margin: 0;
-        color: #fff !important; letter-spacing: -0.6px;
-    }
-    .dash-hero-sub {
-        font-size: 13px; color: rgba(255,255,255,0.9) !important; font-weight: 500;
-    }
+    .dash-hero-welcome { font-size: 11px; font-weight: 800; letter-spacing: 2.5px; text-transform: uppercase; color: rgba(255,255,255,0.75) !important; }
+    .dash-hero-title { font-size: 28px; font-weight: 800; margin: 0; color: #fff !important; letter-spacing: -0.6px; }
+    .dash-hero-sub { font-size: 13px; color: rgba(255,255,255,0.9) !important; font-weight: 500; }
     .dash-hero-right { display: flex; gap: 22px; align-items: center; }
     .dash-hero-stat { text-align: right; }
-    .dash-hero-stat-label {
-        font-size: 10px; text-transform: uppercase; letter-spacing: 1.6px;
-        color: rgba(255,255,255,0.7) !important; font-weight: 700;
-    }
+    .dash-hero-stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.6px; color: rgba(255,255,255,0.7) !important; font-weight: 700; }
     .dash-hero-stat-val { font-size: 24px; font-weight: 800; color: #fff !important; line-height: 1.1; }
 
-    .dash-section-title {
-        display: flex; align-items: center; gap: 10px;
-        font-size: 15px; font-weight: 800; color: #1e3a8a !important;
-        margin: 10px 0 14px 0; letter-spacing: 0.3px;
-    }
-    .dash-section-title::before {
-        content: ''; display: inline-block; width: 4px; height: 18px;
-        background: linear-gradient(180deg, #2563eb 0%, #3b82f6 100%);
-        border-radius: 3px;
-    }
+    .dash-section-title { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 800; color: #1e3a8a !important; margin: 10px 0 14px 0; letter-spacing: 0.3px; }
+    .dash-section-title::before { content: ''; display: inline-block; width: 4px; height: 18px; background: linear-gradient(180deg, #2563eb 0%, #3b82f6 100%); border-radius: 3px; }
 
-    .kpi-card {
-        background: #ffffff; border-radius: 16px; padding: 20px 22px;
-        border: 1px solid rgba(37,99,235,0.12);
-        box-shadow: 0 4px 16px rgba(37,99,235,0.08);
-        display: flex; flex-direction: column; gap: 12px;
-        transition: all 0.2s ease;
-        position: relative; overflow: hidden; height: 100%;
-    }
-    .kpi-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 28px rgba(37,99,235,0.18);
-        border-color: rgba(37,99,235,0.30);
-    }
+    .kpi-card { background: #ffffff; border-radius: 16px; padding: 20px 22px; border: 1px solid rgba(37,99,235,0.12); box-shadow: 0 4px 16px rgba(37,99,235,0.08); display: flex; flex-direction: column; gap: 12px; transition: all 0.2s ease; position: relative; overflow: hidden; height: 100%; }
+    .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(37,99,235,0.18); border-color: rgba(37,99,235,0.30); }
     .kpi-top { display: flex; align-items: center; justify-content: space-between; }
-    .kpi-icon {
-        width: 44px; height: 44px; border-radius: 12px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 20px;
-        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-        color: #1e40af !important;
-        box-shadow: 0 3px 8px rgba(37,99,235,0.15);
-    }
+    .kpi-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); color: #1e40af !important; box-shadow: 0 3px 8px rgba(37,99,235,0.15); }
     .kpi-icon.green { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color: #065f46 !important; }
     .kpi-icon.orange { background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%); color: #9a3412 !important; }
     .kpi-icon.purple { background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%); color: #6b21a8 !important; }
     .kpi-icon.teal { background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%); color: #115e59 !important; }
     .kpi-icon.red { background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%); color: #991b1b !important; }
-
-    .kpi-label {
-        font-size: 10.5px; font-weight: 800; color: #64748b !important;
-        text-transform: uppercase; letter-spacing: 1.2px;
-    }
-    .kpi-value {
-        font-size: 32px; font-weight: 800; color: #0f172a !important;
-        line-height: 1; letter-spacing: -1.2px;
-    }
+    .kpi-label { font-size: 10.5px; font-weight: 800; color: #64748b !important; text-transform: uppercase; letter-spacing: 1.2px; }
+    .kpi-value { font-size: 32px; font-weight: 800; color: #0f172a !important; line-height: 1; letter-spacing: -1.2px; }
     .kpi-sub { font-size: 11.5px; color: #64748b !important; font-weight: 600; }
     .kpi-sub.blue { color: #2563eb !important; }
     .kpi-sub.green { color: #059669 !important; }
     .kpi-sub.orange { color: #ea580c !important; }
     .kpi-sub.red { color: #dc2626 !important; }
     .kpi-value-group { display: flex; align-items: baseline; gap: 6px; }
-    .kpi-value-unit {
-        font-size: 12px; color: #94a3b8 !important; font-weight: 700;
-        text-transform: uppercase; letter-spacing: 0.5px;
-    }
+    .kpi-value-unit { font-size: 12px; color: #94a3b8 !important; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
 
-    .team-card {
-        background: #ffffff; border-radius: 14px; padding: 14px 18px;
-        border: 1px solid rgba(37,99,235,0.10);
-        box-shadow: 0 2px 10px rgba(37,99,235,0.06);
-        display: flex; align-items: center; gap: 14px;
-        margin-bottom: 10px; transition: all 0.18s ease;
-    }
-    .team-card:hover {
-        transform: translateX(3px);
-        box-shadow: 0 8px 22px rgba(37,99,235,0.15);
-        border-color: rgba(37,99,235,0.28);
-    }
-    .team-avatar {
-        width: 46px; height: 46px; border-radius: 12px;
-        display: flex; align-items: center; justify-content: center;
-        font-weight: 800; font-size: 17px; color: #fff !important;
-        flex-shrink: 0; text-transform: uppercase;
-        box-shadow: 0 4px 10px rgba(37,99,235,0.3);
-        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    }
+    .team-card { background: #ffffff; border-radius: 14px; padding: 14px 18px; border: 1px solid rgba(37,99,235,0.10); box-shadow: 0 2px 10px rgba(37,99,235,0.06); display: flex; align-items: center; gap: 14px; margin-bottom: 10px; transition: all 0.18s ease; }
+    .team-card:hover { transform: translateX(3px); box-shadow: 0 8px 22px rgba(37,99,235,0.15); border-color: rgba(37,99,235,0.28); }
+    .team-avatar { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; color: #fff !important; flex-shrink: 0; text-transform: uppercase; box-shadow: 0 4px 10px rgba(37,99,235,0.3); background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
     .team-avatar.booker { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
-    .team-avatar.salesman {
-        background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
-        box-shadow: 0 4px 10px rgba(139,92,246,0.3);
-    }
+    .team-avatar.salesman { background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); box-shadow: 0 4px 10px rgba(139,92,246,0.3); }
     .team-info { flex: 1; min-width: 0; }
-    .team-name {
-        font-size: 14.5px; font-weight: 700; color: #0f172a !important;
-        margin-bottom: 3px;
-        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    }
+    .team-name { font-size: 14.5px; font-weight: 700; color: #0f172a !important; margin-bottom: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .team-meta { font-size: 11.5px; color: #64748b !important; font-weight: 500; }
     .team-meta b { color: #2563eb !important; font-weight: 700; }
     .team-meta.warn b { color: #ea580c !important; }
     .team-meta.good b { color: #059669 !important; }
-    .team-badge {
-        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-        color: #1e40af !important;
-        font-size: 10px; font-weight: 800;
-        padding: 5px 10px; border-radius: 8px;
-        letter-spacing: 0.8px;
-        border: 1px solid rgba(37,99,235,0.15);
-        flex-shrink: 0;
-    }
-    .team-badge.orange {
-        background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
-        color: #9a3412 !important;
-        border-color: rgba(234,88,12,0.2);
-    }
-    .empty-team {
-        background: #ffffff; border: 2px dashed rgba(37,99,235,0.25);
-        border-radius: 14px; padding: 28px; text-align: center;
-        color: #64748b !important; font-size: 13px; font-weight: 600;
-    }
+    .team-badge { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); color: #1e40af !important; font-size: 10px; font-weight: 800; padding: 5px 10px; border-radius: 8px; letter-spacing: 0.8px; border: 1px solid rgba(37,99,235,0.15); flex-shrink: 0; }
+    .team-badge.orange { background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); color: #9a3412 !important; border-color: rgba(234,88,12,0.2); }
+    .empty-team { background: #ffffff; border: 2px dashed rgba(37,99,235,0.25); border-radius: 14px; padding: 28px; text-align: center; color: #64748b !important; font-size: 13px; font-weight: 600; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -766,16 +432,12 @@ components.html("""
                        '[data-testid="stCloudAppManageButton"]','.stAppDeployButton',
                        'iframe[title="streamlit_cloud_status"]'];
             sel.forEach(function(s){
-                doc.querySelectorAll(s).forEach(function(el){
-                    el.style.setProperty('display','none','important');
-                });
+                doc.querySelectorAll(s).forEach(function(el){ el.style.setProperty('display','none','important'); });
             });
             doc.querySelectorAll('button, a').forEach(function(el){
                 try {
                     var t = (el.textContent || '').trim();
-                    if (t === 'Manage app' || t === 'Manage App') {
-                        el.style.setProperty('display','none','important');
-                    }
+                    if (t === 'Manage app' || t === 'Manage App') el.style.setProperty('display','none','important');
                 } catch(e){}
             });
         } catch(e) {}
@@ -788,7 +450,7 @@ components.html("""
             if (old) old.parentNode.removeChild(old);
             var btn = doc.createElement('button');
             btn.id = 'custom-sidebar-toggle';
-            btn.title = 'Sidebar Open/Close';
+            btn.title = 'Sidebar';
             btn.innerHTML = '\\u2630';
             var s = {'position':'fixed','top':'14px','left':'14px','z-index':'2147483647',
                 'background':'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
@@ -947,79 +609,48 @@ PRODUCT_NAMES = [p["name"] for p in PRODUCTS]
 # ============================================================
 def render_auth_page():
     st.markdown(f"<div class='auth-title'>🧾 {COMPANY_NAME}</div>", unsafe_allow_html=True)
-    st.markdown("<div class='auth-subtitle'>Billing Software 2026 — Login ya Signup Karo</div>", unsafe_allow_html=True)
-
+    st.markdown("<div class='auth-subtitle'>Billing Software 2026 — Login ya Signup</div>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 1.2, 1])
     with col2:
         st.markdown("<div class='auth-card'>", unsafe_allow_html=True)
         tab1, tab2 = st.tabs(["🔐 Login", "📝 Signup"])
-
         with tab1:
             st.markdown("### 🔐 Login")
-            st.caption("Apna username aur password daalo")
             login_user = st.text_input("Username:", key="login_username", placeholder="username")
             login_pass = st.text_input("Password:", key="login_password", type="password", placeholder="password")
-            login_btn = st.button("🔓 Login Karo", key="btn_login", use_container_width=True, type="primary")
-
-            if login_btn:
+            if st.button("🔓 Login Karo", key="btn_login", use_container_width=True, type="primary"):
                 users = load_users()
                 uname = login_user.strip().lower()
-                if uname == "" or login_pass == "":
-                    st.error("❌ Username aur password dono daalo")
-                elif uname not in users:
-                    st.error("❌ Ye username exist nahi karta. Pehle Signup karo.")
-                elif users[uname].get("password_hash") != hash_password(login_pass):
-                    st.error("❌ Password galat hai")
+                if uname == "" or login_pass == "": st.error("❌ Dono daalo")
+                elif uname not in users: st.error("❌ Username exist nahi karta")
+                elif users[uname].get("password_hash") != hash_password(login_pass): st.error("❌ Password galat")
                 else:
                     st.session_state["logged_in_user"] = uname
                     st.session_state["display_name"] = users[uname].get("display_name", uname)
                     st.session_state["page"] = "📊 Dashboard"
-                    st.success(f"✅ Welcome {uname}!")
                     st.rerun()
-
         with tab2:
             st.markdown("### 📝 Signup")
-            st.caption("Naya account banao — apna data apna hi rahega")
-            su_user = st.text_input("Naya Username:", key="su_username", placeholder="sirf letters/numbers (3-20)")
-            su_pass = st.text_input("Naya Password:", key="su_password", type="password", placeholder="min 4 characters")
-            su_pass2 = st.text_input("Confirm Password:", key="su_password2", type="password", placeholder="same password")
-            su_btn = st.button("✅ Signup Karo", key="btn_signup", use_container_width=True)
-
-            if su_btn:
+            su_user = st.text_input("Naya Username:", key="su_username", placeholder="3-20 chars")
+            su_pass = st.text_input("Password:", key="su_password", type="password")
+            su_pass2 = st.text_input("Confirm:", key="su_password2", type="password")
+            if st.button("✅ Signup Karo", key="btn_signup", use_container_width=True):
                 users = load_users()
-                uname = su_user.strip().lower()
-                uname_safe = sanitize_username(uname)
-
-                if uname_safe == "":
-                    st.error("❌ Username khali hai ya invalid characters hain")
-                elif len(uname_safe) < 3:
-                    st.error("❌ Username kam se kam 3 characters ka ho")
-                elif len(uname_safe) > 20:
-                    st.error("❌ Username 20 characters se zyada nahi ho sakta")
-                elif len(su_pass) < 4:
-                    st.error("❌ Password kam se kam 4 characters ka ho")
-                elif su_pass != su_pass2:
-                    st.error("❌ Dono passwords match nahi kar rahe")
-                elif uname_safe in users:
-                    st.error(f"❌ Username '{uname_safe}' pehle se exist karta hai. Doosra try karo.")
+                uname_safe = sanitize_username(su_user.strip())
+                if len(uname_safe) < 3: st.error("❌ Username chhota")
+                elif len(su_pass) < 4: st.error("❌ Password chhota")
+                elif su_pass != su_pass2: st.error("❌ Match nahi")
+                elif uname_safe in users: st.error("❌ Exist karta hai")
                 else:
-                    users[uname_safe] = {
-                        "username": uname_safe, "display_name": uname,
+                    users[uname_safe] = {"username": uname_safe, "display_name": su_user.strip(),
                         "password_hash": hash_password(su_pass),
-                        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    }
+                        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
                     save_users(users)
-                    blank = default_blank_db()
                     with open(user_data_file(uname_safe), "w", encoding="utf-8") as f:
-                        json.dump(blank, f, indent=4, ensure_ascii=False)
-                    st.success(f"✅ Account ban gaya! Ab 'Login' tab se login karo — username: **{uname_safe}**")
-                    st.info("💡 Yaad rakho: aapka data sirf aapko dikhega.")
-
+                        json.dump(default_blank_db(), f, indent=4, ensure_ascii=False)
+                    st.success(f"✅ Account ban gaya — username: **{uname_safe}**")
         st.markdown("</div>", unsafe_allow_html=True)
 
-# ============================================================
-# CHECK LOGIN
-# ============================================================
 if "logged_in_user" not in st.session_state or not st.session_state["logged_in_user"]:
     render_auth_page()
     st.stop()
@@ -1050,45 +681,33 @@ def load_database(username):
                 if "next_bill_no" not in data: data["next_bill_no"] = 1
                 if "next_credit_id" not in data:
                     data["next_credit_id"] = max([c.get("id", 0) for c in data.get("credit_bills", [])] + [0]) + 1
-                if "wholesaler_rule_enabled" not in data:
-                    data["wholesaler_rule_enabled"] = True
-                if "wholesaler_discount_pct" not in data:
-                    data["wholesaler_discount_pct"] = 6.0
+                if "wholesaler_rule_enabled" not in data: data["wholesaler_rule_enabled"] = True
+                if "wholesaler_discount_pct" not in data: data["wholesaler_discount_pct"] = 6.0
                 return data
-        except Exception:
-            pass
+        except Exception: pass
     return default_blank_db()
 
 def save_database(db):
     try:
-        fpath = user_data_file(CURRENT_USER)
-        with open(fpath, "w", encoding="utf-8") as f:
+        with open(user_data_file(CURRENT_USER), "w", encoding="utf-8") as f:
             json.dump(db, f, indent=4, ensure_ascii=False)
     except Exception as e:
-        st.warning(f"⚠️ Save warning: {e}")
+        st.warning(f"⚠️ Save: {e}")
 
 def parse_date(dstr):
-    try:
-        return datetime.strptime(dstr, "%d-%m-%Y").date()
-    except Exception:
-        return None
+    try: return datetime.strptime(dstr, "%d-%m-%Y").date()
+    except Exception: return None
 
 if "database" not in st.session_state:
     st.session_state.database = load_database(CURRENT_USER)
-
 if st.session_state.get("_db_user") != CURRENT_USER:
     st.session_state.database = load_database(CURRENT_USER)
     st.session_state["_db_user"] = CURRENT_USER
 
-if "_prev_prod" not in st.session_state: st.session_state["_prev_prod"] = None
-if "last_bill_no" not in st.session_state: st.session_state["last_bill_no"] = None
-if "download_file" not in st.session_state: st.session_state["download_file"] = None
-if "_dl_counter" not in st.session_state: st.session_state["_dl_counter"] = 0
-if "page" not in st.session_state: st.session_state["page"] = "📊 Dashboard"
-if "view_bill_key" not in st.session_state: st.session_state["view_bill_key"] = None
-if "view_lf_key" not in st.session_state: st.session_state["view_lf_key"] = None
-if "view_dsr_key" not in st.session_state: st.session_state["view_dsr_key"] = None
-if "view_credit_key" not in st.session_state: st.session_state["view_credit_key"] = None
+for _k, _v in [("_prev_prod", None), ("last_bill_no", None), ("download_file", None),
+               ("_dl_counter", 0), ("page", "📊 Dashboard"), ("view_bill_key", None),
+               ("view_lf_key", None), ("view_dsr_key", None), ("view_credit_key", None)]:
+    if _k not in st.session_state: st.session_state[_k] = _v
 
 db = st.session_state.database
 for k in ["bookers", "salesmen", "load_forms", "petrol_expenses",
@@ -1110,44 +729,30 @@ if "wholesaler_discount_pct" not in db: db["wholesaler_discount_pct"] = 6.0
 # HELPERS
 # ============================================================
 def is_wholesaler(shop_name):
-    """Shop name mein 'whole seller' (any spelling/space) ho to True."""
-    if not shop_name:
-        return False
+    if not shop_name: return False
     s = str(shop_name).lower()
     s_compact = "".join(ch for ch in s if ch.isalnum())
     for token in ["wholeseller", "wholesaler", "wholseller", "wholsaler",
                   "whole seller", "whole saler", "holeseller", "holesaler"]:
-        if token.replace(" ", "") in s_compact:
-            return True
+        if token.replace(" ", "") in s_compact: return True
     return False
 
-def wholesaler_rule_active():
-    return bool(db.get("wholesaler_rule_enabled", True))
-
+def wholesaler_rule_active(): return bool(db.get("wholesaler_rule_enabled", True))
 def get_wholesaler_pct():
-    try:
-        return float(db.get("wholesaler_discount_pct", 6.0))
-    except Exception:
-        return 6.0
+    try: return float(db.get("wholesaler_discount_pct", 6.0))
+    except Exception: return 6.0
 
 def get_all_products():
-    try:
-        custom = db.get("custom_products", [])
-    except Exception:
-        custom = []
+    custom = db.get("custom_products", [])
     merged = list(PRODUCTS)
     seen_codes = {str(p["code"]) for p in merged}
     for cp in custom:
         code = str(cp.get("code", "")).strip()
         name = str(cp.get("name", "")).strip()
-        if not code or not name or code in seen_codes:
-            continue
-        try:
-            price = float(cp.get("price", 0))
-        except Exception:
-            price = 0.0
-        merged.append({"code": code, "name": name, "price": price})
-        seen_codes.add(code)
+        if not code or not name or code in seen_codes: continue
+        try: price = float(cp.get("price", 0))
+        except Exception: price = 0.0
+        merged.append({"code": code, "name": name, "price": price}); seen_codes.add(code)
     return sorted(merged, key=lambda x: x["name"])
 
 def get_price(code, base_price):
@@ -1157,13 +762,11 @@ def get_price(code, base_price):
         except Exception: return float(base_price)
     return float(base_price)
 
-def get_all_active_packages():
-    return [p for p in db.get("discount_packages", []) if p.get("active")]
+def get_all_active_packages(): return [p for p in db.get("discount_packages", []) if p.get("active")]
 
 def get_package_discount_pct(bill_total):
     active_pkgs = get_all_active_packages()
-    if not active_pkgs:
-        return 0.0, None, None
+    if not active_pkgs: return 0.0, None, None
     best_pct = 0.0; best_name = None; best_tier = None
     for pkg in active_pkgs:
         pkg_name = pkg.get("name", "Package")
@@ -1176,18 +779,40 @@ def get_package_discount_pct(bill_total):
         for amt, pct, label in tiers:
             if amt > 0 and bill_total > amt and pct > best_pct:
                 best_pct = pct; best_name = pkg_name
-                best_tier = f"{label} (> {amt:,.0f})"
-                break
-    if best_pct > 0:
-        return best_pct, best_name, best_tier
+                best_tier = f"{label} (> {amt:,.0f})"; break
+    if best_pct > 0: return best_pct, best_name, best_tier
     return 0.0, (active_pkgs[0].get("name") if active_pkgs else None), None
 
 def get_effective_discount_pct(shop_name, bill_total):
-    """Agar shop wholesaler hai AUR wholesaler rule ON hai → fixed %, warna package discount."""
     if wholesaler_rule_active() and is_wholesaler(shop_name):
         pct = get_wholesaler_pct()
         return pct, f"Wholesaler ({pct}%)", "Wholesaler Rule"
     return get_package_discount_pct(bill_total)
+
+def get_dsr_credit_info(dsr):
+    """Returns (total_credit, {shop: amount}, [credit_details])"""
+    booker = dsr.get("booker", "").strip()
+    credit_total = 0.0
+    credit_shops = {}
+    credit_details = []
+    source_bills = dsr.get("source_bills", [])
+    for sb in source_bills:
+        shop = sb.get("shop", "")
+        bill_no = sb.get("bill_no", "")
+        for cb in db.get("credit_bills", []):
+            if (str(cb.get("booker", "")).strip() == booker
+                and str(cb.get("bill_no", "")) == str(bill_no)
+                and str(cb.get("shop", "")) == str(shop)):
+                amt = float(cb.get("total_net", 0))
+                credit_total += amt
+                credit_shops[shop] = credit_shops.get(shop, 0) + amt
+                credit_details.append({
+                    "shop": shop, "bill_no": bill_no, "amount": amt,
+                    "status": cb.get("status", "pending"),
+                    "credit_id": cb.get("id"),
+                })
+                break
+    return credit_total, credit_shops, credit_details
 
 def show_auto_download():
     if st.session_state.get("download_file"):
@@ -1195,45 +820,34 @@ def show_auto_download():
         st.session_state["download_file"] = None
         st.session_state["_dl_counter"] += 1
         st.markdown('<div class="auto-dl-hidden">', unsafe_allow_html=True)
-        st.download_button(
-            label=f"Download {fname}",
-            data=fdata, file_name=fname,
+        st.download_button(label=f"Download {fname}", data=fdata, file_name=fname,
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            key=f"auto_dl_{st.session_state['_dl_counter']}",
-        )
+            key=f"auto_dl_{st.session_state['_dl_counter']}")
         st.markdown('</div>', unsafe_allow_html=True)
         components.html("""
         <script>
-        (function(){
-            var tries = 0;
-            function attempt(){
-                tries++;
-                var btns = window.parent.document.querySelectorAll('[data-testid="stDownloadButton"] button');
-                if (btns.length > 0){ btns[btns.length - 1].click(); return; }
-                if (tries < 25) setTimeout(attempt, 200);
-            }
-            setTimeout(attempt, 300);
-        })();
-        </script>
-        """, height=0)
+        (function(){ var tries=0; function attempt(){ tries++;
+            var btns = window.parent.document.querySelectorAll('[data-testid="stDownloadButton"] button');
+            if (btns.length > 0){ btns[btns.length - 1].click(); return; }
+            if (tries < 25) setTimeout(attempt, 200); }
+            setTimeout(attempt, 300); })();
+        </script>""", height=0)
 
 # ============================================================
-# EXPORT SINGLE GROUP BILL
+# EXPORT FUNCTIONS
 # ============================================================
 def export_single_group_bill(shop, date_str, booker, salesman, items, bill_no):
     bill_total_net = sum(float(it.get("Net", 0)) for it in items)
     pkg_pct, pkg_name, tier_label = get_effective_discount_pct(shop, bill_total_net)
-
     output = BytesIO()
     workbook = xlsxwriter.Workbook(output, {'in_memory': True})
-    worksheet = workbook.add_worksheet("Bill")
-    worksheet.set_paper(9); worksheet.set_portrait(); worksheet.fit_to_pages(1, 1)
-    worksheet.set_column("A:A", 42.86); worksheet.set_column("B:B", 12.71)
-    worksheet.set_column("C:C", 10.71); worksheet.set_column("D:D", 10.71)
-    worksheet.set_column("E:E", 11.71); worksheet.set_column("F:F", 11.14)
-    worksheet.set_column("G:G", 11.14); worksheet.set_column("H:H", 12.14)
-    worksheet.set_column("I:I", 13.14); worksheet.set_column("J:J", 13.14)
-
+    ws = workbook.add_worksheet("Bill")
+    ws.set_paper(9); ws.set_portrait(); ws.fit_to_pages(1, 1)
+    ws.set_column("A:A", 42.86); ws.set_column("B:B", 12.71)
+    ws.set_column("C:C", 10.71); ws.set_column("D:D", 10.71)
+    ws.set_column("E:E", 11.71); ws.set_column("F:F", 11.14)
+    ws.set_column("G:G", 11.14); ws.set_column("H:H", 12.14)
+    ws.set_column("I:I", 13.14); ws.set_column("J:J", 13.14)
     title = workbook.add_format({"bold":True, "font_size":18, "align":"center", "border":2})
     header = workbook.add_format({"bold":True, "font_size":11, "bg_color":"#BBDEFB", "align":"center", "border":2, "text_wrap": True})
     cell_left = workbook.add_format({"font_size":12, "border":1, "align":"left"})
@@ -1241,91 +855,75 @@ def export_single_group_bill(shop, date_str, booker, salesman, items, bill_no):
     total = workbook.add_format({"bold":True, "font_size":12, "bg_color":"#FFF2CC", "align":"center", "border":2})
     disc_hl = workbook.add_format({"font_size":12, "border":1, "align":"center", "bg_color":"#E8F5E9", "bold": True})
     pkg_info = workbook.add_format({"font_size":10, "italic": True, "align":"left", "font_color":"#1b5e20"})
-
-    worksheet.merge_range("A1:J1", COMPANY_NAME, title)
-    worksheet.write("A3","Shop Name",header); worksheet.write("B3", shop, cell_center)
-    worksheet.write("D3","Booker",header); worksheet.write("E3", booker, cell_center)
-    worksheet.write("G3","Bill No",header); worksheet.write("H3", bill_no, cell_center)
-    worksheet.write("I3","Date",header); worksheet.write("J3", date_str, cell_center)
-
+    ws.merge_range("A1:J1", COMPANY_NAME, title)
+    ws.write("A3","Shop Name",header); ws.write("B3", shop, cell_center)
+    ws.write("D3","Booker",header); ws.write("E3", booker, cell_center)
+    ws.write("G3","Bill No",header); ws.write("H3", bill_no, cell_center)
+    ws.write("I3","Date",header); ws.write("J3", date_str, cell_center)
     if wholesaler_rule_active() and is_wholesaler(shop):
-        worksheet.merge_range("A4:J4", f"🏢 Wholesaler — Flat {pkg_pct}% discount applied", pkg_info)
+        ws.merge_range("A4:J4", f"🏢 Wholesaler — Flat {pkg_pct}% discount", pkg_info)
     elif pkg_pct > 0:
-        worksheet.merge_range("A4:J4", f"🎁 Best Discount Applied: {pkg_name} | {tier_label} | {pkg_pct}% on each product", pkg_info)
+        ws.merge_range("A4:J4", f"🎁 Best Discount: {pkg_name} | {tier_label} | {pkg_pct}%", pkg_info)
     else:
-        worksheet.merge_range("A4:J4", "💡 Koi discount apply nahi hua", pkg_info)
-
+        ws.merge_range("A4:J4", "💡 Koi discount apply nahi hua", pkg_info)
     start_row = 6
     headers = ["Product", "Code", "Boxes", "TP/Box", "Gross", "Disc %", "Net", "Pkg Disc %", "After Disc Net", "Saved"]
-    for col, h in enumerate(headers):
-        worksheet.write(start_row, col, h, header)
+    for col, h in enumerate(headers): ws.write(start_row, col, h, header)
     row = start_row + 1
-
     gross_total = 0; total_boxes = 0; net_total = 0; after_disc_total = 0; saved_total = 0
     for it in items:
-        b_net = float(it.get("Net", 0))
-        b_gross = float(it.get("Gross", 0))
+        b_net = float(it.get("Net", 0)); b_gross = float(it.get("Gross", 0))
         b_boxes = int(it.get("Boxes", 0))
-        after_net = b_net - (b_net * pkg_pct / 100)
-        saved = b_net - after_net
-        worksheet.write(row, 0, it.get("Product",""), cell_left)
-        worksheet.write(row, 1, it.get("Code",""), cell_center)
-        worksheet.write(row, 2, b_boxes, cell_center)
-        worksheet.write(row, 3, it.get("TP/Box", 0), cell_center)
-        worksheet.write(row, 4, b_gross, cell_center)
-        worksheet.write(row, 5, it.get("Discount %", 0), cell_center)
-        worksheet.write(row, 6, b_net, cell_center)
+        after_net = b_net - (b_net * pkg_pct / 100); saved = b_net - after_net
+        ws.write(row, 0, it.get("Product",""), cell_left)
+        ws.write(row, 1, it.get("Code",""), cell_center)
+        ws.write(row, 2, b_boxes, cell_center)
+        ws.write(row, 3, it.get("TP/Box", 0), cell_center)
+        ws.write(row, 4, b_gross, cell_center)
+        ws.write(row, 5, it.get("Discount %", 0), cell_center)
+        ws.write(row, 6, b_net, cell_center)
         if pkg_pct > 0:
-            worksheet.write(row, 7, pkg_pct, disc_hl)
-            worksheet.write(row, 8, after_net, disc_hl)
-            worksheet.write(row, 9, saved, disc_hl)
+            ws.write(row, 7, pkg_pct, disc_hl); ws.write(row, 8, after_net, disc_hl); ws.write(row, 9, saved, disc_hl)
         else:
-            worksheet.write(row, 7, 0, cell_center)
-            worksheet.write(row, 8, b_net, cell_center)
-            worksheet.write(row, 9, 0, cell_center)
+            ws.write(row, 7, 0, cell_center); ws.write(row, 8, b_net, cell_center); ws.write(row, 9, 0, cell_center)
         gross_total += b_gross; total_boxes += b_boxes
-        net_total += b_net; after_disc_total += after_net; saved_total += saved
-        row += 1
-
-    worksheet.write(row, 1, "TOTAL", total)
-    worksheet.write(row, 2, total_boxes, total)
-    worksheet.write(row, 4, gross_total, total)
-    worksheet.write(row, 6, net_total, total)
-    worksheet.write(row, 7, "", total)
-    worksheet.write(row, 8, after_disc_total, total)
-    worksheet.write(row, 9, saved_total, total)
+        net_total += b_net; after_disc_total += after_net; saved_total += saved; row += 1
+    ws.write(row, 1, "TOTAL", total); ws.write(row, 2, total_boxes, total)
+    ws.write(row, 4, gross_total, total); ws.write(row, 6, net_total, total)
+    ws.write(row, 8, after_disc_total, total); ws.write(row, 9, saved_total, total)
     row += 2
-    worksheet.merge_range(row, 0, row, 6, "NET AMOUNT (After Discount)", header)
-    worksheet.merge_range(row, 7, row, 9, f"Rs {after_disc_total:,.0f}", total)
+    ws.merge_range(row, 0, row, 6, "NET AMOUNT (After Discount)", header)
+    ws.merge_range(row, 7, row, 9, f"Rs {after_disc_total:,.0f}", total)
     row += 1
     if pkg_pct > 0:
-        worksheet.merge_range(row, 0, row, 6, "TOTAL SAVED BY DISCOUNT", header)
-        worksheet.merge_range(row, 7, row, 9, f"Rs {saved_total:,.0f}", total)
-
+        ws.merge_range(row, 0, row, 6, "TOTAL SAVED", header)
+        ws.merge_range(row, 7, row, 9, f"Rs {saved_total:,.0f}", total)
     workbook.close(); output.seek(0)
     fname = f"{shop}_{date_str.replace('-','')}.xlsx".replace("/","-").replace(" ","_").replace(":","")
     st.session_state["download_file"] = (fname, output.getvalue())
     if wholesaler_rule_active() and is_wholesaler(shop):
-        st.session_state["success_msg"] = f"✅ Excel ready | {shop} | Wholesaler {pkg_pct}% applied"
+        st.session_state["success_msg"] = f"✅ Excel ready | Wholesaler {pkg_pct}%"
     elif pkg_pct > 0:
-        st.session_state["success_msg"] = f"✅ Excel ready | {shop} | {pkg_pct}% discount applied"
+        st.session_state["success_msg"] = f"✅ Excel ready | {pkg_pct}%"
     else:
         st.session_state["success_msg"] = f"✅ Excel ready | {shop}"
 
-# ============================================================
-# EXPORT DSR EXCEL
-# ============================================================
 def export_dsr_excel(dsr):
+    credit_total, credit_shops, credit_details = get_dsr_credit_info(dsr)
+    final_amount = float(dsr.get("amount_to_collect", 0)) - credit_total
+
     output = BytesIO()
     wb = xlsxwriter.Workbook(output, {'in_memory': True})
     ws = wb.add_worksheet("DSR")
     title = wb.add_format({"bold":True, "font_size":16, "align":"center", "border":2, "bg_color":"#FFE0B2"})
-    header = wb.add_format({"bold":True, "font_size":11, "bg_color":"#BBDEFB", "align":"center", "border":2, "text_wrap": True})
+    header = wb.add_format({"bold":True, "font_size":11, "bg_color":"#BBDEFB", "align":"center", "border":2})
     cell_left = wb.add_format({"font_size":11, "border":1, "align":"left"})
     cell_center = wb.add_format({"font_size":11, "border":1, "align":"center"})
     cell_num = wb.add_format({"font_size":11, "border":1, "align":"right", "num_format": "#,##0"})
     total_fmt = wb.add_format({"bold":True, "font_size":11, "bg_color":"#FFF2CC", "align":"center", "border":2})
     highlight = wb.add_format({"bold":True, "font_size":12, "bg_color":"#E8F5E9", "align":"center", "border":2})
+    credit_fmt = wb.add_format({"bold":True, "font_size":12, "bg_color":"#F3E5F5", "align":"center", "border":2, "font_color":"#6a1b9a"})
+    final_fmt = wb.add_format({"bold":True, "font_size":13, "bg_color":"#C8E6C9", "align":"center", "border":2, "font_color":"#1b5e20"})
 
     ws.set_column("A:A", 10); ws.set_column("B:B", 40); ws.set_column("C:C", 10)
     ws.set_column("D:D", 12); ws.set_column("E:E", 14); ws.set_column("F:F", 10); ws.set_column("G:G", 14)
@@ -1333,7 +931,6 @@ def export_dsr_excel(dsr):
     ws.write("A3", "Booker", header); ws.write("B3", dsr.get("booker",""), cell_left)
     ws.write("C3", "Date", header); ws.write("D3", dsr.get("date",""), cell_center)
     ws.write("E3", "Time", header); ws.write("F3", dsr.get("time",""), cell_center)
-
     ws.write("A5", "Code", header); ws.write("B5", "Product", header)
     ws.write("C5", "Boxes", header); ws.write("D5", "TP/Box", header)
     ws.write("E5", "Total", header); ws.write("F5", "Return", header); ws.write("G5", "Return Amt", header)
@@ -1345,10 +942,8 @@ def export_dsr_excel(dsr):
         ws.write(row, 3, float(it.get("TP/Box",0)), cell_num)
         ws.write(row, 4, float(it.get("Total",0)), cell_num)
         ws.write(row, 5, int(it.get("ReturnBoxes",0)), cell_center)
-        ws.write(row, 6, float(it.get("ReturnAmount",0)), cell_num)
-        row += 1
-    ws.write(row, 2, "TOTAL", total_fmt)
-    ws.write(row, 4, float(dsr.get("total_amount",0)), total_fmt)
+        ws.write(row, 6, float(it.get("ReturnAmount",0)), cell_num); row += 1
+    ws.write(row, 2, "TOTAL", total_fmt); ws.write(row, 4, float(dsr.get("total_amount",0)), total_fmt)
     ws.write(row, 5, int(dsr.get("total_return_boxes",0)), total_fmt)
     ws.write(row, 6, float(dsr.get("total_return_amount",0)), total_fmt)
     row += 2
@@ -1358,15 +953,20 @@ def export_dsr_excel(dsr):
     ws.merge_range(row, 5, row, 6, f"Rs {float(dsr.get('total_return_amount',0)):,.0f}", cell_num); row += 1
     ws.merge_range(row, 0, row, 4, "(=) Net Stock", header)
     ws.merge_range(row, 5, row, 6, f"Rs {float(dsr.get('net_amount',0)):,.0f}", cell_num); row += 1
-    ws.merge_range(row, 0, row, 4, "(−) Total Discount", header)
+    ws.merge_range(row, 0, row, 4, "(−) Discount", header)
     ws.merge_range(row, 5, row, 6, f"Rs {float(dsr.get('total_discount',0)):,.0f}", cell_num); row += 1
-    ws.merge_range(row, 0, row, 4, "💰 YE LENA HAI", highlight)
-    ws.merge_range(row, 5, row, 6, f"Rs {float(dsr.get('amount_to_collect',0)):,.0f}", highlight)
-    row += 2
-    ws.merge_range(row, 0, row, 6, "Shop-wise Discount", header); row += 1
+    ws.merge_range(row, 0, row, 4, "(=) Ye Lena Hai (before Credit)", header)
+    ws.merge_range(row, 5, row, 6, f"Rs {float(dsr.get('amount_to_collect',0)):,.0f}", cell_num); row += 1
+    ws.merge_range(row, 0, row, 4, "(−) CREDIT BILLS", credit_fmt)
+    ws.merge_range(row, 5, row, 6, f"Rs {credit_total:,.0f}", credit_fmt); row += 1
+    ws.merge_range(row, 0, row, 4, "💰 FINAL YE LENA HAI", final_fmt)
+    ws.merge_range(row, 5, row, 6, f"Rs {final_amount:,.0f}", final_fmt); row += 2
+
+    ws.merge_range(row, 0, row, 6, "Shop-wise Discount + Credit", header); row += 1
     ws.write(row, 0, "Shop", header); ws.write(row, 1, "Gross", header)
     ws.write(row, 2, "Net", header); ws.write(row, 3, "Bill Disc", header)
-    ws.write(row, 4, "Pkg Disc", header); ws.write(row, 5, "Total Disc", header); row += 1
+    ws.write(row, 4, "Pkg Disc", header); ws.write(row, 5, "Total Disc", header)
+    ws.write(row, 6, "💳 Credit", header); row += 1
     for s in dsr.get("shop_discounts", []):
         ws.write(row, 0, s.get("shop",""), cell_left)
         ws.write(row, 1, float(s.get("gross",0)), cell_num)
@@ -1374,15 +974,13 @@ def export_dsr_excel(dsr):
         ws.write(row, 3, float(s.get("individual_discount",0)), cell_num)
         ws.write(row, 4, float(s.get("package_discount",0)), cell_num)
         ws.write(row, 5, float(s.get("total_discount",0)), cell_num)
+        ws.write(row, 6, credit_shops.get(s.get("shop",""), 0), cell_num)
         row += 1
     wb.close(); output.seek(0)
     fname = f"DSR_{dsr['id']}_{dsr.get('booker','')}.xlsx".replace("/","-").replace(" ","_")
     st.session_state["download_file"] = (fname, output.getvalue())
     st.session_state["success_msg"] = f"✅ DSR #{dsr['id']} Excel ready"
 
-# ============================================================
-# EXPORT CREDIT EXCEL
-# ============================================================
 def export_credit_bill_excel(credit):
     output = BytesIO()
     wb = xlsxwriter.Workbook(output, {'in_memory': True})
@@ -1417,18 +1015,11 @@ def export_credit_bill_excel(credit):
         ws.write(row, 5, float(it.get("Discount %",0)), cell_center)
         ws.write(row, 6, float(it.get("Net",0)), cell_num)
         total_net += float(it.get("Net",0)); row += 1
-    ws.write(row, 2, "TOTAL", total_fmt)
-    ws.write(row, 6, total_net, total_fmt)
-    row += 2
-    ws.merge_range(row, 0, row, 5, "TOTAL CREDIT AMOUNT", header)
-    ws.merge_range(row, 6, row, 6, f"Rs {total_net:,.0f}", total_fmt)
-    row += 1
-    ws.merge_range(row, 0, row, 5, "STATUS", header)
-    ws.merge_range(row, 6, row, 6, "PAID ✅" if is_paid else "PENDING ⏳", total_fmt)
+    ws.write(row, 2, "TOTAL", total_fmt); ws.write(row, 6, total_net, total_fmt)
     wb.close(); output.seek(0)
     fname = f"Credit_{credit['id']}_{credit.get('shop','')}.xlsx".replace("/","-").replace(" ","_")
     st.session_state["download_file"] = (fname, output.getvalue())
-    st.session_state["success_msg"] = f"✅ Credit Bill #{credit['id']} Excel ready"
+    st.session_state["success_msg"] = f"✅ Credit #{credit['id']} Excel ready"
 
 # ============================================================
 # SIDEBAR
@@ -1445,7 +1036,6 @@ with st.sidebar:
         <div class="sb-brand-status"><span class="sb-brand-dot"></span>ACTIVE SESSION</div>
     </div>
     """, unsafe_allow_html=True)
-
     st.markdown(f"""
     <div class="sb-user">
         <div class="sb-user-avatar">{avatar_letter}</div>
@@ -1455,16 +1045,15 @@ with st.sidebar:
         </div>
     </div>
     """, unsafe_allow_html=True)
-
     st.markdown('<div class="sb-section-label">Main Menu</div>', unsafe_allow_html=True)
 
     page = st.radio(
         "MENU",
         ["📊 Dashboard", "🧾 Billing", "🛒 All Products", "🎁 Discount",
          "👤 Bookers", "💰 Bookers Salary", "🧑‍💼 Salesmen", "💰 Salesmen Salary",
-         "💵 Daily Expense", "📋 Bills List", "💳 Credit Bills", "📦 Load Form", "📋 DSR"],
-        key="page_selector",
-        label_visibility="collapsed"
+         "💵 Daily Expense", "📋 Bills List", "💳 Credit Bills", "📦 Load Form",
+         "📋 DSR", "🧮 Calculation"],
+        key="page_selector", label_visibility="collapsed"
     )
     st.session_state["page"] = page
 
@@ -1507,16 +1096,10 @@ with st.sidebar:
 # ============================================================
 def render_dashboard():
     display_name = st.session_state.get("display_name", CURRENT_USER)
-    today = date.today()
-    today_str = today.strftime("%A, %d %B %Y")
-
-    bookers = db.get("bookers", [])
-    salesmen = db.get("salesmen", [])
-    total_products = len(get_all_products())
-    total_bills = len(db["bills"])
-    total_load_forms = len(db.get("load_forms", []))
-    total_dsr = len(db.get("dsr_forms", []))
-
+    today_str = date.today().strftime("%A, %d %B %Y")
+    bookers = db.get("bookers", []); salesmen = db.get("salesmen", [])
+    total_products = len(get_all_products()); total_bills = len(db["bills"])
+    total_load_forms = len(db.get("load_forms", [])); total_dsr = len(db.get("dsr_forms", []))
     pending_credits = [c for c in db.get("credit_bills", []) if c.get("status") == "pending"]
     paid_credits = [c for c in db.get("credit_bills", []) if c.get("status") == "paid"]
     pending_amt = sum(float(c.get("total_net", 0)) for c in pending_credits)
@@ -1540,26 +1123,18 @@ def render_dashboard():
 
     st.markdown('<div class="dash-section-title">Business Overview</div>', unsafe_allow_html=True)
     c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">👤</div><div class="kpi-label">Bookers</div></div><div class="kpi-value-group"><div class="kpi-value">{len(bookers)}</div><div class="kpi-value-unit">members</div></div><div class="kpi-sub blue">Order booking team</div></div>""", unsafe_allow_html=True)
-    with c2:
-        st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon purple">🧑‍💼</div><div class="kpi-label">Salesmen</div></div><div class="kpi-value-group"><div class="kpi-value">{len(salesmen)}</div><div class="kpi-value-unit">members</div></div><div class="kpi-sub blue">Field sales team</div></div>""", unsafe_allow_html=True)
-    with c3:
-        st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon teal">📦</div><div class="kpi-label">Products</div></div><div class="kpi-value-group"><div class="kpi-value">{total_products}</div><div class="kpi-value-unit">items</div></div><div class="kpi-sub blue">Active catalog</div></div>""", unsafe_allow_html=True)
-    with c4:
-        st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">🧾</div><div class="kpi-label">Total Bills</div></div><div class="kpi-value-group"><div class="kpi-value">{total_bills}</div><div class="kpi-value-unit">bills</div></div><div class="kpi-sub blue">Generated so far</div></div>""", unsafe_allow_html=True)
+    with c1: st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">👤</div><div class="kpi-label">Bookers</div></div><div class="kpi-value-group"><div class="kpi-value">{len(bookers)}</div><div class="kpi-value-unit">members</div></div><div class="kpi-sub blue">Order booking team</div></div>""", unsafe_allow_html=True)
+    with c2: st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon purple">🧑‍💼</div><div class="kpi-label">Salesmen</div></div><div class="kpi-value-group"><div class="kpi-value">{len(salesmen)}</div><div class="kpi-value-unit">members</div></div><div class="kpi-sub blue">Field sales team</div></div>""", unsafe_allow_html=True)
+    with c3: st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon teal">📦</div><div class="kpi-label">Products</div></div><div class="kpi-value-group"><div class="kpi-value">{total_products}</div><div class="kpi-value-unit">items</div></div><div class="kpi-sub blue">Active catalog</div></div>""", unsafe_allow_html=True)
+    with c4: st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">🧾</div><div class="kpi-label">Total Bills</div></div><div class="kpi-value-group"><div class="kpi-value">{total_bills}</div><div class="kpi-value-unit">bills</div></div><div class="kpi-sub blue">Generated so far</div></div>""", unsafe_allow_html=True)
 
     st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
     st.markdown('<div class="dash-section-title">Credit & Operations</div>', unsafe_allow_html=True)
     c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon orange">⏳</div><div class="kpi-label">Pending Credit</div></div><div class="kpi-value-group"><div class="kpi-value">{len(pending_credits)}</div><div class="kpi-value-unit">bills</div></div><div class="kpi-sub orange">Rs {pending_amt:,.0f} receivable</div></div>""", unsafe_allow_html=True)
-    with c2:
-        st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon green">✅</div><div class="kpi-label">Paid Credit</div></div><div class="kpi-value-group"><div class="kpi-value">{len(paid_credits)}</div><div class="kpi-value-unit">bills</div></div><div class="kpi-sub green">Rs {paid_amt:,.0f} settled</div></div>""", unsafe_allow_html=True)
-    with c3:
-        st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">📦</div><div class="kpi-label">Load Forms</div></div><div class="kpi-value-group"><div class="kpi-value">{total_load_forms}</div><div class="kpi-value-unit">saved</div></div><div class="kpi-sub blue">Stock dispatch forms</div></div>""", unsafe_allow_html=True)
-    with c4:
-        st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon red">📋</div><div class="kpi-label">DSR Forms</div></div><div class="kpi-value-group"><div class="kpi-value">{total_dsr}</div><div class="kpi-value-unit">active</div></div><div class="kpi-sub blue">Daily sales reports</div></div>""", unsafe_allow_html=True)
+    with c1: st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon orange">⏳</div><div class="kpi-label">Pending Credit</div></div><div class="kpi-value-group"><div class="kpi-value">{len(pending_credits)}</div><div class="kpi-value-unit">bills</div></div><div class="kpi-sub orange">Rs {pending_amt:,.0f} receivable</div></div>""", unsafe_allow_html=True)
+    with c2: st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon green">✅</div><div class="kpi-label">Paid Credit</div></div><div class="kpi-value-group"><div class="kpi-value">{len(paid_credits)}</div><div class="kpi-value-unit">bills</div></div><div class="kpi-sub green">Rs {paid_amt:,.0f} settled</div></div>""", unsafe_allow_html=True)
+    with c3: st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">📦</div><div class="kpi-label">Load Forms</div></div><div class="kpi-value-group"><div class="kpi-value">{total_load_forms}</div><div class="kpi-value-unit">saved</div></div><div class="kpi-sub blue">Stock dispatch forms</div></div>""", unsafe_allow_html=True)
+    with c4: st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon red">📋</div><div class="kpi-label">DSR Forms</div></div><div class="kpi-value-group"><div class="kpi-value">{total_dsr}</div><div class="kpi-value-unit">active</div></div><div class="kpi-sub blue">Daily sales reports</div></div>""", unsafe_allow_html=True)
 
     st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
     st.markdown("---")
@@ -1572,27 +1147,16 @@ def render_dashboard():
         else:
             for b_name in bookers:
                 sd = db.get("bookers_salaries", {}).get(b_name, {})
-                base = sd.get("base_salary", 0)
-                txns = sd.get("transactions", [])
+                base = sd.get("base_salary", 0); txns = sd.get("transactions", [])
                 adv_p = sum(t["amount"] for t in txns if t.get("type") == "advanced" and t.get("status", "pending") == "pending")
                 short_p = sum(t["amount"] for t in txns if t.get("type") == "shortage" and t.get("status", "pending") == "pending")
                 remaining = base - adv_p - short_p
-                if base == 0:
-                    sub_class = ""; sub_text = 'Salary not set'
-                elif remaining > base * 0.7:
-                    sub_class = "good"; sub_text = f'Remaining: <b>Rs {remaining:,.0f}</b>'
-                elif remaining > 0:
-                    sub_class = ""; sub_text = f'Remaining: <b>Rs {remaining:,.0f}</b>'
-                else:
-                    sub_class = "warn"; sub_text = f'Over Paid: <b>Rs {abs(remaining):,.0f}</b>'
+                if base == 0: sub_class = ""; sub_text = 'Salary not set'
+                elif remaining > base * 0.7: sub_class = "good"; sub_text = f'Remaining: <b>Rs {remaining:,.0f}</b>'
+                elif remaining > 0: sub_class = ""; sub_text = f'Remaining: <b>Rs {remaining:,.0f}</b>'
+                else: sub_class = "warn"; sub_text = f'Over Paid: <b>Rs {abs(remaining):,.0f}</b>'
                 al = (b_name[0] if b_name else "?").upper()
-                st.markdown(f"""
-                <div class="team-card">
-                    <div class="team-avatar booker">{al}</div>
-                    <div class="team-info"><div class="team-name">{b_name}</div><div class="team-meta {sub_class}">{sub_text}</div></div>
-                    <div class="team-badge">BOOKER</div>
-                </div>""", unsafe_allow_html=True)
-
+                st.markdown(f"""<div class="team-card"><div class="team-avatar booker">{al}</div><div class="team-info"><div class="team-name">{b_name}</div><div class="team-meta {sub_class}">{sub_text}</div></div><div class="team-badge">BOOKER</div></div>""", unsafe_allow_html=True)
     with c2:
         st.markdown('<div class="dash-section-title">🧑‍💼 Salesmen Team</div>', unsafe_allow_html=True)
         if not salesmen:
@@ -1600,54 +1164,35 @@ def render_dashboard():
         else:
             for s_name in salesmen:
                 sd = db.get("salesmen_salaries", {}).get(s_name, {})
-                base = sd.get("base_salary", 0)
-                txns = sd.get("transactions", [])
+                base = sd.get("base_salary", 0); txns = sd.get("transactions", [])
                 adv_p = sum(t["amount"] for t in txns if t.get("type") == "advanced" and t.get("status", "pending") == "pending")
                 short_p = sum(t["amount"] for t in txns if t.get("type") == "shortage" and t.get("status", "pending") == "pending")
                 remaining = base - adv_p - short_p
-                if base == 0:
-                    sub_class = ""; sub_text = 'Salary not set'
-                elif remaining > base * 0.7:
-                    sub_class = "good"; sub_text = f'Remaining: <b>Rs {remaining:,.0f}</b>'
-                elif remaining > 0:
-                    sub_class = ""; sub_text = f'Remaining: <b>Rs {remaining:,.0f}</b>'
-                else:
-                    sub_class = "warn"; sub_text = f'Over Paid: <b>Rs {abs(remaining):,.0f}</b>'
+                if base == 0: sub_class = ""; sub_text = 'Salary not set'
+                elif remaining > base * 0.7: sub_class = "good"; sub_text = f'Remaining: <b>Rs {remaining:,.0f}</b>'
+                elif remaining > 0: sub_class = ""; sub_text = f'Remaining: <b>Rs {remaining:,.0f}</b>'
+                else: sub_class = "warn"; sub_text = f'Over Paid: <b>Rs {abs(remaining):,.0f}</b>'
                 al = (s_name[0] if s_name else "?").upper()
-                st.markdown(f"""
-                <div class="team-card">
-                    <div class="team-avatar salesman">{al}</div>
-                    <div class="team-info"><div class="team-name">{s_name}</div><div class="team-meta {sub_class}">{sub_text}</div></div>
-                    <div class="team-badge orange">SALESMAN</div>
-                </div>""", unsafe_allow_html=True)
+                st.markdown(f"""<div class="team-card"><div class="team-avatar salesman">{al}</div><div class="team-info"><div class="team-name">{s_name}</div><div class="team-meta {sub_class}">{sub_text}</div></div><div class="team-badge orange">SALESMAN</div></div>""", unsafe_allow_html=True)
 
 # ============================================================
-# PAGE: DISCOUNT (with Wholesaler Toggle)
+# PAGE: DISCOUNT
 # ============================================================
 def render_discount():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🎁 Discount Settings</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#0277bd;font-weight:500;'>Wholesaler rule + 4 packages manage karo</p>", unsafe_allow_html=True)
     st.markdown("---")
 
-    # ============================================
-    # WHOLESALER RULE SECTION (user-friendly toggle)
-    # ============================================
     st.markdown("### 🏢 Wholesaler Special Rule")
     st.caption("Agar shop ke naam mein **'whole seller'** ho to special flat discount milega")
-
     wh_on = bool(db.get("wholesaler_rule_enabled", True))
     wh_pct = get_wholesaler_pct()
-
     card_class = "wholesaler-card" if wh_on else "wholesaler-card off"
     badge = '<span class="wholesaler-badge-on">✅ ON</span>' if wh_on else '<span class="wholesaler-badge-off">⭕ OFF</span>'
 
     st.markdown(f"""
     <div class="{card_class}">
         <div class="wholesaler-title">🏢 Wholesaler Rule {badge}</div>
-        <div class="wholesaler-desc">
-            Jab bhi kisi shop ke naam mein "whole seller" likha ho, usko
-            <b>{wh_pct}%</b> ka flat discount milega — chaahe package discount kam ho ya zyada.
-        </div>
+        <div class="wholesaler-desc">Jab bhi kisi shop ke naam mein "whole seller" likha ho, usko <b>{wh_pct}%</b> ka flat discount milega.</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -1655,42 +1200,27 @@ def render_discount():
     with wc1:
         new_on = st.checkbox("🏢 Rule Enable Karo", value=wh_on, key="wholesaler_toggle")
         if new_on != wh_on:
-            db["wholesaler_rule_enabled"] = bool(new_on)
-            save_database(db)
-            st.session_state["success_msg"] = f"✅ Wholesaler rule {'ON' if new_on else 'OFF'} kar diya"
+            db["wholesaler_rule_enabled"] = bool(new_on); save_database(db)
+            st.session_state["success_msg"] = f"✅ Wholesaler rule {'ON' if new_on else 'OFF'}"
             st.rerun()
     with wc2:
-        new_pct = st.number_input("Discount %:", value=float(wh_pct),
-                                  min_value=0.0, max_value=100.0, step=0.5,
-                                  key="wholesaler_pct_input")
+        new_pct = st.number_input("Discount %:", value=float(wh_pct), min_value=0.0, max_value=100.0, step=0.5, key="wholesaler_pct_input")
         if abs(float(new_pct) - float(wh_pct)) > 0.001:
-            db["wholesaler_discount_pct"] = float(new_pct)
-            save_database(db)
-            st.session_state["success_msg"] = f"✅ Wholesaler discount {new_pct}% set kar diya"
+            db["wholesaler_discount_pct"] = float(new_pct); save_database(db)
+            st.session_state["success_msg"] = f"✅ Wholesaler {new_pct}%"
             st.rerun()
     with wc3:
-        st.markdown(f"""
-        <div class="hint-box" style="background:#f3e5f5;border-left-color:#8e24aa;color:#6a1b9a !important;margin-top:6px;">
-            💡 <b>Current status:</b>
-            {'<span style="color:#2e7d32;font-weight:800;">Active</span> — Wholesaler shops ko ' + str(wh_pct) + '% milega' if wh_on else '<span style="color:#c62828;font-weight:800;">Disabled</span> — Wholesaler rule apply nahi hoga, normal package discount chalega'}
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f"""<div class="hint-box" style="background:#f3e5f5;border-left-color:#8e24aa;color:#6a1b9a !important;margin-top:6px;">
+        💡 <b>Current:</b> {'<span style="color:#2e7d32;font-weight:800;">Active</span> — Wholesaler shops ko ' + str(wh_pct) + '% milega' if wh_on else '<span style="color:#c62828;font-weight:800;">Disabled</span> — normal package discount chalega'}
+        </div>""", unsafe_allow_html=True)
 
     st.markdown("---")
-
-    # ============================================
-    # PACKAGES SECTION (same as before)
-    # ============================================
     pkgs = db.get("discount_packages", [])
     if not pkgs:
-        pkgs = default_discount_packages()
-        db["discount_packages"] = pkgs
-        save_database(db)
-
+        pkgs = default_discount_packages(); db["discount_packages"] = pkgs; save_database(db)
     for p in pkgs:
         if "tier3_amount" not in p: p["tier3_amount"] = 0.0
         if "tier3_pct" not in p: p["tier3_pct"] = 0.0
-
     active_names = [p.get("name", "Package") for p in pkgs if p.get("active")]
     active_str = ", ".join(active_names) if active_names else "Koi nahi"
 
@@ -1699,78 +1229,43 @@ def render_discount():
     <div class='summary-box'>
         <b style='color:#1976d2;font-size:15px;'>🎁 Active Packages:</b>
         <span style='color:#2e7d32;font-size:15px;font-weight:700;'>{active_str}</span>
-        <br><span style='font-size:12px;color:#0277bd;'>
-            Har package apne aap check hoga — jo sabse zyada % de raha ho, wahi apply hoga.
-        </span>
+        <br><span style='font-size:12px;color:#0277bd;'>Har package apne aap check hoga — jo sabse zyada % de raha ho, wahi apply hoga.</span>
     </div>
     """, unsafe_allow_html=True)
-
-    st.caption("👇 Har package ke saath **Active** checkbox hai — jitne chahiye utne active rakho.")
 
     for i, pkg in enumerate(pkgs):
         pid = pkg.get("id", i+1)
         is_active = pkg.get("active", False)
         card_class = "disc-card active" if is_active else "disc-card"
         badge = '<span class="disc-badge-active">ACTIVE</span>' if is_active else ""
-
         st.markdown(f"<div class='{card_class}'>", unsafe_allow_html=True)
-
         c1, c2 = st.columns([1, 5])
         with c1:
             new_active = st.checkbox("Active", value=is_active, key=f"active_{pid}")
             if new_active != is_active:
                 for pp in db["discount_packages"]:
-                    if pp.get("id") == pid:
-                        pp["active"] = new_active
-                        break
-                save_database(db)
-                st.rerun()
+                    if pp.get("id") == pid: pp["active"] = new_active; break
+                save_database(db); st.rerun()
         with c2:
-            new_name = st.text_input(
-                f"Package {pid} Name", value=pkg.get("name", f"Package {pid}"),
-                key=f"pkgname_{pid}", label_visibility="collapsed"
-            )
-
-        st.markdown(
-            f"<div style='font-size:13px;color:#{'2e7d32' if is_active else '1976d2'};font-weight:800;margin:2px 0 4px 0;'>"
-            f"🎁 {pkg.get('name','Package')} {badge}</div>",
-            unsafe_allow_html=True
-        )
+            new_name = st.text_input(f"Package {pid} Name", value=pkg.get("name", f"Package {pid}"), key=f"pkgname_{pid}", label_visibility="collapsed")
+        st.markdown(f"<div style='font-size:13px;color:#{'2e7d32' if is_active else '1976d2'};font-weight:800;margin:2px 0 4px 0;'>🎁 {pkg.get('name','Package')} {badge}</div>", unsafe_allow_html=True)
 
         t1, t2, t3 = st.columns(3)
         with t1:
             st.markdown("<div style='font-size:11px;font-weight:700;color:#1976d2;'>Tier 1</div>", unsafe_allow_html=True)
             tc1, tc2 = st.columns(2)
-            with tc1:
-                ta1 = st.number_input("Min", value=float(pkg.get("tier1_amount", 0) or 0),
-                                      min_value=0.0, step=50.0, key=f"t1a_{pid}", label_visibility="collapsed")
-                st.caption("Min Rs")
-            with tc2:
-                tp1 = st.number_input("%", value=float(pkg.get("tier1_pct", 0) or 0),
-                                      min_value=0.0, max_value=100.0, step=0.5, key=f"t1p_{pid}", label_visibility="collapsed")
-                st.caption("Disc %")
+            with tc1: ta1 = st.number_input("Min", value=float(pkg.get("tier1_amount", 0) or 0), min_value=0.0, step=50.0, key=f"t1a_{pid}", label_visibility="collapsed"); st.caption("Min Rs")
+            with tc2: tp1 = st.number_input("%", value=float(pkg.get("tier1_pct", 0) or 0), min_value=0.0, max_value=100.0, step=0.5, key=f"t1p_{pid}", label_visibility="collapsed"); st.caption("Disc %")
         with t2:
             st.markdown("<div style='font-size:11px;font-weight:700;color:#1976d2;'>Tier 2</div>", unsafe_allow_html=True)
             tc1, tc2 = st.columns(2)
-            with tc1:
-                ta2 = st.number_input("Min", value=float(pkg.get("tier2_amount", 0) or 0),
-                                      min_value=0.0, step=50.0, key=f"t2a_{pid}", label_visibility="collapsed")
-                st.caption("Min Rs")
-            with tc2:
-                tp2 = st.number_input("%", value=float(pkg.get("tier2_pct", 0) or 0),
-                                      min_value=0.0, max_value=100.0, step=0.5, key=f"t2p_{pid}", label_visibility="collapsed")
-                st.caption("Disc %")
+            with tc1: ta2 = st.number_input("Min", value=float(pkg.get("tier2_amount", 0) or 0), min_value=0.0, step=50.0, key=f"t2a_{pid}", label_visibility="collapsed"); st.caption("Min Rs")
+            with tc2: tp2 = st.number_input("%", value=float(pkg.get("tier2_pct", 0) or 0), min_value=0.0, max_value=100.0, step=0.5, key=f"t2p_{pid}", label_visibility="collapsed"); st.caption("Disc %")
         with t3:
             st.markdown("<div style='font-size:11px;font-weight:700;color:#1976d2;'>Tier 3</div>", unsafe_allow_html=True)
             tc1, tc2 = st.columns(2)
-            with tc1:
-                ta3 = st.number_input("Min", value=float(pkg.get("tier3_amount", 0) or 0),
-                                      min_value=0.0, step=50.0, key=f"t3a_{pid}", label_visibility="collapsed")
-                st.caption("Min Rs")
-            with tc2:
-                tp3 = st.number_input("%", value=float(pkg.get("tier3_pct", 0) or 0),
-                                      min_value=0.0, max_value=100.0, step=0.5, key=f"t3p_{pid}", label_visibility="collapsed")
-                st.caption("Disc %")
+            with tc1: ta3 = st.number_input("Min", value=float(pkg.get("tier3_amount", 0) or 0), min_value=0.0, step=50.0, key=f"t3a_{pid}", label_visibility="collapsed"); st.caption("Min Rs")
+            with tc2: tp3 = st.number_input("%", value=float(pkg.get("tier3_pct", 0) or 0), min_value=0.0, max_value=100.0, step=0.5, key=f"t3p_{pid}", label_visibility="collapsed"); st.caption("Disc %")
 
         sc1, sc2 = st.columns([1, 5])
         with sc1:
@@ -1782,18 +1277,9 @@ def render_discount():
                         pp["tier2_amount"] = float(ta2); pp["tier2_pct"] = float(tp2)
                         pp["tier3_amount"] = float(ta3); pp["tier3_pct"] = float(tp3)
                         break
-                save_database(db)
-                st.session_state["success_msg"] = f"✅ Package saved"
-                st.rerun()
+                save_database(db); st.session_state["success_msg"] = "✅ Package saved"; st.rerun()
         with sc2:
-            st.markdown(
-                f"<div style='padding-top:10px;font-size:11px;color:#0277bd;'>"
-                f"&gt; Rs {ta1:,.0f} → {tp1}% &nbsp;|&nbsp; "
-                f"&gt; Rs {ta2:,.0f} → {tp2}% &nbsp;|&nbsp; "
-                f"&gt; Rs {ta3:,.0f} → {tp3}%</div>",
-                unsafe_allow_html=True
-            )
-
+            st.markdown(f"<div style='padding-top:10px;font-size:11px;color:#0277bd;'>&gt; Rs {ta1:,.0f} → {tp1}% | &gt; Rs {ta2:,.0f} → {tp2}% | &gt; Rs {ta3:,.0f} → {tp3}%</div>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
         st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
 
@@ -1805,104 +1291,75 @@ def render_discount():
 # ============================================================
 def render_all_products():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🛒 All Products</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#0277bd;font-weight:500;'>Naya product add karo, price change karo</p>", unsafe_allow_html=True)
     st.markdown("---")
-
     if "custom_products" not in db: db["custom_products"] = []
     all_products = get_all_products()
 
     with st.expander("➕ Naya Product Add Karo (Single)", expanded=False):
         c1, c2, c3, c4 = st.columns([1.5, 3.5, 1.5, 1])
-        with c1: new_code = st.text_input("Code:", key="new_prod_code", placeholder="e.g. 200")
-        with c2: new_name = st.text_input("Product Name:", key="new_prod_name", placeholder="Enter product name")
+        with c1: new_code = st.text_input("Code:", key="new_prod_code")
+        with c2: new_name = st.text_input("Product Name:", key="new_prod_name")
         with c3: new_price = st.number_input("Price (Rs):", min_value=0.0, step=1.0, key="new_prod_price", value=0.0)
         with c4:
             st.markdown("<br>", unsafe_allow_html=True)
             if st.button("➕ Add", key="btn_add_new_product", use_container_width=True, type="primary"):
                 code_s = str(new_code).strip(); name_s = str(new_name).strip()
                 if not code_s: st.error("❌ Code daalo")
-                elif not name_s: st.error("❌ Product name daalo")
+                elif not name_s: st.error("❌ Name daalo")
                 elif new_price <= 0: st.error("❌ Price daalo")
                 else:
                     existing_codes = {str(p["code"]) for p in all_products}
-                    if code_s in existing_codes:
-                        st.error(f"❌ Code '{code_s}' already exists")
+                    if code_s in existing_codes: st.error(f"❌ Code '{code_s}' exists")
                     else:
-                        db["custom_products"].append({
-                            "code": code_s, "name": name_s, "price": float(new_price),
-                            "added_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        })
+                        db["custom_products"].append({"code": code_s, "name": name_s, "price": float(new_price),
+                            "added_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
                         save_database(db)
-                        st.session_state["success_msg"] = f"✅ '{name_s}' add ho gaya (Code {code_s})"
+                        st.session_state["success_msg"] = f"✅ '{name_s}' add"
                         st.rerun()
 
-    with st.expander("📤 Bulk Upload (Excel / CSV)", expanded=False):
-        st.markdown("""
-        **File Format:** 3 columns — **Code**, **Name**, **Price**
-
-        | Code | Name | Price |
-        |------|------|-------|
-        | 200 | NEW PRODUCT A | 150 |
-        | 201 | NEW PRODUCT B | 200 |
-        """)
-        uploaded_file = st.file_uploader("Excel/CSV upload karo:", type=["xlsx", "xls", "csv"], key="bulk_upload_file")
+    with st.expander("📤 Bulk Upload", expanded=False):
+        st.markdown("**Format:** Code, Name, Price")
+        uploaded_file = st.file_uploader("Excel/CSV:", type=["xlsx", "xls", "csv"], key="bulk_upload_file")
         if uploaded_file is not None:
             try:
-                if uploaded_file.name.lower().endswith(".csv"):
-                    df_upload = pd.read_csv(uploaded_file)
-                else:
-                    df_upload = pd.read_excel(uploaded_file)
+                df_upload = pd.read_csv(uploaded_file) if uploaded_file.name.lower().endswith(".csv") else pd.read_excel(uploaded_file)
                 df_upload.columns = [str(c).strip().lower() for c in df_upload.columns]
                 if "code" not in df_upload.columns or "name" not in df_upload.columns or "price" not in df_upload.columns:
-                    st.error("❌ File mein 'Code', 'Name', 'Price' columns chahiye")
+                    st.error("❌ 'Code', 'Name', 'Price' chahiye")
                 else:
-                    st.success(f"✅ File loaded: **{len(df_upload)} rows**")
+                    st.success(f"✅ {len(df_upload)} rows")
                     st.dataframe(df_upload.head(20), use_container_width=True, hide_index=True)
-                    c1, c2 = st.columns([1, 3])
-                    with c1:
-                        if st.button("📥 Import All", key="btn_bulk_import", use_container_width=True, type="primary"):
-                            existing_codes = {str(p["code"]) for p in all_products}
-                            added = 0; skipped = 0
-                            for _, row in df_upload.iterrows():
-                                try:
-                                    code_s = str(row["code"]).strip(); name_s = str(row["name"]).strip()
-                                    price_f = float(row["price"])
-                                except Exception: skipped += 1; continue
-                                if not code_s or not name_s or price_f <= 0 or code_s in existing_codes:
-                                    skipped += 1; continue
-                                db["custom_products"].append({
-                                    "code": code_s, "name": name_s, "price": price_f,
-                                    "added_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                })
-                                existing_codes.add(code_s); added += 1
-                            save_database(db)
-                            st.session_state["success_msg"] = f"✅ {added} imported | {skipped} skipped"
-                            st.rerun()
-            except Exception as e:
-                st.error(f"❌ File read error: {e}")
-        st.markdown("---")
-        sample_df = pd.DataFrame({"Code": ["200", "201", "202"], "Name": ["NEW PRODUCT A", "NEW PRODUCT B", "NEW PRODUCT C"], "Price": [150, 200, 250]})
+                    if st.button("📥 Import All", key="btn_bulk_import", use_container_width=True, type="primary"):
+                        existing_codes = {str(p["code"]) for p in all_products}
+                        added = 0; skipped = 0
+                        for _, row in df_upload.iterrows():
+                            try: code_s = str(row["code"]).strip(); name_s = str(row["name"]).strip(); price_f = float(row["price"])
+                            except Exception: skipped += 1; continue
+                            if not code_s or not name_s or price_f <= 0 or code_s in existing_codes: skipped += 1; continue
+                            db["custom_products"].append({"code": code_s, "name": name_s, "price": price_f,
+                                "added_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+                            existing_codes.add(code_s); added += 1
+                        save_database(db)
+                        st.session_state["success_msg"] = f"✅ {added} imported | {skipped} skipped"
+                        st.rerun()
+            except Exception as e: st.error(f"❌ {e}")
+        sample_df = pd.DataFrame({"Code": ["200","201"], "Name": ["PROD A","PROD B"], "Price": [150,200]})
         sample_out = BytesIO()
-        with pd.ExcelWriter(sample_out, engine="xlsxwriter") as writer:
-            sample_df.to_excel(writer, index=False, sheet_name="Products")
+        with pd.ExcelWriter(sample_out, engine="xlsxwriter") as writer: sample_df.to_excel(writer, index=False, sheet_name="Products")
         sample_out.seek(0)
-        st.download_button("⬇️ Sample Template Download", data=sample_out.getvalue(),
-                           file_name="product_upload_template.xlsx",
-                           mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                           key="dl_sample_template")
+        st.download_button("⬇️ Sample Template", data=sample_out.getvalue(), file_name="product_upload_template.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", key="dl_sample_template")
 
-    st.markdown("### 🔍 Search / Manage Products")
+    st.markdown("### 🔍 Search / Manage")
     c1, c2 = st.columns([3, 2])
-    with c1: search = st.text_input("🔍 Search:", key="prod_search", placeholder="Type product name or code...")
+    with c1: search = st.text_input("🔍 Search:", key="prod_search")
     with c2:
         sc1, sc2 = st.columns(2)
         with sc1: show_only_edited = st.checkbox("Sirf edited", key="prod_only_edited")
         with sc2: show_only_custom = st.checkbox("Sirf custom 🆕", key="prod_only_custom")
-
     search_upper = search.strip().upper()
     edited_prices = db.get("product_prices", {})
     custom_codes = {str(cp.get("code", "")) for cp in db.get("custom_products", [])}
-
     shown = []
     for p in all_products:
         if search_upper and (search_upper not in p["name"].upper() and search_upper != str(p["code"])): continue
@@ -1910,23 +1367,15 @@ def render_all_products():
         if show_only_custom and str(p["code"]) not in custom_codes: continue
         shown.append(p)
 
-    st.markdown(f"""
-    <div class='summary-box'>
-        <b style='color:#1976d2;font-size:16px;'>📊 Summary</b><br>
-        <span style='color:#0277bd;'>
-            Total: <b>{len(all_products)}</b> | 🆕 Custom: <b>{len(db.get('custom_products', []))}</b> |
-            Showing: <b>{len(shown)}</b> | Edited: <b>{len(edited_prices)}</b>
-        </span>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f"""<div class='summary-box'><b style='color:#1976d2;font-size:16px;'>📊 Summary</b><br><span style='color:#0277bd;'>
+        Total: <b>{len(all_products)}</b> | 🆕 Custom: <b>{len(db.get('custom_products', []))}</b> |
+        Showing: <b>{len(shown)}</b> | Edited: <b>{len(edited_prices)}</b></span></div>""", unsafe_allow_html=True)
 
     if edited_prices:
-        c1, c2 = st.columns([1, 3])
-        with c1:
-            if st.button("🔄 Reset All Prices", key="reset_all_prices", use_container_width=True):
-                db["product_prices"] = {}; save_database(db)
-                st.session_state["success_msg"] = "✅ Sab prices reset ho gaye"
-                st.rerun()
+        if st.button("🔄 Reset All Prices", key="reset_all_prices"):
+            db["product_prices"] = {}; save_database(db)
+            st.session_state["success_msg"] = "✅ Reset"
+            st.rerun()
 
     st.markdown("---")
     if not shown:
@@ -1936,17 +1385,8 @@ def render_all_products():
         return
 
     st.markdown(f"### 📋 Products ({len(shown)})")
-    hc1, hc2, hc3, hc4, hc5 = st.columns([1, 4, 2, 2, 0.7])
-    with hc1: st.markdown("**Code**")
-    with hc2: st.markdown("**Product**")
-    with hc3: st.markdown("**Current Price**")
-    with hc4: st.markdown("**Change / Reset**")
-    with hc5: st.markdown("**Del**")
-    st.markdown("<hr style='margin:6px 0;'>", unsafe_allow_html=True)
-
     for p in shown:
-        code = str(p["code"]); base = float(p["price"])
-        current = get_price(code, base)
+        code = str(p["code"]); base = float(p["price"]); current = get_price(code, base)
         is_edited = code in edited_prices; is_custom = code in custom_codes
         c1, c2, c3, c4, c5 = st.columns([1, 4, 2, 2, 0.7])
         with c1: st.markdown(f"<div style='padding-top:8px;color:#1976d2;font-weight:700;'>{code}</div>", unsafe_allow_html=True)
@@ -1956,16 +1396,14 @@ def render_all_products():
             if is_edited: marks += " ✏️"
             color = "#c62828" if is_edited else ("#2e7d32" if is_custom else "#1976d2")
             st.markdown(f"<div style='padding-top:6px;color:{color};font-weight:600;font-size:14px;'>{p['name']}{marks}</div>", unsafe_allow_html=True)
-        with c3:
-            new_price = st.number_input("Price", value=float(current), min_value=0.0, step=1.0,
-                                        key=f"price_{code}", label_visibility="collapsed")
+        with c3: new_price = st.number_input("Price", value=float(current), min_value=0.0, step=1.0, key=f"price_{code}", label_visibility="collapsed")
         with c4:
             sub1, sub2 = st.columns(2)
             with sub1:
                 if st.button("💾 Save", key=f"save_price_{code}", use_container_width=True):
                     if float(new_price) == base:
                         db.get("product_prices", {}).pop(code, None); save_database(db)
-                        st.session_state["success_msg"] = f"✅ {p['name']}: original (Rs {base:,.0f})"
+                        st.session_state["success_msg"] = f"✅ {p['name']}: original"
                     else:
                         db.setdefault("product_prices", {})[code] = float(new_price); save_database(db)
                         st.session_state["success_msg"] = f"✅ {p['name']}: Rs {new_price:,.0f}"
@@ -1981,86 +1419,72 @@ def render_all_products():
                 if st.button("🗑", key=f"del_custom_{code}", use_container_width=True):
                     db["custom_products"] = [cp for cp in db["custom_products"] if str(cp.get("code", "")) != code]
                     db.get("product_prices", {}).pop(code, None); save_database(db)
-                    st.session_state["success_msg"] = f"🗑 '{p['name']}' delete"
+                    st.session_state["success_msg"] = f"🗑 '{p['name']}' deleted"
                     st.rerun()
-            else:
-                st.markdown("<div style='text-align:center;color:#bbb;padding-top:8px;'>—</div>", unsafe_allow_html=True)
+            else: st.markdown("<div style='text-align:center;color:#bbb;padding-top:8px;'>—</div>", unsafe_allow_html=True)
 
     if st.session_state.get("success_msg"):
         st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
 
 # ============================================================
-# PAGE: BOOKERS
+# PAGE: BOOKERS / SALESMEN
 # ============================================================
 def render_bookers():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>👤 Bookers</h1>", unsafe_allow_html=True)
     st.markdown("---")
-    st.markdown("### ➕ Add New Booker")
     c1, c2 = st.columns([3, 1])
-    with c1: new_booker = st.text_input("Booker Name:", key="new_booker_name", placeholder="Enter booker name...", label_visibility="collapsed")
+    with c1: new_booker = st.text_input("Booker Name:", key="new_booker_name", placeholder="Enter name", label_visibility="collapsed")
     with c2: add_clicked = st.button("➕ Add Booker", key="btn_add_booker", use_container_width=True, type="primary")
-
     if add_clicked:
         name = new_booker.strip() if new_booker else ""
-        if name == "": st.error("❌ Enter a booker name")
-        elif name in db.get("bookers", []): st.warning(f"⚠️ '{name}' already exists")
+        if name == "": st.error("❌ Enter name")
+        elif name in db.get("bookers", []): st.warning(f"⚠️ '{name}' exists")
         else:
-            db.setdefault("bookers", []).append(name)
-            db["bookers"] = sorted(db["bookers"]); save_database(db)
+            db.setdefault("bookers", []).append(name); db["bookers"] = sorted(db["bookers"]); save_database(db)
             st.session_state["booker_msg"] = f"✅ '{name}' added"
             st.rerun()
-
     if st.session_state.get("booker_msg"):
         st.success(st.session_state["booker_msg"]); st.session_state["booker_msg"] = None
-
     st.markdown("---")
-    st.markdown(f"### 📋 Saved Bookers ({len(db.get('bookers', []))})")
     bookers = db.get("bookers", [])
-    if not bookers: st.info("Koi booker add nahi hua."); return
+    if not bookers: st.info("Koi booker nahi."); return
+    st.markdown(f"### 📋 Saved ({len(bookers)})")
     for i, booker_name in enumerate(bookers):
         c1, c2 = st.columns([5, 1])
         with c1: st.markdown(f"<div class='booker-row'><b style='font-size:16px;color:#1976d2;'>👤 {booker_name}</b></div>", unsafe_allow_html=True)
         with c2:
             if st.button("🗑 Delete", key=f"del_booker_{i}_{booker_name}", use_container_width=True):
                 db["bookers"].remove(booker_name); save_database(db)
-                st.session_state["booker_msg"] = f"🗑 '{booker_name}' deleted"
+                st.session_state["booker_msg"] = f"🗑 Deleted"
                 st.rerun()
 
-# ============================================================
-# PAGE: SALESMEN
-# ============================================================
 def render_salesmen():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🧑‍💼 Salesmen</h1>", unsafe_allow_html=True)
     st.markdown("---")
-    st.markdown("### ➕ Add New Salesman")
     c1, c2 = st.columns([3, 1])
-    with c1: new_salesman = st.text_input("Salesman Name:", key="new_salesman_name", placeholder="Enter salesman name...", label_visibility="collapsed")
+    with c1: new_salesman = st.text_input("Salesman Name:", key="new_salesman_name", placeholder="Enter name", label_visibility="collapsed")
     with c2: add_clicked = st.button("➕ Add Salesman", key="btn_add_salesman", use_container_width=True, type="primary")
-
     if add_clicked:
         name = new_salesman.strip() if new_salesman else ""
-        if name == "": st.error("❌ Enter a salesman name")
-        elif name in db.get("salesmen", []): st.warning(f"⚠️ '{name}' already exists")
+        if name == "": st.error("❌ Enter name")
+        elif name in db.get("salesmen", []): st.warning(f"⚠️ '{name}' exists")
         else:
-            db.setdefault("salesmen", []).append(name)
-            db["salesmen"] = sorted(db["salesmen"]); save_database(db)
+            db.setdefault("salesmen", []).append(name); db["salesmen"] = sorted(db["salesmen"]); save_database(db)
             st.session_state["salesman_msg"] = f"✅ '{name}' added"
             st.rerun()
-
     if st.session_state.get("salesman_msg"):
         st.success(st.session_state["salesman_msg"]); st.session_state["salesman_msg"] = None
-
     st.markdown("---")
-    st.markdown(f"### 📋 Saved Salesmen ({len(db.get('salesmen', []))})")
     salesmen = db.get("salesmen", [])
-    if not salesmen: st.info("Koi salesman add nahi hua."); return
+    if not salesmen: st.info("Koi salesman nahi."); return
+    st.markdown(f"### 📋 Saved ({len(salesmen)})")
     for i, salesman_name in enumerate(salesmen):
         c1, c2 = st.columns([5, 1])
         with c1: st.markdown(f"<div class='booker-row'><b style='font-size:16px;color:#1976d2;'>🧑‍💼 {salesman_name}</b></div>", unsafe_allow_html=True)
         with c2:
             if st.button("🗑 Delete", key=f"del_salesman_{i}_{salesman_name}", use_container_width=True):
                 db["salesmen"].remove(salesman_name); save_database(db)
-                st.session_state["salesman_msg"] = f"🗑 '{salesman_name}' deleted"
+                st.session_state["salesman_msg"] = f"🗑 Deleted"
                 st.rerun()
 
 # ============================================================
@@ -2073,21 +1497,15 @@ def render_salaries(role_type):
     else:
         title = "💰 Salesmen Salary"; emoji = "🧑‍💼"; names = db.get("salesmen", [])
         sal_key = "salesmen_salaries"; other_page = "🧑‍💼 Salesmen"
-
     st.markdown(f"<h1 style='color:#1976d2 !important;'>{title}</h1>", unsafe_allow_html=True)
     st.markdown("---")
-
     if sal_key not in db: db[sal_key] = {}
-    if not names:
-        st.info(f"❌ Pehle **{other_page}** page pe add karo.")
-        return
+    if not names: st.info(f"❌ Pehle **{other_page}** pe add karo."); return
 
     total_base = 0; total_adv_pending = 0; total_adv_paid = 0
     total_short_pending = 0; total_short_paid = 0
     for n in names:
-        sd = db[sal_key].get(n, {})
-        base = sd.get("base_salary", 0)
-        txns = sd.get("transactions", [])
+        sd = db[sal_key].get(n, {}); base = sd.get("base_salary", 0); txns = sd.get("transactions", [])
         total_base += base
         for t in txns:
             is_pending = t.get("status", "pending") == "pending"
@@ -2099,128 +1517,94 @@ def render_salaries(role_type):
                 else: total_short_paid += t["amount"]
     total_remaining = total_base - total_adv_pending - total_short_pending
 
-    st.markdown(f"""
-    <div class='summary-box'>
-        <b style='color:#1976d2;font-size:16px;'>📊 Overall Summary</b><br>
-        <span style='color:#0277bd;'>
-            Base: <b>Rs {total_base:,.0f}</b> | Adv Pend: <b>Rs {total_adv_pending:,.0f}</b> |
-            Adv Paid: <b>Rs {total_adv_paid:,.0f}</b> | Short Pend: <b>Rs {total_short_pending:,.0f}</b> |
-            Short Paid: <b>Rs {total_short_paid:,.0f}</b> |
-            <b style='color:#1b5e20;'>Remaining: Rs {total_remaining:,.0f}</b>
-        </span>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f"""<div class='summary-box'><b style='color:#1976d2;font-size:16px;'>📊 Summary</b><br>
+        <span style='color:#0277bd;'>Base: <b>Rs {total_base:,.0f}</b> | Adv Pend: <b>Rs {total_adv_pending:,.0f}</b> |
+        Adv Paid: <b>Rs {total_adv_paid:,.0f}</b> | Short Pend: <b>Rs {total_short_pending:,.0f}</b> |
+        Short Paid: <b>Rs {total_short_paid:,.0f}</b> | <b style='color:#1b5e20;'>Remaining: Rs {total_remaining:,.0f}</b></span></div>""", unsafe_allow_html=True)
 
     for person_name in names:
         sd = db[sal_key].get(person_name, {"base_salary": 0, "transactions": []})
-        base = sd.get("base_salary", 0)
-        txns = sd.get("transactions", [])
+        base = sd.get("base_salary", 0); txns = sd.get("transactions", [])
         adv_pending = sum(t["amount"] for t in txns if t.get("type") == "advanced" and t.get("status", "pending") == "pending")
         adv_paid = sum(t["amount"] for t in txns if t.get("type") == "advanced" and t.get("status") == "paid")
         short_pending = sum(t["amount"] for t in txns if t.get("type") == "shortage" and t.get("status", "pending") == "pending")
         short_paid = sum(t["amount"] for t in txns if t.get("type") == "shortage" and t.get("status") == "paid")
         remaining = base - adv_pending - short_pending
-
         with st.expander(f"💰 {emoji} {person_name}  —  Remaining: Rs {remaining:,.0f}", expanded=False):
             c1, c2 = st.columns([3, 1])
-            with c1:
-                new_base = st.number_input("Base Salary (Rs):", value=float(base), min_value=0.0, step=500.0, key=f"base_{role_type}_{person_name}")
+            with c1: new_base = st.number_input("Base Salary:", value=float(base), min_value=0.0, step=500.0, key=f"base_{role_type}_{person_name}")
             with c2:
                 st.markdown("<br>", unsafe_allow_html=True)
-                if st.button("💾 Save Base", key=f"savebase_{role_type}_{person_name}", use_container_width=True):
+                if st.button("💾 Save", key=f"savebase_{role_type}_{person_name}", use_container_width=True):
                     db[sal_key].setdefault(person_name, {"base_salary": 0, "transactions": []})
-                    db[sal_key][person_name]["base_salary"] = float(new_base)
-                    save_database(db)
-                    st.session_state["success_msg"] = f"✅ Base saved for {person_name}"
+                    db[sal_key][person_name]["base_salary"] = float(new_base); save_database(db)
+                    st.session_state["success_msg"] = f"✅ Saved"
                     st.rerun()
-
-            st.markdown(f"""
-            <div style='margin-top:10px;'>
+            st.markdown(f"""<div style='margin-top:10px;'>
                 <span class='sal-metric base'>Base: Rs {base:,.0f}</span>
                 <span class='sal-metric adv'>Adv Pend: Rs {adv_pending:,.0f}</span>
                 <span class='sal-metric paid'>Adv Paid: Rs {adv_paid:,.0f}</span>
                 <span class='sal-metric short'>Short Pend: Rs {short_pending:,.0f}</span>
                 <span class='sal-metric paid'>Short Paid: Rs {short_paid:,.0f}</span>
-                <span class='sal-metric remain'>Remaining: Rs {remaining:,.0f}</span>
-            </div>
-            """, unsafe_allow_html=True)
-
+                <span class='sal-metric remain'>Remaining: Rs {remaining:,.0f}</span></div>""", unsafe_allow_html=True)
             st.markdown("---")
-            st.markdown("**➕ Add Transaction**")
             c1, c2, c3, c4, c5 = st.columns([2, 2, 2, 3, 1])
             with c1: txn_date = st.date_input("Date", value=date.today(), key=f"txn_date_{role_type}_{person_name}")
             with c2: txn_type = st.selectbox("Type", ["Advanced", "Shortage"], key=f"txn_type_{role_type}_{person_name}")
             with c3: txn_amt = st.number_input("Amount", min_value=0.0, step=100.0, key=f"txn_amt_{role_type}_{person_name}")
-            with c4: txn_note = st.text_input("Note (optional)", key=f"txn_note_{role_type}_{person_name}", placeholder="Reason...")
+            with c4: txn_note = st.text_input("Note", key=f"txn_note_{role_type}_{person_name}")
             with c5:
                 st.markdown("<br>", unsafe_allow_html=True)
                 if st.button("➕ Add", key=f"addtxn_{role_type}_{person_name}", use_container_width=True):
-                    if txn_amt <= 0:
-                        st.session_state["error_msg"] = "❌ Amount > 0"
+                    if txn_amt <= 0: st.session_state["error_msg"] = "❌ Amount > 0"
                     else:
                         db[sal_key].setdefault(person_name, {"base_salary": base, "transactions": []})
                         existing = db[sal_key][person_name].get("transactions", [])
                         next_id = max([t.get("id", 0) for t in existing] + [0]) + 1
-                        new_txn = {
+                        db[sal_key][person_name]["transactions"].append({
                             "id": next_id, "date": txn_date.strftime("%d-%m-%Y"),
                             "time": datetime.now().strftime("%H:%M"),
                             "type": "advanced" if txn_type == "Advanced" else "shortage",
                             "amount": float(txn_amt), "note": txn_note.strip(),
                             "status": "pending",
                             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        }
-                        db[sal_key][person_name]["transactions"].append(new_txn)
-                        save_database(db)
-                        st.session_state["success_msg"] = f"✅ {txn_type} Rs {txn_amt:,.0f} added"
+                        })
+                        save_database(db); st.session_state["success_msg"] = f"✅ Added"
                         st.rerun()
-
             if txns:
                 st.markdown("**📋 History**")
                 sorted_txns = sorted(txns, key=lambda x: x.get("created_at", ""), reverse=True)
                 for idx, t in enumerate(sorted_txns):
                     t_id = t.get("id"); status = t.get("status", "pending")
                     is_pending = status == "pending"; is_adv = t["type"] == "advanced"
-                    if is_adv:
-                        badge_text = "Advanced"; badge_color = "#e65100"; badge_bg = "#fff3e0"
-                    else:
-                        badge_text = "Shortage"; badge_color = "#c62828"; badge_bg = "#ffebee"
+                    badge_text = "Advanced" if is_adv else "Shortage"
+                    badge_color = "#e65100" if is_adv else "#c62828"
+                    badge_bg = "#fff3e0" if is_adv else "#ffebee"
                     status_badge = f'<span class="status-pending">⏳ PENDING</span>' if is_pending else f'<span class="status-paid">✅ PAID</span>'
                     note_txt = f" — {t.get('note','')}" if t.get("note") else ""
                     c1, c2, c3 = st.columns([5, 1, 1])
                     with c1:
-                        st.markdown(f"""
-                        <div style='background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:8px 12px;margin-bottom:4px;'>
+                        st.markdown(f"""<div style='background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:8px 12px;margin-bottom:4px;'>
                             <span style='color:#0277bd;font-size:12px;'>📅 {t.get('date','')} · 🕐 {t.get('time','')}</span> &nbsp;
                             <span style='background:{badge_bg};color:{badge_color};padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;'>{badge_text}</span> &nbsp;
                             {status_badge} &nbsp;
                             <b style='color:#1976d2;font-size:15px;'>Rs {t['amount']:,.0f}</b>
-                            <span style='color:#666;font-size:12px;'>{note_txt}</span>
-                        </div>
-                        """, unsafe_allow_html=True)
+                            <span style='color:#666;font-size:12px;'>{note_txt}</span></div>""", unsafe_allow_html=True)
                     with c2:
                         if is_pending:
                             if st.button("✅ Paid", key=f"paid_{role_type}_{person_name}_{t_id}_{idx}", use_container_width=True, type="primary"):
                                 for tx in db[sal_key][person_name]["transactions"]:
                                     if tx.get("id") == t_id:
-                                        tx["status"] = "paid"
-                                        tx["paid_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                        break
-                                save_database(db)
-                                st.session_state["success_msg"] = f"✅ Rs {t['amount']:,.0f} PAID"
+                                        tx["status"] = "paid"; tx["paid_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S"); break
+                                save_database(db); st.session_state["success_msg"] = f"✅ PAID"
                                 st.rerun()
-                        else:
-                            st.markdown("<div style='padding-top:6px;color:#1b5e20;font-weight:700;font-size:13px;text-align:center;'>✅ PAID</div>", unsafe_allow_html=True)
+                        else: st.markdown("<div style='padding-top:6px;color:#1b5e20;font-weight:700;font-size:13px;text-align:center;'>✅ PAID</div>", unsafe_allow_html=True)
                     with c3:
                         if st.button("🗑", key=f"deltxn_{role_type}_{person_name}_{t_id}_{idx}", use_container_width=True):
-                            db[sal_key][person_name]["transactions"] = [
-                                x for x in db[sal_key][person_name]["transactions"] if x.get("id") != t_id
-                            ]
-                            save_database(db)
-                            st.session_state["success_msg"] = "🗑 Deleted"
+                            db[sal_key][person_name]["transactions"] = [x for x in db[sal_key][person_name]["transactions"] if x.get("id") != t_id]
+                            save_database(db); st.session_state["success_msg"] = "🗑 Deleted"
                             st.rerun()
-            else:
-                st.info("Koi transaction nahi.")
-
+            else: st.info("Koi transaction nahi.")
     if st.session_state.get("success_msg"):
         st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
 
@@ -2230,23 +1614,14 @@ def render_salaries(role_type):
 def render_daily_expense():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>💵 Daily Expense</h1>", unsafe_allow_html=True)
     st.markdown("---")
-
     if "petrol_expenses" not in db: db["petrol_expenses"] = []
     if "lunch_expenses" not in db: db["lunch_expenses"] = []
-
-    petrol_list = db.get("petrol_expenses", [])
-    lunch_list = db.get("lunch_expenses", [])
-
-    st.markdown("### 🔎 Filter")
+    petrol_list = db.get("petrol_expenses", []); lunch_list = db.get("lunch_expenses", [])
     today = date.today()
     c1, c2, c3 = st.columns([2, 2, 2])
-    with c1:
-        filter_mode = st.selectbox("Filter:",
-            ["📅 Aaj (Today)", "📆 This Month", "🗓️ Last 30 Days", "📋 All"],
-            key="exp_filter_mode")
+    with c1: filter_mode = st.selectbox("Filter:", ["📅 Aaj (Today)", "📆 This Month", "🗓️ Last 30 Days", "📋 All"], key="exp_filter_mode")
     with c2: from_date = st.date_input("From:", value=today - timedelta(days=30), key="exp_from_date")
     with c3: to_date = st.date_input("To:", value=today, key="exp_to_date")
-
     def date_match(dstr):
         d = parse_date(dstr)
         if d is None: return False
@@ -2254,124 +1629,74 @@ def render_daily_expense():
         elif filter_mode == "📆 This Month": return d.year == today.year and d.month == today.month
         elif filter_mode == "🗓️ Last 30 Days": return today - timedelta(days=30) <= d <= today
         else: return True
-
     petrol_filtered = [x for x in petrol_list if date_match(x.get("date", ""))]
     lunch_filtered = [x for x in lunch_list if date_match(x.get("date", ""))]
     total_petrol = sum(float(x.get("amount", 0)) for x in petrol_filtered)
     total_lunch = sum(float(x.get("amount", 0)) for x in lunch_filtered)
-    grand = total_petrol + total_lunch
-
-    st.markdown(f"""
-    <div class='summary-box'>
-        <b style='color:#1976d2;font-size:16px;'>📊 Summary</b><br>
-        <span style='color:#0277bd;'>
-            ⛽ Petrol: <b>Rs {total_petrol:,.0f}</b> | 🍽️ Lunch: <b>Rs {total_lunch:,.0f}</b> |
-            <b style='color:#0d47a1;'>Grand Total: Rs {grand:,.0f}</b>
-        </span>
-    </div>
-    """, unsafe_allow_html=True)
-
+    st.markdown(f"""<div class='summary-box'><b style='color:#1976d2;font-size:16px;'>📊 Summary</b><br>
+        <span style='color:#0277bd;'>⛽ Petrol: <b>Rs {total_petrol:,.0f}</b> | 🍽️ Lunch: <b>Rs {total_lunch:,.0f}</b> |
+        <b style='color:#0d47a1;'>Grand Total: Rs {total_petrol + total_lunch:,.0f}</b></span></div>""", unsafe_allow_html=True)
     col_left, col_right = st.columns(2)
     with col_left:
         st.markdown(f"### ⛽ Petrol  <span style='font-size:14px;color:#0277bd;'>(Rs {total_petrol:,.0f})</span>", unsafe_allow_html=True)
         saved_salesmen = db.get("salesmen", [])
-        if not saved_salesmen:
-            st.info("💡 Pehle Salesmen add karo.")
+        if not saved_salesmen: st.info("💡 Salesmen add karo.")
         else:
-            st.markdown("**➕ Add Petrol**")
             c1, c2, c3 = st.columns([2, 2, 1])
             with c1: p_salesman = st.selectbox("Salesman:", options=["-- Select --"] + saved_salesmen, key="petrol_salesman", label_visibility="collapsed")
             with c2: p_amount = st.number_input("Amount", min_value=0.0, step=50.0, key="petrol_amount", label_visibility="collapsed")
             with c3:
                 if st.button("➕", key="add_petrol", use_container_width=True, type="primary"):
                     if p_salesman == "-- Select --": st.session_state["error_msg"] = "❌ Select salesman"
-                    elif p_amount <= 0: st.session_state["error_msg"] = "❌ Enter amount"
+                    elif p_amount <= 0: st.session_state["error_msg"] = "❌ Amount"
                     else:
                         next_id = max([x.get("id", 0) for x in db["petrol_expenses"]] + [0]) + 1
-                        db["petrol_expenses"].append({
-                            "id": next_id, "date": datetime.now().strftime("%d-%m-%Y"),
+                        db["petrol_expenses"].append({"id": next_id, "date": datetime.now().strftime("%d-%m-%Y"),
                             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                             "time": datetime.now().strftime("%H:%M"),
-                            "salesman": p_salesman, "amount": float(p_amount),
-                        })
-                        save_database(db)
-                        st.session_state["success_msg"] = f"✅ Petrol Rs {p_amount:,.0f} added"
+                            "salesman": p_salesman, "amount": float(p_amount)})
+                        save_database(db); st.session_state["success_msg"] = f"✅ Added"
                         st.rerun()
-
-            st.markdown(f"**📋 Entries ({len(petrol_filtered)})**")
-            if not petrol_filtered:
-                st.info("Koi entry nahi.")
-            else:
-                sorted_p = sorted(petrol_filtered, key=lambda x: x.get("created_at", ""), reverse=True)
-                for idx, x in enumerate(sorted_p):
-                    x_id = x.get("id", idx)
-                    cc1, cc2 = st.columns([5, 1])
-                    with cc1:
-                        st.markdown(f"""
-                        <div class='exp-row'>
-                            <div class='exp-left'><div class='exp-name'>🧑‍💼 {x.get('salesman','-')}</div>
-                            <div class='exp-date'>📅 {x.get('date','')} · 🕐 {x.get('time','')}</div></div>
-                            <div class='exp-amt'>Rs {float(x.get('amount',0)):,.0f}</div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    with cc2:
-                        if st.button("🗑", key=f"del_petrol_{x_id}_{idx}", use_container_width=True):
-                            db["petrol_expenses"] = [e for e in db["petrol_expenses"] if e.get("id") != x_id]
-                            save_database(db)
-                            st.session_state["success_msg"] = "🗑 Deleted"
-                            st.rerun()
-
-                per_sm = {}
-                for x in petrol_filtered:
-                    sm = x.get("salesman", "Unknown")
-                    per_sm[sm] = per_sm.get(sm, 0) + float(x.get("amount", 0))
-                st.markdown("**📊 Per Salesman**")
-                for sm, amt in sorted(per_sm.items()):
-                    st.markdown(f"<div style='padding:4px 8px;font-size:13px;color:#0277bd;'>🧑‍💼 <b>{sm}</b> — Rs {amt:,.0f}</div>", unsafe_allow_html=True)
-
+            sorted_p = sorted(petrol_filtered, key=lambda x: x.get("created_at", ""), reverse=True)
+            for idx, x in enumerate(sorted_p):
+                x_id = x.get("id", idx)
+                cc1, cc2 = st.columns([5, 1])
+                with cc1:
+                    st.markdown(f"""<div class='exp-row'><div class='exp-left'><div class='exp-name'>🧑‍💼 {x.get('salesman','-')}</div>
+                        <div class='exp-date'>📅 {x.get('date','')} · 🕐 {x.get('time','')}</div></div>
+                        <div class='exp-amt'>Rs {float(x.get('amount',0)):,.0f}</div></div>""", unsafe_allow_html=True)
+                with cc2:
+                    if st.button("🗑", key=f"del_petrol_{x_id}_{idx}", use_container_width=True):
+                        db["petrol_expenses"] = [e for e in db["petrol_expenses"] if e.get("id") != x_id]
+                        save_database(db); st.session_state["success_msg"] = "🗑 Deleted"
+                        st.rerun()
     with col_right:
         st.markdown(f"### 🍽️ Lunch  <span style='font-size:14px;color:#e65100;'>(Rs {total_lunch:,.0f})</span>", unsafe_allow_html=True)
-        st.markdown("**➕ Add Lunch**")
         c1, c2 = st.columns([3, 1])
         with c1: l_amount = st.number_input("Amount", min_value=0.0, step=50.0, key="lunch_amount", label_visibility="collapsed")
         with c2:
             if st.button("➕", key="add_lunch", use_container_width=True, type="primary"):
-                if l_amount <= 0: st.session_state["error_msg"] = "❌ Enter amount"
+                if l_amount <= 0: st.session_state["error_msg"] = "❌ Amount"
                 else:
                     next_id = max([x.get("id", 0) for x in db["lunch_expenses"]] + [0]) + 1
-                    db["lunch_expenses"].append({
-                        "id": next_id, "date": datetime.now().strftime("%d-%m-%Y"),
+                    db["lunch_expenses"].append({"id": next_id, "date": datetime.now().strftime("%d-%m-%Y"),
                         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        "time": datetime.now().strftime("%H:%M"),
-                        "amount": float(l_amount),
-                    })
-                    save_database(db)
-                    st.session_state["success_msg"] = f"✅ Lunch Rs {l_amount:,.0f} added"
+                        "time": datetime.now().strftime("%H:%M"), "amount": float(l_amount)})
+                    save_database(db); st.session_state["success_msg"] = f"✅ Added"
                     st.rerun()
-
-        st.markdown(f"**📋 Entries ({len(lunch_filtered)})**")
-        if not lunch_filtered:
-            st.info("Koi entry nahi.")
-        else:
-            sorted_l = sorted(lunch_filtered, key=lambda x: x.get("created_at", ""), reverse=True)
-            for idx, x in enumerate(sorted_l):
-                x_id = x.get("id", idx)
-                cc1, cc2 = st.columns([5, 1])
-                with cc1:
-                    st.markdown(f"""
-                    <div class='exp-row lunch'>
-                        <div class='exp-left'><div class='exp-name'>🍽️ Lunch</div>
-                        <div class='exp-date'>📅 {x.get('date','')} · 🕐 {x.get('time','')}</div></div>
-                        <div class='exp-amt'>Rs {float(x.get('amount',0)):,.0f}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                with cc2:
-                    if st.button("🗑", key=f"del_lunch_{x_id}_{idx}", use_container_width=True):
-                        db["lunch_expenses"] = [e for e in db["lunch_expenses"] if e.get("id") != x_id]
-                        save_database(db)
-                        st.session_state["success_msg"] = "🗑 Deleted"
-                        st.rerun()
-
+        sorted_l = sorted(lunch_filtered, key=lambda x: x.get("created_at", ""), reverse=True)
+        for idx, x in enumerate(sorted_l):
+            x_id = x.get("id", idx)
+            cc1, cc2 = st.columns([5, 1])
+            with cc1:
+                st.markdown(f"""<div class='exp-row lunch'><div class='exp-left'><div class='exp-name'>🍽️ Lunch</div>
+                    <div class='exp-date'>📅 {x.get('date','')} · 🕐 {x.get('time','')}</div></div>
+                    <div class='exp-amt'>Rs {float(x.get('amount',0)):,.0f}</div></div>""", unsafe_allow_html=True)
+            with cc2:
+                if st.button("🗑", key=f"del_lunch_{x_id}_{idx}", use_container_width=True):
+                    db["lunch_expenses"] = [e for e in db["lunch_expenses"] if e.get("id") != x_id]
+                    save_database(db); st.session_state["success_msg"] = "🗑 Deleted"
+                    st.rerun()
     if st.session_state.get("success_msg"):
         st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
     if st.session_state.get("error_msg"):
@@ -2382,18 +1707,12 @@ def render_daily_expense():
 # ============================================================
 def render_billing():
     st.markdown(f"<h2 style='color:#1976d2 !important;margin:0 0 6px 0;'>🧾 Billing</h2>", unsafe_allow_html=True)
-
     active_pkgs = get_all_active_packages()
     if active_pkgs:
         names = ", ".join([p.get("name", "Package") for p in active_pkgs])
         st.markdown(f"<div class='hint-box'>🎁 Active: <b>{names}</b></div>", unsafe_allow_html=True)
-    else:
-        st.markdown("<div class='hint-box'>💡 Koi discount active nahi.</div>", unsafe_allow_html=True)
-
     if wholesaler_rule_active():
-        st.markdown(f"<div class='hint-box' style='background:#f3e5f5;border-left-color:#8e24aa;color:#6a1b9a !important;'>🏢 Wholesaler rule <b>ON</b> — 'whole seller' naam wale shops ko {get_wholesaler_pct()}% milega</div>", unsafe_allow_html=True)
-    else:
-        st.markdown("<div class='hint-box' style='background:#f5f5f5;border-left-color:#bdbdbd;color:#616161 !important;'>⭕ Wholesaler rule OFF</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='hint-box' style='background:#f3e5f5;border-left-color:#8e24aa;color:#6a1b9a !important;'>🏢 Wholesaler rule <b>ON</b> — {get_wholesaler_pct()}%</div>", unsafe_allow_html=True)
 
     c1, c2 = st.columns(2)
     with c1: st.text_input("Bill No:", value=str(db["next_bill_no"]), disabled=True, key="dash_bill_no")
@@ -2401,61 +1720,51 @@ def render_billing():
 
     c1, c2, c3 = st.columns(3)
     with c1:
-        shop_name = st.text_input("Shop:", key="shop_name", placeholder="Shop Name")
+        shop_name = st.text_input("Shop:", key="shop_name")
         if shop_name and is_wholesaler(shop_name) and wholesaler_rule_active():
-            st.markdown(f"<div class='hint-box' style='background:#f3e5f5;border-left-color:#8e24aa;color:#6a1b9a !important;font-weight:700;'>🏢 Wholesaler — {get_wholesaler_pct()}% flat discount</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='hint-box' style='background:#f3e5f5;border-left-color:#8e24aa;color:#6a1b9a !important;font-weight:700;'>🏢 Wholesaler — {get_wholesaler_pct()}%</div>", unsafe_allow_html=True)
     with c2:
         saved_bookers = db.get("bookers", [])
         if saved_bookers:
-            booker_options = ["-- Select --"] + saved_bookers
-            selected_bk = st.selectbox("Order Booker:", options=booker_options, key="order_booker_select")
-            st.session_state["order_booker"] = "" if selected_bk == "-- Select --" else selected_bk
-        else:
-            st.text_input("Order Booker:", key="order_booker", placeholder="Booker")
+            options = ["-- Select --"] + saved_bookers
+            sel = st.selectbox("Order Booker:", options=options, key="order_booker_select")
+            st.session_state["order_booker"] = "" if sel == "-- Select --" else sel
+        else: st.text_input("Order Booker:", key="order_booker")
     with c3:
         saved_salesmen = db.get("salesmen", [])
         if saved_salesmen:
-            salesman_options = ["-- Select --"] + saved_salesmen
-            selected_sm = st.selectbox("Salesman:", options=salesman_options, key="salesman_select")
-            st.session_state["salesman"] = "" if selected_sm == "-- Select --" else selected_sm
-        else:
-            st.text_input("Salesman:", key="salesman", placeholder="Salesman")
+            options = ["-- Select --"] + saved_salesmen
+            sel = st.selectbox("Salesman:", options=options, key="salesman_select")
+            st.session_state["salesman"] = "" if sel == "-- Select --" else sel
+        else: st.text_input("Salesman:", key="salesman")
 
     c1, c2 = st.columns([1, 3])
-    with c1: search_text = st.text_input("🔍 Search:", key="search_text", placeholder="Type name...")
+    with c1: search_text = st.text_input("🔍 Search:", key="search_text")
     with c2:
         all_products = get_all_products()
-        search_upper = search_text.strip().upper()
-        filtered_names = [p["name"] for p in all_products if search_upper in p["name"].upper()] if search_upper else [p["name"] for p in all_products]
+        su = search_text.strip().upper()
+        filtered_names = [p["name"] for p in all_products if su in p["name"].upper()] if su else [p["name"] for p in all_products]
         if st.session_state.get("product_sel") and st.session_state["product_sel"] not in filtered_names:
             st.session_state["product_sel"] = ""
-        product_sel = st.selectbox("Select Product:", options=[""] + filtered_names, key="product_sel")
+        product_sel = st.selectbox("Product:", options=[""] + filtered_names, key="product_sel")
 
     selected_product = None
     if product_sel:
         for p in get_all_products():
-            if p["name"] == product_sel:
-                selected_product = p; break
-
+            if p["name"] == product_sel: selected_product = p; break
     if selected_product:
-        current_price = get_price(selected_product["code"], selected_product["price"])
-        base_price = float(selected_product["price"])
-        price_note = f"  (edited — original Rs {base_price:,.0f})" if current_price != base_price else ""
-        st.success(f"✅ {selected_product['name']} (Code: {selected_product['code']}) — Rs {current_price:,.0f}{price_note}")
-        tp_default = float(current_price)
-    else:
-        st.error("No Product Selected"); tp_default = 0.0
-
+        cp = get_price(selected_product["code"], selected_product["price"])
+        st.success(f"✅ {selected_product['name']} (Code: {selected_product['code']}) — Rs {cp:,.0f}")
+        tp_default = float(cp)
+    else: st.error("No Product Selected"); tp_default = 0.0
     if st.session_state["_prev_prod"] != product_sel:
-        st.session_state["tp_box"] = tp_default
-        st.session_state["_prev_prod"] = product_sel
+        st.session_state["tp_box"] = tp_default; st.session_state["_prev_prod"] = product_sel
 
     c1, c2, c3, c4, c5 = st.columns(5)
     with c1: boxes = st.number_input("Boxes:", min_value=0, step=1, key="boxes")
     with c2: tp_box = st.number_input("TP/Box:", min_value=0.0, step=1.0, key="tp_box")
     with c3: discount = st.number_input("Disc %:", min_value=0.0, step=0.5, key="discount")
-    gross = boxes * tp_box
-    net = gross - (gross * discount / 100)
+    gross = boxes * tp_box; net = gross - (gross * discount / 100)
     with c4: st.text_input("Gross:", value=f"{gross:.0f}", disabled=True, key="gross_disp")
     with c5: st.text_input("Net:", value=f"{net:.0f}", disabled=True, key="net_disp")
 
@@ -2473,14 +1782,9 @@ def render_billing():
     with e2: st.button("📦 Export Load Form", key="btn_export_lf", on_click=export_load_form_from_billing_callback, use_container_width=True)
     with e3: st.button("🔄 Refresh Load Form", key="btn_load_refresh", on_click=refresh_load_form_callback, use_container_width=True)
 
-    st.markdown(f"""
-    <div class='hint-box' style='margin-top:8px;background:#fff8e1;border-left-color:#ffa000;color:#e65100 !important;'>
-        💡 <b>Kaise kaam karta hai:</b>
-        Same booker ke multiple bills → <b>SAME Load Form update</b> hoga.
-        <b>🔄 Refresh Load Form</b> dabane ke baad next export se <b>NAYA Load Form</b> banega.
-    </div>
-    """, unsafe_allow_html=True)
-
+    st.markdown("""<div class='hint-box' style='margin-top:8px;background:#fff8e1;border-left-color:#ffa000;color:#e65100 !important;'>
+        💡 Same booker ke multiple bills → <b>SAME Load Form update</b>. <b>🔄 Refresh Load Form</b> ke baad next export se <b>NAYA Load Form</b>.
+    </div>""", unsafe_allow_html=True)
     show_auto_download()
 
 # ============================================================
@@ -2489,27 +1793,18 @@ def render_billing():
 def render_bills_list():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📋 Bills List</h1>", unsafe_allow_html=True)
     st.markdown("---")
-
-    if len(db["bills"]) == 0:
-        st.info("❌ Koi bill nahi mila.")
-        return
-
+    if len(db["bills"]) == 0: st.info("❌ Koi bill nahi."); return
     credit_bills = db.get("credit_bills", [])
     credit_map = {}
     for cb in credit_bills:
         k = (cb.get("shop", ""), cb.get("date", ""), cb.get("booker", ""), cb.get("bill_no", ""))
         credit_map[k] = cb
 
-    st.markdown("### 🔎 Filter Bills")
     today = date.today()
     c1, c2, c3 = st.columns(3)
-    with c1:
-        filter_mode = st.selectbox("Filter Mode:",
-            ["📅 Aaj Ki Bills (Today)", "📆 Custom Date Range", "🗓️ Specific Date", "📋 All Bills"],
-            key="bills_filter_mode")
-    with c2: from_date = st.date_input("From Date:", value=today - timedelta(days=7), key="bills_from_date")
-    with c3: to_date = st.date_input("To Date:", value=today, key="bills_to_date")
-
+    with c1: filter_mode = st.selectbox("Filter Mode:", ["📅 Aaj (Today)", "📆 Custom Range", "🗓️ Specific", "📋 All Bills"], key="bills_filter_mode")
+    with c2: from_date = st.date_input("From:", value=today - timedelta(days=7), key="bills_from_date")
+    with c3: to_date = st.date_input("To:", value=today, key="bills_to_date")
     c1, c2 = st.columns(2)
     with c1: search = st.text_input("🔍 Search:", key="bills_search")
     with c2:
@@ -2518,67 +1813,45 @@ def render_bills_list():
 
     groups = {}
     for orig_idx, b in enumerate(db["bills"]):
-        bdate_str = b.get("Date", ""); bdate = parse_date(bdate_str)
-        if filter_mode == "📅 Aaj Ki Bills (Today)":
+        bdate = parse_date(b.get("Date", ""))
+        if filter_mode == "📅 Aaj (Today)":
             if bdate != today: continue
-        elif filter_mode == "🗓️ Specific Date":
+        elif filter_mode == "🗓️ Specific":
             if bdate != from_date: continue
-        elif filter_mode == "📆 Custom Date Range":
+        elif filter_mode == "📆 Custom Range":
             if bdate is None or not (from_date <= bdate <= to_date): continue
         if search:
             s = search.upper()
-            if not (s in str(b.get("Shop","")).upper() or s in str(b.get("Product","")).upper() or s in str(b.get("Order Booker","")).upper()):
-                continue
+            if not (s in str(b.get("Shop","")).upper() or s in str(b.get("Product","")).upper() or s in str(b.get("Order Booker","")).upper()): continue
         if shop_filter != "All" and b.get("Shop", "") != shop_filter: continue
-
         key = (b.get("Shop",""), b.get("Date",""), b.get("Order Booker",""))
         if key not in groups:
-            groups[key] = {
-                "shop": b.get("Shop",""), "date": b.get("Date",""),
-                "booker": b.get("Order Booker",""), "salesman": b.get("Salesman",""),
-                "items": [], "orig_indices": [], "bill_no": b.get("Bill No",""),
-            }
-        groups[key]["items"].append({
-            "Code": b.get("Code"), "Product": b.get("Product"),
+            groups[key] = {"shop": b.get("Shop",""), "date": b.get("Date",""), "booker": b.get("Order Booker",""),
+                "salesman": b.get("Salesman",""), "items": [], "orig_indices": [], "bill_no": b.get("Bill No","")}
+        groups[key]["items"].append({"Code": b.get("Code"), "Product": b.get("Product"),
             "Boxes": b.get("Boxes"), "TP/Box": b.get("TP/Box"),
-            "Discount %": b.get("Discount %"), "Gross": b.get("Gross"), "Net": b.get("Net"),
-        })
+            "Discount %": b.get("Discount %"), "Gross": b.get("Gross"), "Net": b.get("Net")})
         groups[key]["orig_indices"].append(orig_idx)
 
-    if not groups:
-        st.warning("❌ Is filter ke hisaab se koi bill nahi mila.")
-        return
-
+    if not groups: st.warning("❌ Koi bill nahi mila."); return
     all_items = []
     for g in groups.values(): all_items.extend(g["items"])
     total_boxes = sum(int(r.get("Boxes",0)) for r in all_items)
     total_gross = sum(float(r.get("Gross",0)) for r in all_items)
     total_net = sum(float(r.get("Net",0)) for r in all_items)
     unique_shops = len(set(g["shop"] for g in groups.values() if g["shop"]))
-
-    st.markdown(f"""
-    <div class='summary-box'>
-        <b style='color:#1976d2;font-size:16px;'>📊 Summary</b><br>
-        <span style='color:#0277bd;'>
-            Bills: <b>{len(groups)}</b> | Boxes: <b>{total_boxes}</b> |
-            Shops: <b>{unique_shops}</b> |
-            Gross: <b>Rs {total_gross:,.0f}</b> | Net: <b>Rs {total_net:,.0f}</b>
-        </span>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f"""<div class='summary-box'><b style='color:#1976d2;font-size:16px;'>📊 Summary</b><br>
+        <span style='color:#0277bd;'>Bills: <b>{len(groups)}</b> | Boxes: <b>{total_boxes}</b> | Shops: <b>{unique_shops}</b> |
+        Gross: <b>Rs {total_gross:,.0f}</b> | Net: <b>Rs {total_net:,.0f}</b></span></div>""", unsafe_allow_html=True)
 
     st.markdown(f"### 📋 Bills ({len(groups)})")
-
     sorted_keys = sorted(groups.keys(), key=lambda k: (parse_date(k[1]) or date.min, k[0]), reverse=True)
-
     for idx, key in enumerate(sorted_keys):
         g = groups[key]
-        shop = g["shop"] or "-"; date_str = g["date"] or "-"
-        booker = g["booker"] or "-"; salesman = g["salesman"] or "-"
+        shop = g["shop"] or "-"; date_str = g["date"] or "-"; booker = g["booker"] or "-"; salesman = g["salesman"] or "-"
         bill_no = g["bill_no"]; items = g["items"]
         total_b = sum(int(it.get("Boxes",0)) for it in items)
         total_n = sum(float(it.get("Net",0)) for it in items)
-
         credit_key = (g["shop"] or "", g["date"] or "", g["booker"] or "", g["bill_no"] or "")
         existing_credit = credit_map.get(credit_key)
         credit_badge = ""
@@ -2587,23 +1860,15 @@ def render_bills_list():
             credit_badge = '<span class="badge-paid-credit">✅ Credit PAID</span>' if c_status == "paid" else '<span class="badge-credit-tag">💳 Credit PENDING</span>'
         if is_wholesaler(g["shop"]) and wholesaler_rule_active():
             credit_badge += '<span class="badge-wholesaler">🏢 Wholesaler</span>'
-
         wkey = f"{shop}_{date_str}_{booker}_{bill_no}_{idx}".replace(" ","_").replace("/","_").replace(":","")
         is_viewing = st.session_state.get("view_bill_key") == wkey
-
         card_extra = " wholesaler" if (is_wholesaler(g["shop"]) and wholesaler_rule_active()) else ""
-
         c1, c2, c3, c4, c5 = st.columns([3.5, 0.6, 1, 1.1, 1])
         with c1:
-            st.markdown(f"""
-            <div class='lf-simple-card{card_extra}'>
-                <div class='lf-info'>
-                    <div class='lf-line1'>🏪 {shop} {credit_badge}</div>
-                    <div class='lf-line2'>📅 {date_str} &nbsp;·&nbsp; 👤 {booker} &nbsp;·&nbsp; 🧑‍💼 {salesman}</div>
-                </div>
-                <div class='lf-boxes'>{total_b}<small>BOXES</small></div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f"""<div class='lf-simple-card{card_extra}'><div class='lf-info'>
+                <div class='lf-line1'>🏪 {shop} {credit_badge}</div>
+                <div class='lf-line2'>📅 {date_str} · 👤 {booker} · 🧑‍💼 {salesman}</div></div>
+                <div class='lf-boxes'>{total_b}<small>BOXES</small></div></div>""", unsafe_allow_html=True)
         with c2:
             eye_icon = "🔽" if is_viewing else "👁️"
             if st.button(eye_icon, key=f"eye_bill_{wkey}", use_container_width=True):
@@ -2611,81 +1876,60 @@ def render_bills_list():
                 st.rerun()
         with c3:
             if st.button("⬇️ Excel", key=f"dl_bill_{wkey}", use_container_width=True, type="primary"):
-                export_single_group_bill(shop, date_str, booker, salesman, items, bill_no)
-                st.rerun()
+                export_single_group_bill(shop, date_str, booker, salesman, items, bill_no); st.rerun()
         with c4:
-            if existing_credit:
-                st.button("💳 Already", key=f"credit_done_{wkey}", use_container_width=True, disabled=True)
+            if existing_credit: st.button("💳 Already", key=f"credit_done_{wkey}", use_container_width=True, disabled=True)
             else:
                 if st.button("💳 Credit", key=f"credit_bill_{wkey}", use_container_width=True):
-                    move_group_to_credit(g)
-                    st.rerun()
+                    move_group_to_credit(g); st.rerun()
         with c5:
             if st.button("🗑 Delete", key=f"del_bill_{wkey}", use_container_width=True):
                 st.session_state["confirm_delete_group"] = g["orig_indices"]
                 st.session_state["_confirm_group_label"] = f"{shop} | {date_str} | {booker}"
-
         if is_viewing:
             is_whole = is_wholesaler(g["shop"]) and wholesaler_rule_active()
             box_class = "wholesaler" if is_whole else ""
-            st.markdown(f"""
-            <div class='full-bill-box {box_class}'>
+            st.markdown(f"""<div class='full-bill-box {box_class}'>
                 <div class='full-bill-title'>👁️ {shop} — Full Bill View {credit_badge}</div>
-                <div class='full-bill-meta'>
-                    📅 {date_str} · 👤 Booker: <b>{booker}</b> · 🧑‍💼 Salesman: <b>{salesman}</b> · 🧾 Bill No: <b>{bill_no}</b>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
+                <div class='full-bill-meta'>📅 {date_str} · 👤 {booker} · 🧑‍💼 {salesman} · 🧾 Bill: <b>{bill_no}</b></div>
+            </div>""", unsafe_allow_html=True)
             st.dataframe(pd.DataFrame(items), use_container_width=True, hide_index=True)
-
             pkg_pct_preview, pkg_name_preview, _tier = get_effective_discount_pct(g["shop"], total_n)
-            after_disc = total_n - (total_n * pkg_pct_preview / 100)
-            saved = total_n - after_disc
-
+            after_disc = total_n - (total_n * pkg_pct_preview / 100); saved = total_n - after_disc
             cc1, cc2, cc3 = st.columns(3)
-            with cc1: st.markdown(f"<div class='metric-card'><h3>TOTAL BOXES</h3><h1>{total_b}</h1></div>", unsafe_allow_html=True)
+            with cc1: st.markdown(f"<div class='metric-card'><h3>BOXES</h3><h1>{total_b}</h1></div>", unsafe_allow_html=True)
             with cc2: st.markdown(f"<div class='metric-card'><h3>NET TOTAL</h3><h1>Rs {total_n:,.0f}</h1></div>", unsafe_allow_html=True)
             with cc3:
-                if pkg_pct_preview > 0:
-                    st.markdown(f"<div class='metric-card'><h3>AFTER DISC ({pkg_pct_preview}%)</h3><h1>Rs {after_disc:,.0f}</h1></div>", unsafe_allow_html=True)
-                else:
-                    st.markdown(f"<div class='metric-card'><h3>AFTER DISC</h3><h1>Rs {total_n:,.0f}</h1></div>", unsafe_allow_html=True)
-
+                if pkg_pct_preview > 0: st.markdown(f"<div class='metric-card'><h3>AFTER DISC ({pkg_pct_preview}%)</h3><h1>Rs {after_disc:,.0f}</h1></div>", unsafe_allow_html=True)
+                else: st.markdown(f"<div class='metric-card'><h3>AFTER DISC</h3><h1>Rs {total_n:,.0f}</h1></div>", unsafe_allow_html=True)
             if is_whole:
                 st.markdown(f"<div class='hint-box' style='background:#f3e5f5;border-left-color:#8e24aa;color:#6a1b9a !important;font-weight:700;'>🏢 Wholesaler — {pkg_pct_preview}% | Saved: <b>Rs {saved:,.0f}</b></div>", unsafe_allow_html=True)
             elif pkg_pct_preview > 0:
                 st.markdown(f"<div class='hint-box'>🎁 {pkg_name_preview} | {pkg_pct_preview}% | Saved: <b>Rs {saved:,.0f}</b></div>", unsafe_allow_html=True)
-
             close_c1, close_c2, close_c3 = st.columns([1, 1, 3])
             with close_c1:
                 if st.button("❌ Close", key=f"close_view_bill_{wkey}", use_container_width=True):
-                    st.session_state["view_bill_key"] = None
-                    st.rerun()
+                    st.session_state["view_bill_key"] = None; st.rerun()
             with close_c2:
                 if st.button("⬇️ Excel", key=f"dl_from_view_{wkey}", use_container_width=True, type="primary"):
-                    export_single_group_bill(shop, date_str, booker, salesman, items, bill_no)
-                    st.rerun()
+                    export_single_group_bill(shop, date_str, booker, salesman, items, bill_no); st.rerun()
             with close_c3:
                 if existing_credit:
                     st.markdown(f"<div class='hint-box' style='margin-top:8px;'>💳 Already in Credit Bills ({existing_credit.get('status','').upper()})</div>", unsafe_allow_html=True)
                 else:
                     if st.button("💳 Send to Credit Bills", key=f"credit_from_view_{wkey}", use_container_width=True, type="primary"):
                         move_group_to_credit(g); st.rerun()
-
             st.markdown("---")
-
     if st.session_state.get("confirm_delete_group"):
-        label = st.session_state.get("_confirm_group_label", "this bill group")
-        st.warning(f"⚠️ Delete **{label}**? Undo nahi hoga.")
+        label = st.session_state.get("_confirm_group_label", "this bill")
+        st.warning(f"⚠️ Delete **{label}**?")
         cc1, cc2 = st.columns(2)
         with cc1:
-            if st.button("✅ Haan Delete Karo", key="confirm_group_yes", use_container_width=True, type="primary"):
+            if st.button("✅ Haan Delete", key="confirm_group_yes", use_container_width=True, type="primary"):
                 idxs = set(st.session_state.get("confirm_delete_group", []))
                 if idxs:
                     db["bills"] = [b for i, b in enumerate(db["bills"]) if i not in idxs]
-                    save_database(db)
-                    st.session_state["success_msg"] = f"🗑 {len(idxs)} line(s) deleted"
+                    save_database(db); st.session_state["success_msg"] = f"🗑 {len(idxs)} deleted"
                 st.session_state["confirm_delete_group"] = None
                 st.session_state["_confirm_group_label"] = ""
                 st.session_state["view_bill_key"] = None
@@ -2695,37 +1939,25 @@ def render_bills_list():
                 st.session_state["confirm_delete_group"] = None
                 st.session_state["_confirm_group_label"] = ""
                 st.rerun()
-
     if st.session_state.get("success_msg"):
         st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
-
     show_auto_download()
 
-# ============================================================
-# MOVE BILL GROUP → CREDIT
-# ============================================================
 def move_group_to_credit(group):
-    db = st.session_state.database
     shop = group.get("shop", "") or "-"; date_str = group.get("date", "") or "-"
     booker = group.get("booker", "") or "-"; salesman = group.get("salesman", "") or "-"
     bill_no = group.get("bill_no", ""); items = group.get("items", [])
-
     for cb in db.get("credit_bills", []):
         if (cb.get("shop") == shop and cb.get("date") == date_str
                 and cb.get("booker") == booker and cb.get("bill_no") == bill_no):
-            st.session_state["error_msg"] = f"⚠️ Already in Credit Bills (#{cb.get('id')})"
-            return
-
+            st.session_state["error_msg"] = f"⚠️ Already in Credit (#{cb.get('id')})"; return
     total_boxes = sum(int(it.get("Boxes", 0)) for it in items)
     total_gross = sum(float(it.get("Gross", 0)) for it in items)
     total_net = sum(float(it.get("Net", 0)) for it in items)
-
-    if "credit_bills" not in db: db["credit_bills"] = []
     if "next_credit_id" not in db:
-        db["next_credit_id"] = max([c.get("id", 0) for c in db["credit_bills"]] + [0]) + 1
+        db["next_credit_id"] = max([c.get("id", 0) for c in db.get("credit_bills", [])] + [0]) + 1
     credit_id = db["next_credit_id"]
-
-    credit_record = {
+    db["credit_bills"].append({
         "id": credit_id, "shop": shop, "date": date_str,
         "booker": booker, "salesman": salesman, "bill_no": bill_no,
         "items": [dict(it) for it in items],
@@ -2733,11 +1965,10 @@ def move_group_to_credit(group):
         "status": "pending",
         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "paid_at": None,
-    }
-    db["credit_bills"].append(credit_record)
+    })
     db["next_credit_id"] = credit_id + 1
     save_database(db)
-    st.session_state["success_msg"] = f"💳 {shop} | Rs {total_net:,.0f} — Credit ID #{credit_id}"
+    st.session_state["success_msg"] = f"💳 {shop} | Rs {total_net:,.0f} — Credit #{credit_id}"
 
 # ============================================================
 # PAGE: CREDIT BILLS
@@ -2745,21 +1976,13 @@ def move_group_to_credit(group):
 def render_credit_bills():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>💳 Credit Bills</h1>", unsafe_allow_html=True)
     st.markdown("---")
-
     credit_bills = db.get("credit_bills", [])
-    if not credit_bills:
-        st.info("❌ Koi credit bill nahi. Bills List se Credit button dabao.")
-        return
-
+    if not credit_bills: st.info("❌ Koi credit bill nahi."); return
     today = date.today()
     c1, c2, c3 = st.columns(3)
-    with c1:
-        filter_mode = st.selectbox("Filter Mode:",
-            ["📋 All Credit Bills", "📅 Aaj (Today)", "📆 Custom Date Range", "🗓️ Specific Date"],
-            key="credit_filter_mode")
+    with c1: filter_mode = st.selectbox("Filter:", ["📋 All Credit Bills", "📅 Aaj", "📆 Custom Range", "🗓️ Specific"], key="credit_filter_mode")
     with c2: from_date = st.date_input("From:", value=today - timedelta(days=30), key="credit_from_date")
     with c3: to_date = st.date_input("To:", value=today, key="credit_to_date")
-
     c1, c2, c3 = st.columns(3)
     with c1: status_filter = st.selectbox("Status:", ["All", "⏳ Pending", "✅ Paid"], key="credit_status_filter")
     with c2:
@@ -2770,94 +1993,63 @@ def render_credit_bills():
     filtered = []
     for c in credit_bills:
         cdate = parse_date(c.get("date", ""))
-        if filter_mode == "📅 Aaj (Today)":
+        if filter_mode == "📅 Aaj":
             if cdate != today: continue
-        elif filter_mode == "🗓️ Specific Date":
+        elif filter_mode == "🗓️ Specific":
             if cdate != from_date: continue
-        elif filter_mode == "📆 Custom Date Range":
+        elif filter_mode == "📆 Custom Range":
             if cdate is None or not (from_date <= cdate <= to_date): continue
         if status_filter == "⏳ Pending" and c.get("status") != "pending": continue
         if status_filter == "✅ Paid" and c.get("status") != "paid": continue
         if shop_filter != "All" and c.get("shop", "") != shop_filter: continue
         if search:
             s = search.upper()
-            if not (s in str(c.get("shop", "")).upper() or s in str(c.get("booker", "")).upper() or s in str(c.get("bill_no", "")).upper()):
-                continue
+            if not (s in str(c.get("shop", "")).upper() or s in str(c.get("booker", "")).upper() or s in str(c.get("bill_no", "")).upper()): continue
         filtered.append(c)
-
-    if not filtered:
-        st.warning("❌ Koi credit bill nahi mila.")
-        return
-
+    if not filtered: st.warning("❌ Koi credit bill nahi."); return
     pending_list = [c for c in filtered if c.get("status") == "pending"]
     paid_list = [c for c in filtered if c.get("status") == "paid"]
     pending_amt = sum(float(c.get("total_net", 0)) for c in pending_list)
     paid_amt = sum(float(c.get("total_net", 0)) for c in paid_list)
-
-    st.markdown(f"""
-    <div class='summary-box'>
-        <b style='color:#1976d2;font-size:16px;'>📊 Summary</b><br>
-        <span style='color:#0277bd;'>
-            Total: <b>{len(filtered)}</b> |
-            ⏳ Pending: <b style="color:#e65100;">{len(pending_list)}</b> (Rs {pending_amt:,.0f}) |
-            ✅ Paid: <b style="color:#1b5e20;">{len(paid_list)}</b> (Rs {paid_amt:,.0f})
-        </span>
-    </div>
-    """, unsafe_allow_html=True)
-
+    st.markdown(f"""<div class='summary-box'><b style='color:#1976d2;font-size:16px;'>📊 Summary</b><br>
+        <span style='color:#0277bd;'>Total: <b>{len(filtered)}</b> | ⏳ Pending: <b style="color:#e65100;">{len(pending_list)}</b> (Rs {pending_amt:,.0f}) |
+        ✅ Paid: <b style="color:#1b5e20;">{len(paid_list)}</b> (Rs {paid_amt:,.0f})</span></div>""", unsafe_allow_html=True)
     pending_sorted = sorted(pending_list, key=lambda x: x.get("created_at", ""), reverse=True)
     paid_sorted = sorted(paid_list, key=lambda x: x.get("created_at", ""), reverse=True)
     display_list = pending_sorted + paid_sorted
-
-    st.markdown("---")
     st.markdown(f"### 💳 Credit Bills ({len(display_list)})")
-
     for idx, c in enumerate(display_list):
-        cid = c.get("id", idx); shop = c.get("shop", "-")
-        date_str = c.get("date", "-"); booker = c.get("booker", "-")
-        salesman = c.get("salesman", "-"); bill_no = c.get("bill_no", "")
+        cid = c.get("id", idx); shop = c.get("shop", "-"); date_str = c.get("date", "-")
+        booker = c.get("booker", "-"); salesman = c.get("salesman", "-"); bill_no = c.get("bill_no", "")
         total_b = c.get("total_boxes", 0); total_n = float(c.get("total_net", 0))
-        is_paid = c.get("status") == "paid"
-        paid_at = c.get("paid_at", "")
-
-        wkey = f"credit_{cid}_{idx}"
-        is_viewing = st.session_state.get("view_credit_key") == wkey
+        is_paid = c.get("status") == "paid"; paid_at = c.get("paid_at", "")
+        wkey = f"credit_{cid}_{idx}"; is_viewing = st.session_state.get("view_credit_key") == wkey
         card_class = "lf-simple-card credit-paid" if is_paid else "lf-simple-card credit-pending"
         badge = '<span class="badge-paid-credit">✅ PAID</span>' if is_paid else '<span class="badge-pending">⏳ PENDING</span>'
         paid_line = f" · ✅ {paid_at}" if is_paid and paid_at else ""
-
         c1, c2, c3, c4, c5 = st.columns([3.5, 0.6, 1.1, 1.1, 0.9])
         with c1:
-            st.markdown(f"""
-            <div class='{card_class}'>
-                <div class='lf-info'>
-                    <div class='lf-line1'>🏪 {shop} {badge}</div>
-                    <div class='lf-line2'>📅 {date_str} · 👤 {booker} · 🧑‍💼 {salesman} · 🧾 {bill_no} · 💰 Rs {total_n:,.0f}{paid_line}</div>
-                </div>
-                <div class='lf-boxes'>{total_b}<small>BOXES</small></div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f"""<div class='{card_class}'><div class='lf-info'>
+                <div class='lf-line1'>🏪 {shop} {badge}</div>
+                <div class='lf-line2'>📅 {date_str} · 👤 {booker} · 🧑‍💼 {salesman} · 🧾 {bill_no} · 💰 Rs {total_n:,.0f}{paid_line}</div></div>
+                <div class='lf-boxes'>{total_b}<small>BOXES</small></div></div>""", unsafe_allow_html=True)
         with c2:
             eye_icon = "🔽" if is_viewing else "👁️"
             if st.button(eye_icon, key=f"eye_credit_{wkey}", use_container_width=True):
-                st.session_state["view_credit_key"] = None if is_viewing else wkey
-                st.rerun()
+                st.session_state["view_credit_key"] = None if is_viewing else wkey; st.rerun()
         with c3:
             if is_paid:
                 if st.button("↩️ Pending", key=f"unpay_{wkey}", use_container_width=True):
                     for cc in db["credit_bills"]:
-                        if cc.get("id") == cid:
-                            cc["status"] = "pending"; cc["paid_at"] = None; break
-                    save_database(db)
-                    st.session_state["success_msg"] = f"↩️ Credit #{cid} Pending"
+                        if cc.get("id") == cid: cc["status"] = "pending"; cc["paid_at"] = None; break
+                    save_database(db); st.session_state["success_msg"] = f"↩️ Pending"
                     st.rerun()
             else:
                 if st.button("✅ Mark Paid", key=f"pay_{wkey}", use_container_width=True, type="primary"):
                     for cc in db["credit_bills"]:
                         if cc.get("id") == cid:
                             cc["status"] = "paid"; cc["paid_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S"); break
-                    save_database(db)
-                    st.session_state["success_msg"] = f"✅ Credit #{cid} PAID | Rs {total_n:,.0f}"
+                    save_database(db); st.session_state["success_msg"] = f"✅ PAID | Rs {total_n:,.0f}"
                     st.rerun()
         with c4:
             if st.button("📤 Excel", key=f"exp_credit_{wkey}", use_container_width=True):
@@ -2865,66 +2057,44 @@ def render_credit_bills():
         with c5:
             if st.button("🗑", key=f"del_credit_{wkey}", use_container_width=True):
                 db["credit_bills"] = [x for x in db["credit_bills"] if x.get("id") != cid]
-                save_database(db)
-                st.session_state["success_msg"] = f"🗑 Credit #{cid} deleted"
-                st.session_state["view_credit_key"] = None
-                st.rerun()
-
+                save_database(db); st.session_state["success_msg"] = f"🗑 Deleted"
+                st.session_state["view_credit_key"] = None; st.rerun()
         if is_viewing:
-            render_credit_detail(c)
+            box_class = "credit-paid" if is_paid else "credit"
+            st.markdown(f"""<div class='full-bill-box {box_class}'>
+                <div class='full-bill-title'>💳 Credit #{cid} — {shop} {badge}</div>
+                <div class='full-bill-meta'>📅 {date_str} · 👤 {booker} · 🧑‍💼 {salesman} · 🧾 {bill_no}
+                {("· ✅ " + paid_at) if is_paid else ""}</div></div>""", unsafe_allow_html=True)
+            if c.get("items"): st.dataframe(pd.DataFrame(c["items"]), use_container_width=True, hide_index=True)
+            cc1, cc2, cc3 = st.columns(3)
+            with cc1: st.markdown(f"<div class='metric-card'><h3>BOXES</h3><h1>{total_b}</h1></div>", unsafe_allow_html=True)
+            with cc2: st.markdown(f"<div class='metric-card'><h3>GROSS</h3><h1>Rs {float(c.get('total_gross',0)):,.0f}</h1></div>", unsafe_allow_html=True)
+            with cc3: st.markdown(f"<div class='metric-card'><h3>NET</h3><h1>Rs {total_n:,.0f}</h1></div>", unsafe_allow_html=True)
+            ac1, ac2, ac3 = st.columns([1, 1, 2])
+            with ac1:
+                if st.button("❌ Close", key=f"close_credit_view_{cid}", use_container_width=True):
+                    st.session_state["view_credit_key"] = None; st.rerun()
+            with ac2:
+                if st.button("📤 Excel", key=f"dl_credit_view_{cid}", use_container_width=True, type="primary"):
+                    export_credit_bill_excel(c); st.rerun()
+            with ac3:
+                if is_paid:
+                    if st.button("↩️ Pending", key=f"unpay_view_{cid}", use_container_width=True):
+                        for cc in db["credit_bills"]:
+                            if cc.get("id") == cid: cc["status"] = "pending"; cc["paid_at"] = None; break
+                        save_database(db); st.session_state["success_msg"] = f"↩️ Pending"
+                        st.rerun()
+                else:
+                    if st.button("✅ Mark Paid", key=f"pay_view_{cid}", use_container_width=True, type="primary"):
+                        for cc in db["credit_bills"]:
+                            if cc.get("id") == cid:
+                                cc["status"] = "paid"; cc["paid_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S"); break
+                        save_database(db); st.session_state["success_msg"] = f"✅ PAID"
+                        st.rerun()
             st.markdown("---")
-
     if st.session_state.get("success_msg"):
         st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
-
     show_auto_download()
-
-def render_credit_detail(credit):
-    cid = credit["id"]; is_paid = credit.get("status") == "paid"
-    box_class = "credit-paid" if is_paid else "credit"
-    badge_html = '<span class="badge-paid-credit">✅ PAID</span>' if is_paid else '<span class="badge-pending">⏳ PENDING</span>'
-    st.markdown(f"""
-    <div class='full-bill-box {box_class}'>
-        <div class='full-bill-title'>💳 Credit #{cid} — {credit.get('shop','')} {badge_html}</div>
-        <div class='full-bill-meta'>
-            📅 {credit.get('date','')} · 👤 {credit.get('booker','')} · 🧑‍💼 {credit.get('salesman','')} · 🧾 {credit.get('bill_no','')}
-            {("· ✅ " + credit.get('paid_at','')) if is_paid else ""}
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    items = credit.get("items", [])
-    if items: st.dataframe(pd.DataFrame(items), use_container_width=True, hide_index=True)
-
-    cc1, cc2, cc3 = st.columns(3)
-    with cc1: st.markdown(f"<div class='metric-card'><h3>BOXES</h3><h1>{credit.get('total_boxes',0)}</h1></div>", unsafe_allow_html=True)
-    with cc2: st.markdown(f"<div class='metric-card'><h3>GROSS</h3><h1>Rs {float(credit.get('total_gross',0)):,.0f}</h1></div>", unsafe_allow_html=True)
-    with cc3: st.markdown(f"<div class='metric-card'><h3>NET</h3><h1>Rs {float(credit.get('total_net',0)):,.0f}</h1></div>", unsafe_allow_html=True)
-
-    ac1, ac2, ac3 = st.columns([1, 1, 2])
-    with ac1:
-        if st.button("❌ Close", key=f"close_credit_view_{cid}", use_container_width=True):
-            st.session_state["view_credit_key"] = None; st.rerun()
-    with ac2:
-        if st.button("📤 Excel", key=f"dl_credit_view_{cid}", use_container_width=True, type="primary"):
-            export_credit_bill_excel(credit); st.rerun()
-    with ac3:
-        if is_paid:
-            if st.button("↩️ Wapas Pending", key=f"unpay_view_{cid}", use_container_width=True):
-                for cc in db["credit_bills"]:
-                    if cc.get("id") == cid:
-                        cc["status"] = "pending"; cc["paid_at"] = None; break
-                save_database(db)
-                st.session_state["success_msg"] = f"↩️ Credit #{cid} Pending"
-                st.rerun()
-        else:
-            if st.button("✅ Mark Paid", key=f"pay_view_{cid}", use_container_width=True, type="primary"):
-                for cc in db["credit_bills"]:
-                    if cc.get("id") == cid:
-                        cc["status"] = "paid"; cc["paid_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S"); break
-                save_database(db)
-                st.session_state["success_msg"] = f"✅ Credit #{cid} PAID"
-                st.rerun()
 
 # ============================================================
 # PAGE: LOAD FORM
@@ -2932,66 +2102,41 @@ def render_credit_detail(credit):
 def render_load_form():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📦 Load Forms</h1>", unsafe_allow_html=True)
     st.markdown("---")
-
     load_forms = db.get("load_forms", [])
-    if not load_forms:
-        st.info("❌ Koi load form nahi. Billing page se '📦 Export Load Form' dabao.")
-        return
-
-    st.markdown("### 🔎 Filter Load Forms")
+    if not load_forms: st.info("❌ Koi load form nahi."); return
     today = date.today()
     c1, c2, c3 = st.columns(3)
-    with c1:
-        filter_mode = st.selectbox("Filter Mode:",
-            ["📅 Aaj (Today)", "📆 Custom Date Range", "🗓️ Specific Date", "📋 All Load Forms"],
-            key="lf_filter_mode")
+    with c1: filter_mode = st.selectbox("Filter Mode:", ["📅 Aaj", "📆 Custom Range", "🗓️ Specific", "📋 All"], key="lf_filter_mode")
     with c2: from_date = st.date_input("From:", value=today - timedelta(days=7), key="lf_from_date")
     with c3: to_date = st.date_input("To:", value=today, key="lf_to_date")
-
     all_booker_names = sorted(set(lf["booker"] for lf in load_forms if lf.get("booker")))
     c1, c2 = st.columns(2)
     with c1: booker_filter = st.selectbox("Booker:", options=["All"] + all_booker_names, key="lf_booker_filter")
-    with c2:
-        transfer_filter = st.selectbox("Status:", ["All", "🟢 Not Transferred", "✅ Transferred", "🔄 Refreshed"], key="lf_transfer_filter")
-
+    with c2: transfer_filter = st.selectbox("Status:", ["All", "🟢 Not Transferred", "✅ Transferred", "🔄 Refreshed"], key="lf_transfer_filter")
     filtered_lfs = []
     for lf in load_forms:
         lf_date = parse_date(lf.get("date", ""))
         if lf_date is None: continue
-        if filter_mode == "📅 Aaj (Today)":
+        if filter_mode == "📅 Aaj":
             if lf_date != today: continue
-        elif filter_mode == "🗓️ Specific Date":
+        elif filter_mode == "🗓️ Specific":
             if lf_date != from_date: continue
-        elif filter_mode == "📆 Custom Date Range":
+        elif filter_mode == "📆 Custom Range":
             if not (from_date <= lf_date <= to_date): continue
         if booker_filter != "All" and lf.get("booker") != booker_filter: continue
         if transfer_filter == "🟢 Not Transferred" and (lf.get("transferred_to_dsr") or lf.get("refreshed")): continue
         if transfer_filter == "✅ Transferred" and not lf.get("transferred_to_dsr"): continue
         if transfer_filter == "🔄 Refreshed" and not lf.get("refreshed"): continue
         filtered_lfs.append(lf)
-
-    if not filtered_lfs:
-        st.warning("❌ Koi load form nahi mila.")
-        return
-
+    if not filtered_lfs: st.warning("❌ Koi load form nahi."); return
     total_forms = len(filtered_lfs)
     total_boxes_all = sum(lf.get("total_boxes", 0) for lf in filtered_lfs)
-
-    st.markdown(f"""
-    <div class='summary-box'>
-        <b style='color:#1976d2;font-size:16px;'>📊 Summary</b><br>
-        <span style='color:#0277bd;'>
-            Load Forms: <b>{total_forms}</b> | Total Boxes: <b>{total_boxes_all}</b>
-        </span>
-    </div>
-    """, unsafe_allow_html=True)
-
-    if st.button("⬇️ Download All Filtered (Excel)", key="lf_dl_all", use_container_width=True):
+    st.markdown(f"""<div class='summary-box'><b style='color:#1976d2;font-size:16px;'>📊 Summary</b><br>
+        <span style='color:#0277bd;'>Load Forms: <b>{total_forms}</b> | Total Boxes: <b>{total_boxes_all}</b></span></div>""", unsafe_allow_html=True)
+    if st.button("⬇️ Download All (Excel)", key="lf_dl_all", use_container_width=True):
         export_all_filtered_load_forms(filtered_lfs); st.rerun()
-
     st.markdown("---")
     st.markdown(f"### 📋 Load Forms ({len(filtered_lfs)})")
-
     sorted_lfs = sorted(filtered_lfs, key=lambda x: x.get("created_at", ""), reverse=True)
     for idx, lf in enumerate(sorted_lfs):
         lf_id = lf.get("id", idx); booker = lf.get("booker", "Unknown")
@@ -3000,73 +2145,46 @@ def render_load_form():
         is_transferred = lf.get("transferred_to_dsr", False)
         is_refreshed = lf.get("refreshed", False)
         dsr_id = lf.get("dsr_id", None)
-
         bill_items = []
         all_prods = get_all_products()
         for it in items:
             code = it.get("Code", ""); base_price = 0.0
             for p in all_prods:
-                if str(p["code"]) == str(code):
-                    base_price = get_price(p["code"], p["price"]); break
+                if str(p["code"]) == str(code): base_price = get_price(p["code"], p["price"]); break
             boxes = int(it.get("Boxes", 0))
-            bill_items.append({
-                "Code": code, "Product": it.get("Product",""),
-                "Boxes": boxes, "TP/Box": base_price,
-                "Discount %": 0, "Gross": boxes * base_price, "Net": boxes * base_price,
-            })
-
-        wkey = f"lf_{lf_id}_{idx}"
-        is_viewing = st.session_state.get("view_lf_key") == wkey
-
+            bill_items.append({"Code": code, "Product": it.get("Product",""), "Boxes": boxes,
+                "TP/Box": base_price, "Discount %": 0, "Gross": boxes * base_price, "Net": boxes * base_price})
+        wkey = f"lf_{lf_id}_{idx}"; is_viewing = st.session_state.get("view_lf_key") == wkey
         badge_html = ""
-        if is_transferred:
-            badge_html = f'<span class="badge-transferred">✅ DSR #{dsr_id}</span>'
-        elif is_refreshed:
-            badge_html = '<span class="badge-refreshed">🔄 Refreshed</span>'
-        else:
-            badge_html = '<span class="badge-pending">🟢 Active</span>'
-
+        if is_transferred: badge_html = f'<span class="badge-transferred">✅ DSR #{dsr_id}</span>'
+        elif is_refreshed: badge_html = '<span class="badge-refreshed">🔄 Refreshed</span>'
+        else: badge_html = '<span class="badge-pending">🟢 Active</span>'
         c1, c2, c3, c4, c5 = st.columns([3.4, 0.6, 0.9, 1.3, 0.9])
         with c1:
-            st.markdown(f"""
-            <div class='lf-simple-card'>
-                <div class='lf-info'>
-                    <div class='lf-line1'>👤 {booker} {badge_html}</div>
-                    <div class='lf-line2'>📅 {date_str} · 🕐 {time_str} · 📦 {len(items)} products</div>
-                </div>
-                <div class='lf-boxes'>{total_boxes}<small>BOXES</small></div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f"""<div class='lf-simple-card'><div class='lf-info'>
+                <div class='lf-line1'>👤 {booker} {badge_html}</div>
+                <div class='lf-line2'>📅 {date_str} · 🕐 {time_str} · 📦 {len(items)} products</div></div>
+                <div class='lf-boxes'>{total_boxes}<small>BOXES</small></div></div>""", unsafe_allow_html=True)
         with c2:
             eye_icon = "🔽" if is_viewing else "👁️"
             if st.button(eye_icon, key=f"eye_lf_{wkey}", use_container_width=True):
-                st.session_state["view_lf_key"] = None if is_viewing else wkey
-                st.rerun()
+                st.session_state["view_lf_key"] = None if is_viewing else wkey; st.rerun()
         with c3:
             if st.button("⬇️ Excel", key=f"dl_lf_{wkey}", use_container_width=True, type="primary"):
-                export_single_group_bill(booker + " Load", date_str, booker, "", bill_items, lf_id)
-                st.rerun()
+                export_single_group_bill(booker + " Load", date_str, booker, "", bill_items, lf_id); st.rerun()
         with c4:
-            if is_transferred:
-                st.button(f"✅ DSR #{dsr_id}", key=f"already_trf_{wkey}", use_container_width=True, disabled=True)
+            if is_transferred: st.button(f"✅ DSR #{dsr_id}", key=f"already_trf_{wkey}", use_container_width=True, disabled=True)
             else:
                 if st.button("📤 Transfer to DSR", key=f"trf_dsr_{wkey}", use_container_width=True):
                     transfer_load_form_to_dsr(lf_id); st.rerun()
         with c5:
             if st.button("🗑", key=f"del_lf_{wkey}", use_container_width=True):
                 db["load_forms"] = [x for x in db["load_forms"] if x.get("id") != lf_id]
-                save_database(db)
-                st.session_state["success_msg"] = "🗑 Load Form deleted"
-                st.session_state["view_lf_key"] = None
-                st.rerun()
-
+                save_database(db); st.session_state["success_msg"] = "🗑 Deleted"
+                st.session_state["view_lf_key"] = None; st.rerun()
         if is_viewing:
-            st.markdown(f"""
-            <div class='full-bill-box'>
-                <div class='full-bill-title'>👁️ Load Form — {booker}</div>
-                <div class='full-bill-meta'>📅 {date_str} · 🕐 {time_str} · 📦 {len(items)} products · Total: <b>{total_boxes} boxes</b></div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f"""<div class='full-bill-box'><div class='full-bill-title'>👁️ Load Form — {booker}</div>
+                <div class='full-bill-meta'>📅 {date_str} · 🕐 {time_str} · 📦 {len(items)} products · Total: <b>{total_boxes} boxes</b></div></div>""", unsafe_allow_html=True)
             if bill_items:
                 st.dataframe(pd.DataFrame([{"Code": it["Code"], "Product": it["Product"], "Boxes": it["Boxes"], "TP/Box": it["TP/Box"], "Net": it["Net"]} for it in bill_items]), use_container_width=True, hide_index=True)
             total_net = sum(float(it.get("Net", 0)) for it in bill_items)
@@ -3086,74 +2204,58 @@ def render_load_form():
                     if st.button("📤 Transfer to DSR", key=f"trf_from_view_{wkey}", use_container_width=True, type="primary"):
                         transfer_load_form_to_dsr(lf_id); st.rerun()
                 else:
-                    st.markdown(f"<div class='hint-box' style='margin-top:8px;'>✅ Already transferred to DSR #{dsr_id}.</div>", unsafe_allow_html=True)
+                    st.markdown(f"<div class='hint-box' style='margin-top:8px;'>✅ Already DSR #{dsr_id}.</div>", unsafe_allow_html=True)
             st.markdown("---")
-
     if st.session_state.get("success_msg"):
         st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
-
     show_auto_download()
 
-# ============================================================
-# TRANSFER LOAD FORM → DSR
-# ============================================================
 def transfer_load_form_to_dsr(lf_id):
-    db = st.session_state.database
     lf = next((x for x in db.get("load_forms", []) if x.get("id") == lf_id), None)
-    if not lf:
-        st.session_state["error_msg"] = "❌ Not found"; return
-    if lf.get("transferred_to_dsr"):
-        st.session_state["error_msg"] = f"⚠️ Already DSR #{lf.get('dsr_id')}"; return
-
+    if not lf: st.session_state["error_msg"] = "❌ Not found"; return
+    if lf.get("transferred_to_dsr"): st.session_state["error_msg"] = f"⚠️ Already DSR"; return
     booker = lf.get("booker", ""); items = lf.get("items", [])
     all_prods = get_all_products()
-
     dsr_items = []; total_boxes = 0; total_amount = 0.0
     for it in items:
         code = str(it.get("Code", ""))
         prod = next((p for p in all_prods if str(p["code"]) == code), None)
         try: price = get_price(code, prod["price"]) if prod else 0.0
         except Exception: price = 0.0
-        boxes = int(it.get("Boxes", 0))
-        line_total = boxes * float(price)
-        dsr_items.append({
-            "Code": code, "Product": it.get("Product", ""),
-            "Boxes": boxes, "TP/Box": float(price), "Total": line_total,
-            "ReturnBoxes": 0, "ReturnAmount": 0.0,
-        })
+        boxes = int(it.get("Boxes", 0)); line_total = boxes * float(price)
+        dsr_items.append({"Code": code, "Product": it.get("Product", ""), "Boxes": boxes,
+            "TP/Box": float(price), "Total": line_total, "ReturnBoxes": 0, "ReturnAmount": 0.0})
         total_boxes += boxes; total_amount += line_total
 
     booker_bills = [b for b in db.get("bills", []) if b.get("Order Booker", "").strip() == booker]
     shop_groups = {}
+    source_bills = []
     for b in booker_bills:
         shop = b.get("Shop", "-") or "-"
+        bill_no = b.get("Bill No", "")
+        net = float(b.get("Net", 0)); gross = float(b.get("Gross", 0))
         if shop not in shop_groups:
             shop_groups[shop] = {"shop": shop, "gross": 0.0, "net": 0.0, "individual_discount": 0.0, "bill_nos": set()}
-        gross = float(b.get("Gross", 0)); net = float(b.get("Net", 0))
         shop_groups[shop]["gross"] += gross
         shop_groups[shop]["net"] += net
         shop_groups[shop]["individual_discount"] += (gross - net)
-        shop_groups[shop]["bill_nos"].add(b.get("Bill No", ""))
+        shop_groups[shop]["bill_nos"].add(bill_no)
+        source_bills.append({"shop": shop, "bill_no": bill_no, "net": net})
 
     shop_discounts = []; total_discount = 0.0
     for shop, g in shop_groups.items():
         pkg_pct, pkg_name, _ = get_effective_discount_pct(shop, g["net"])
         pkg_discount = g["net"] * pkg_pct / 100
         shop_total_discount = g["individual_discount"] + pkg_discount
-        shop_discounts.append({
-            "shop": shop, "gross": g["gross"], "net": g["net"],
-            "individual_discount": g["individual_discount"],
-            "package_pct": pkg_pct, "package_name": pkg_name or "",
-            "package_discount": pkg_discount, "total_discount": shop_total_discount,
-            "bill_nos": sorted([str(x) for x in g["bill_nos"]]),
-        })
+        shop_discounts.append({"shop": shop, "gross": g["gross"], "net": g["net"],
+            "individual_discount": g["individual_discount"], "package_pct": pkg_pct,
+            "package_name": pkg_name or "", "package_discount": pkg_discount,
+            "total_discount": shop_total_discount, "bill_nos": sorted([str(x) for x in g["bill_nos"]])})
         total_discount += shop_total_discount
 
     if "dsr_forms" not in db: db["dsr_forms"] = []
     next_id = 1
-    if db["dsr_forms"]:
-        next_id = max(x.get("id", 0) for x in db["dsr_forms"]) + 1
-
+    if db["dsr_forms"]: next_id = max(x.get("id", 0) for x in db["dsr_forms"]) + 1
     dsr_record = {
         "id": next_id, "source_load_form_id": lf_id, "booker": booker,
         "date": lf.get("date", ""), "time": lf.get("time", ""),
@@ -3162,12 +2264,12 @@ def transfer_load_form_to_dsr(lf_id):
         "total_return_boxes": 0, "total_return_amount": 0.0, "net_amount": total_amount,
         "shop_discounts": shop_discounts, "total_discount": total_discount,
         "amount_to_collect": total_amount - total_discount,
+        "source_bills": source_bills,  # ← IMPORTANT: Store for credit matching
         "status": "open", "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     }
     db["dsr_forms"].append(dsr_record)
     for x in db["load_forms"]:
-        if x.get("id") == lf_id:
-            x["transferred_to_dsr"] = True; x["dsr_id"] = next_id; break
+        if x.get("id") == lf_id: x["transferred_to_dsr"] = True; x["dsr_id"] = next_id; break
     save_database(db)
     st.session_state["success_msg"] = f"✅ Load Form #{lf_id} → DSR #{next_id}"
 
@@ -3177,89 +2279,68 @@ def transfer_load_form_to_dsr(lf_id):
 def render_dsr():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📋 DSR</h1>", unsafe_allow_html=True)
     st.markdown("---")
-
     dsr_forms = db.get("dsr_forms", [])
-    if not dsr_forms:
-        st.info("❌ Koi DSR nahi. Load Form se transfer karo.")
-        return
-
+    if not dsr_forms: st.info("❌ Koi DSR nahi."); return
     today = date.today()
     c1, c2, c3 = st.columns(3)
-    with c1:
-        filter_mode = st.selectbox("Filter Mode:",
-            ["📅 Aaj (Today)", "📆 Custom Date Range", "🗓️ Specific Date", "📋 All DSR"],
-            key="dsr_filter_mode")
+    with c1: filter_mode = st.selectbox("Filter Mode:", ["📅 Aaj", "📆 Custom Range", "🗓️ Specific", "📋 All"], key="dsr_filter_mode")
     with c2: from_date = st.date_input("From:", value=today - timedelta(days=7), key="dsr_from_date")
     with c3: to_date = st.date_input("To:", value=today, key="dsr_to_date")
-
     all_booker_names = sorted(set(d.get("booker", "") for d in dsr_forms if d.get("booker")))
     booker_filter = st.selectbox("Booker:", options=["All"] + all_booker_names, key="dsr_booker_filter")
-
     filtered = []
     for d in dsr_forms:
         d_date = parse_date(d.get("date", ""))
         if d_date is None: continue
-        if filter_mode == "📅 Aaj (Today)":
+        if filter_mode == "📅 Aaj":
             if d_date != today: continue
-        elif filter_mode == "🗓️ Specific Date":
+        elif filter_mode == "🗓️ Specific":
             if d_date != from_date: continue
-        elif filter_mode == "📆 Custom Date Range":
+        elif filter_mode == "📆 Custom Range":
             if not (from_date <= d_date <= to_date): continue
         if booker_filter != "All" and d.get("booker") != booker_filter: continue
         filtered.append(d)
-
-    if not filtered:
-        st.warning("❌ Koi DSR nahi mila.")
-        return
+    if not filtered: st.warning("❌ Koi DSR nahi."); return
 
     total_dsr = len(filtered)
     total_boxes = sum(d.get("total_boxes", 0) for d in filtered)
     total_amt = sum(float(d.get("total_amount", 0)) for d in filtered)
     total_ret_amt = sum(float(d.get("total_return_amount", 0)) for d in filtered)
     total_disc = sum(float(d.get("total_discount", 0)) for d in filtered)
-    total_collect = sum(float(d.get("amount_to_collect", 0)) for d in filtered)
+    total_credit = 0.0
+    total_final = 0.0
+    for d in filtered:
+        ct, _, _ = get_dsr_credit_info(d)
+        total_credit += ct
+        total_final += float(d.get("amount_to_collect", 0)) - ct
 
-    st.markdown(f"""
-    <div class='summary-box'>
-        <b style='color:#1976d2;font-size:16px;'>📊 Overall Summary</b><br>
-        <span style='color:#0277bd;'>
-            DSR: <b>{total_dsr}</b> | Boxes: <b>{total_boxes}</b> |
-            Stock: <b>Rs {total_amt:,.0f}</b> | Returns: <b>Rs {total_ret_amt:,.0f}</b> |
-            Discount: <b>Rs {total_disc:,.0f}</b> |
-            <b style='color:#c62828;'>Ye Lena Hai: Rs {total_collect:,.0f}</b>
-        </span>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f"""<div class='summary-box'><b style='color:#1976d2;font-size:16px;'>📊 Overall Summary</b><br>
+        <span style='color:#0277bd;'>DSR: <b>{total_dsr}</b> | Boxes: <b>{total_boxes}</b> |
+        Stock: <b>Rs {total_amt:,.0f}</b> | Returns: <b>Rs {total_ret_amt:,.0f}</b> |
+        Discount: <b>Rs {total_disc:,.0f}</b> |
+        💳 Credit: <b style="color:#6a1b9a;">Rs {total_credit:,.0f}</b> |
+        <b style='color:#c62828;'>FINAL YE LENA HAI: Rs {total_final:,.0f}</b></span></div>""", unsafe_allow_html=True)
 
     st.markdown("---")
     sorted_dsr = sorted(filtered, key=lambda x: x.get("created_at", ""), reverse=True)
-
     for idx, dsr in enumerate(sorted_dsr):
         dsr_id = dsr.get("id", idx); booker = dsr.get("booker", "Unknown")
         date_str = dsr.get("date", ""); time_str = dsr.get("time", "")
         total_b = dsr.get("total_boxes", 0); total_a = float(dsr.get("total_amount", 0))
-        to_collect = float(dsr.get("amount_to_collect", 0))
         ret_boxes = dsr.get("total_return_boxes", 0)
-
-        wkey = f"dsr_{dsr_id}_{idx}"
-        is_viewing = st.session_state.get("view_dsr_key") == wkey
-
+        credit_total, _, _ = get_dsr_credit_info(dsr)
+        final_amt = float(dsr.get("amount_to_collect", 0)) - credit_total
+        wkey = f"dsr_{dsr_id}_{idx}"; is_viewing = st.session_state.get("view_dsr_key") == wkey
         c1, c2, c3, c4 = st.columns([4, 0.7, 1, 1])
         with c1:
-            st.markdown(f"""
-            <div class='lf-simple-card dsr'>
-                <div class='lf-info'>
-                    <div class='lf-line1'>📋 DSR #{dsr_id} — {booker}</div>
-                    <div class='lf-line2'>📅 {date_str} · 🕐 {time_str} · 💰 Rs {total_a:,.0f} · ↩️ {ret_boxes} boxes · <b style="color:#c62828;">Lena: Rs {to_collect:,.0f}</b></div>
-                </div>
-                <div class='lf-boxes'>{total_b}<small>BOXES</small></div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f"""<div class='lf-simple-card dsr'><div class='lf-info'>
+                <div class='lf-line1'>📋 DSR #{dsr_id} — {booker}</div>
+                <div class='lf-line2'>📅 {date_str} · 🕐 {time_str} · 💰 Rs {total_a:,.0f} · ↩️ {ret_boxes} boxes · 💳 Rs {credit_total:,.0f} · <b style="color:#c62828;">FINAL: Rs {final_amt:,.0f}</b></div></div>
+                <div class='lf-boxes'>{total_b}<small>BOXES</small></div></div>""", unsafe_allow_html=True)
         with c2:
             eye_icon = "🔽" if is_viewing else "👁️"
             if st.button(eye_icon, key=f"eye_dsr_{wkey}", use_container_width=True):
-                st.session_state["view_dsr_key"] = None if is_viewing else wkey
-                st.rerun()
+                st.session_state["view_dsr_key"] = None if is_viewing else wkey; st.rerun()
         with c3:
             if st.button("📤 Excel", key=f"exp_dsr_{wkey}", use_container_width=True, type="primary"):
                 export_dsr_excel(dsr); st.rerun()
@@ -3269,36 +2350,33 @@ def render_dsr():
                 for x in db.get("load_forms", []):
                     if x.get("dsr_id") == dsr_id:
                         x["transferred_to_dsr"] = False; x.pop("dsr_id", None)
-                save_database(db)
-                st.session_state["success_msg"] = f"🗑 DSR #{dsr_id} deleted"
-                st.session_state["view_dsr_key"] = None
-                st.rerun()
-
+                save_database(db); st.session_state["success_msg"] = f"🗑 DSR #{dsr_id} deleted"
+                st.session_state["view_dsr_key"] = None; st.rerun()
         if is_viewing:
             render_dsr_detail(dsr)
             st.markdown("---")
-
     if st.session_state.get("success_msg"):
         st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
     if st.session_state.get("error_msg"):
         st.error(st.session_state["error_msg"]); st.session_state["error_msg"] = None
-
     show_auto_download()
 
 def render_dsr_detail(dsr):
     dsr_id = dsr["id"]
-    st.markdown(f"""
-    <div class='full-bill-box dsr'>
+    credit_total, credit_shops, credit_details = get_dsr_credit_info(dsr)
+    final_amount = float(dsr.get("amount_to_collect", 0)) - credit_total
+
+    st.markdown(f"""<div class='full-bill-box dsr'>
         <div class='full-bill-title'>📋 DSR #{dsr_id} — {dsr.get('booker','')}</div>
         <div class='full-bill-meta'>📅 {dsr.get('date','')} · 🕐 {dsr.get('time','')} · 📦 {dsr.get('total_boxes',0)} boxes · 🔗 LF #{dsr.get('source_load_form_id','-')}</div>
-    </div>
-    """, unsafe_allow_html=True)
+    </div>""", unsafe_allow_html=True)
 
-    cc1, cc2, cc3, cc4 = st.columns(4)
-    with cc1: st.markdown(f"<div class='metric-card'><h3>STOCK VALUE</h3><h1>Rs {float(dsr.get('total_amount',0)):,.0f}</h1></div>", unsafe_allow_html=True)
-    with cc2: st.markdown(f"<div class='metric-card'><h3>TOTAL DISCOUNT</h3><h1>Rs {float(dsr.get('total_discount',0)):,.0f}</h1></div>", unsafe_allow_html=True)
-    with cc3: st.markdown(f"<div class='metric-card'><h3>RETURN AMT</h3><h1>Rs {float(dsr.get('total_return_amount',0)):,.0f}</h1></div>", unsafe_allow_html=True)
-    with cc4: st.markdown(f"<div class='metric-card'><h3>YE LENA HAI</h3><h1>Rs {float(dsr.get('amount_to_collect',0)):,.0f}</h1></div>", unsafe_allow_html=True)
+    cc1, cc2, cc3, cc4, cc5 = st.columns(5)
+    with cc1: st.markdown(f"<div class='metric-card'><h3>STOCK</h3><h1>Rs {float(dsr.get('total_amount',0)):,.0f}</h1></div>", unsafe_allow_html=True)
+    with cc2: st.markdown(f"<div class='metric-card'><h3>DISCOUNT</h3><h1>Rs {float(dsr.get('total_discount',0)):,.0f}</h1></div>", unsafe_allow_html=True)
+    with cc3: st.markdown(f"<div class='metric-card'><h3>RETURNS</h3><h1>Rs {float(dsr.get('total_return_amount',0)):,.0f}</h1></div>", unsafe_allow_html=True)
+    with cc4: st.markdown(f"<div class='metric-card'><h3>💳 CREDIT</h3><h1>Rs {credit_total:,.0f}</h1></div>", unsafe_allow_html=True)
+    with cc5: st.markdown(f"<div class='metric-card'><h3>FINAL LENA</h3><h1>Rs {final_amount:,.0f}</h1></div>", unsafe_allow_html=True)
 
     st.markdown("### 📦 Return Boxes Daalo")
     df = pd.DataFrame([{
@@ -3306,7 +2384,6 @@ def render_dsr_detail(dsr):
         "Boxes": int(it.get("Boxes", 0)), "TP/Box": float(it.get("TP/Box", 0)),
         "Total": float(it.get("Total", 0)), "Return": int(it.get("ReturnBoxes", 0)),
     } for it in dsr.get("items", [])])
-
     editor_key = f"dsr_editor_{dsr_id}"
     edited = None
     try:
@@ -3347,7 +2424,6 @@ def render_dsr_detail(dsr):
                 tp = float(orig.get("TP/Box", 0)); ret_amt = ret_b * tp
                 updated_items.append({**orig, "ReturnBoxes": ret_b, "ReturnAmount": ret_amt})
                 total_ret_boxes += ret_b; total_ret_amt += ret_amt
-
         dsr["items"] = updated_items
         dsr["total_return_boxes"] = total_ret_boxes
         dsr["total_return_amount"] = total_ret_amt
@@ -3355,10 +2431,10 @@ def render_dsr_detail(dsr):
         dsr["amount_to_collect"] = dsr["net_amount"] - float(dsr.get("total_discount", 0))
         dsr["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         save_database(db)
-        st.session_state["success_msg"] = f"✅ Returns saved | {total_ret_boxes} boxes = Rs {total_ret_amt:,.0f} | Ye Lena Hai: Rs {dsr['amount_to_collect']:,.0f}"
+        st.session_state["success_msg"] = f"✅ Saved | {total_ret_boxes} boxes = Rs {total_ret_amt:,.0f}"
         st.rerun()
 
-    st.markdown("### 🏪 Shop-wise Discount")
+    st.markdown("### 🏪 Shop-wise Discount + Credit")
     shop_discs = dsr.get("shop_discounts", [])
     if shop_discs:
         shop_rows = [{
@@ -3368,11 +2444,26 @@ def render_dsr_detail(dsr):
             "Bill Disc": f"Rs {float(s.get('individual_discount',0)):,.0f}",
             "Pkg Disc": f"Rs {float(s.get('package_discount',0)):,.0f} ({s.get('package_pct',0)}%)",
             "Total Disc": f"Rs {float(s.get('total_discount',0)):,.0f}",
+            "💳 Credit": f"Rs {credit_shops.get(s.get('shop',''), 0):,.0f}",
         } for s in shop_discs]
         st.dataframe(pd.DataFrame(shop_rows), use_container_width=True, hide_index=True)
-        st.markdown(f"<div class='hint-box'>💰 Total Discount: <b>Rs {float(dsr.get('total_discount',0)):,.0f}</b></div>", unsafe_allow_html=True)
+        st.markdown(f"""<div class='hint-box'>💰 Total Discount: <b>Rs {float(dsr.get('total_discount',0)):,.0f}</b>
+            &nbsp;|&nbsp; 💳 Credit Deducted: <b style="color:#6a1b9a;">Rs {credit_total:,.0f}</b></div>""", unsafe_allow_html=True)
     else:
         st.info("Koi shop discount nahi.")
+
+    if credit_details:
+        st.markdown("### 💳 Credit Bills (is DSR se credit gaye)")
+        for cd in credit_details:
+            status_color = "#2e7d32" if cd["status"] == "paid" else "#e65100"
+            status_text = "✅ PAID" if cd["status"] == "paid" else "⏳ PENDING"
+            st.markdown(f"""
+            <div style='background:#fff;border-left:4px solid {status_color};border-radius:8px;padding:10px 14px;margin-bottom:6px;display:flex;justify-content:space-between;'>
+                <div><b style='color:#1976d2;'>🏪 {cd['shop']}</b> · 🧾 Bill #{cd['bill_no']}
+                    <span style='background:{status_color};color:#fff;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;margin-left:8px;'>{status_text}</span></div>
+                <div style='font-weight:800;color:#c62828;'>− Rs {cd['amount']:,.0f}</div>
+            </div>""", unsafe_allow_html=True)
+        st.markdown(f"<div class='hint-box'>💳 Total Credit Deducted: <b>Rs {credit_total:,.0f}</b></div>", unsafe_allow_html=True)
 
     st.markdown("### 🧮 Final Calculation")
     st.markdown(f"""
@@ -3381,9 +2472,10 @@ def render_dsr_detail(dsr):
         <div class='dsr-summary-line'><b style='color:#e65100;'>(−) Returns:</b><span style='float:right;color:#e65100;font-weight:700;'>Rs {float(dsr.get('total_return_amount',0)):,.0f}</span></div>
         <div class='dsr-summary-line'><b>(=) Net Stock:</b><span style='float:right;font-weight:700;'>Rs {float(dsr.get('net_amount',0)):,.0f}</span></div>
         <div class='dsr-summary-line'><b style='color:#c62828;'>(−) Discount:</b><span style='float:right;color:#c62828;font-weight:700;'>Rs {float(dsr.get('total_discount',0)):,.0f}</span></div>
-        <div class='dsr-summary-line total'>💰 <b>YE LENA HAI:</b><span style='float:right;font-weight:800;'>Rs {float(dsr.get('amount_to_collect',0)):,.0f}</span></div>
-    </div>
-    """, unsafe_allow_html=True)
+        <div class='dsr-summary-line'><b>(=) Ye Lena Hai (before Credit):</b><span style='float:right;font-weight:700;'>Rs {float(dsr.get('amount_to_collect',0)):,.0f}</span></div>
+        <div class='dsr-summary-line credit'><b style='color:#6a1b9a;'>(−) Credit Bills:</b><span style='float:right;color:#6a1b9a;font-weight:700;'>Rs {credit_total:,.0f}</span></div>
+        <div class='dsr-summary-line total'>💰 <b>FINAL YE LENA HAI:</b><span style='float:right;font-weight:800;'>Rs {final_amount:,.0f}</span></div>
+    </div>""", unsafe_allow_html=True)
 
     ac1, ac2 = st.columns([1, 1])
     with ac1:
@@ -3394,38 +2486,116 @@ def render_dsr_detail(dsr):
             export_dsr_excel(dsr); st.rerun()
 
 # ============================================================
+# PAGE: CALCULATION (NEW)
+# ============================================================
+def render_calculation():
+    st.markdown(f"<h1 style='color:#1976d2 !important;'>🧮 Cash Calculation</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#0277bd;font-weight:500;'>Notes aur coins count karo — total nikal aayega</p>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    denominations = [
+        ("💵 Notes", [
+            (5000, "₹5000"),
+            (1000, "₹1000"),
+            (500, "₹500"),
+            (100, "₹100"),
+            (50, "₹50"),
+            (20, "₹20"),
+            (10, "₹10"),
+        ]),
+        ("🪙 Coins", [
+            (5, "₹5"),
+            (2, "₹2"),
+            (1, "₹1"),
+        ]),
+    ]
+
+    if "calc_reset_token" not in st.session_state:
+        st.session_state["calc_reset_token"] = 0
+
+    total_amount = 0
+
+    for section_name, denoms in denominations:
+        st.markdown(f'<div class="calc-section-hdr">{section_name}</div>', unsafe_allow_html=True)
+        hc1, hc2, hc3 = st.columns([2, 2, 3])
+        with hc1: st.markdown("**Denomination**")
+        with hc2: st.markdown("**Quantity**")
+        with hc3: st.markdown("**Amount**")
+        for d, label in denoms:
+            c1, c2, c3 = st.columns([2, 2, 3])
+            with c1:
+                st.markdown(f'<div class="calc-row-label">{label}</div>', unsafe_allow_html=True)
+            with c2:
+                qty_key = f"calc_qty_{d}_{st.session_state['calc_reset_token']}"
+                qty = st.number_input(f"Qty {d}", min_value=0, step=1, value=0,
+                                      key=qty_key, label_visibility="collapsed")
+            with c3:
+                amount = qty * d
+                total_amount += amount
+                st.markdown(f'<div class="calc-row-amt">Rs {amount:,.0f}</div>', unsafe_allow_html=True)
+
+    st.markdown("---")
+    c1, c2, c3 = st.columns([1, 1, 2])
+    with c1:
+        if st.button("💰 Calculate Total", key="calc_total_btn", use_container_width=True, type="primary"):
+            st.session_state["calc_locked_total"] = total_amount
+            st.session_state["calc_locked_at"] = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+    with c2:
+        if st.button("🔄 Reset All", key="calc_reset_btn", use_container_width=True):
+            st.session_state["calc_reset_token"] += 1
+            st.session_state["calc_locked_total"] = 0
+            st.session_state["calc_locked_at"] = ""
+            st.rerun()
+
+    st.markdown(f"""
+    <div class="calc-total-box">
+        <div class="calc-total-label">Live Total</div>
+        <div class="calc-total-value">Rs {total_amount:,.0f}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    locked_total = st.session_state.get("calc_locked_total", 0)
+    locked_at = st.session_state.get("calc_locked_at", "")
+
+    if locked_total and locked_total > 0:
+        st.markdown(f"""
+        <div class="calc-total-box locked" style="margin-top:10px;">
+            <div class="calc-total-label">🔒 Calculated Total {("· " + locked_at) if locked_at else ""}</div>
+            <div class="calc-total-value">Rs {locked_total:,.0f}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        if total_amount != locked_total:
+            diff = total_amount - locked_total
+            sign = "+" if diff > 0 else ""
+            color = "#2e7d32" if diff == 0 else ("#c62828" if diff < 0 else "#2563eb")
+            st.markdown(f"""<div class="hint-box" style="margin-top:8px;text-align:center;font-size:14px;">
+                Live ab change ho gaya hai · <b style="color:{color};">Difference: {sign}Rs {diff:,.0f}</b>
+            </div>""", unsafe_allow_html=True)
+
+# ============================================================
 # CALLBACKS
 # ============================================================
 def add_bill_callback():
-    db = st.session_state.database
     product_sel = st.session_state.get("product_sel", "")
     boxes_v = st.session_state.get("boxes", 0)
     tp_v = st.session_state.get("tp_box", 0.0)
     disc_v = st.session_state.get("discount", 0.0)
-
-    if not product_sel:
-        st.session_state["error_msg"] = "❌ Select Product"; return
-    if boxes_v <= 0:
-        st.session_state["error_msg"] = "❌ Enter Boxes"; return
-
+    if not product_sel: st.session_state["error_msg"] = "❌ Select Product"; return
+    if boxes_v <= 0: st.session_state["error_msg"] = "❌ Enter Boxes"; return
     sel = next((p for p in get_all_products() if p["name"] == product_sel), None)
-    if not sel:
-        st.session_state["error_msg"] = "❌ Invalid Product"; return
-
+    if not sel: st.session_state["error_msg"] = "❌ Invalid Product"; return
     gross_v = boxes_v * tp_v
     net_v = gross_v - (gross_v * disc_v / 100)
-
-    bill = {
+    db["bills"].append({
         "Bill No": db["next_bill_no"], "Date": datetime.now().strftime("%d-%m-%Y"),
         "Shop": st.session_state.get("shop_name", "").strip(),
         "Order Booker": st.session_state.get("order_booker", "").strip(),
         "Salesman": st.session_state.get("salesman", "").strip(),
-        "Delivery Man": "",
-        "Code": sel["code"], "Product": sel["name"],
+        "Delivery Man": "", "Code": sel["code"], "Product": sel["name"],
         "Boxes": boxes_v, "TP/Box": tp_v, "Discount %": disc_v,
         "Gross": gross_v, "Net": net_v,
-    }
-    db["bills"].append(bill); save_database(db)
+    })
+    save_database(db)
     st.session_state["last_bill_no"] = db["next_bill_no"]
     st.session_state["success_msg"] = f"✅ Bill No: {db['next_bill_no']} | Total: {len(db['bills'])}"
     for k in ["search_text", "product_sel"]: st.session_state[k] = ""
@@ -3439,30 +2609,21 @@ def refresh_callback():
     st.session_state["success_msg"] = "✅ Ready"
 
 def export_bill_callback():
-    db = st.session_state.database
-    if len(db["bills"]) == 0:
-        st.session_state["error_msg"] = "❌ No Bills"; return
-
+    if len(db["bills"]) == 0: st.session_state["error_msg"] = "❌ No Bills"; return
     shop = st.session_state.get("shop_name", "").strip() or "Bill"
     for ch in ['\\','/',':','*','?','"','<','>','|']: shop = shop.replace(ch, "")
-
     shop_bills = [b for b in db["bills"] if b["Shop"].strip() == shop]
-    if not shop_bills:
-        st.session_state["error_msg"] = "❌ No bills for this shop"; return
-
+    if not shop_bills: st.session_state["error_msg"] = "❌ No bills for shop"; return
     bill_total_net = sum(float(b.get("Net", 0)) for b in shop_bills)
     pkg_pct, pkg_name, tier_label = get_effective_discount_pct(shop, bill_total_net)
-
-    output = BytesIO()
-    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
-    worksheet = workbook.add_worksheet("Bill")
-    worksheet.set_paper(9); worksheet.set_portrait(); worksheet.fit_to_pages(1, 1)
-    worksheet.set_column("A:A", 42.86); worksheet.set_column("B:B", 12.71)
-    worksheet.set_column("C:C", 10.71); worksheet.set_column("D:D", 10.71)
-    worksheet.set_column("E:E", 11.71); worksheet.set_column("F:F", 11.14)
-    worksheet.set_column("G:G", 11.14); worksheet.set_column("H:H", 12.14)
-    worksheet.set_column("I:I", 13.14); worksheet.set_column("J:J", 13.14)
-
+    output = BytesIO(); workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+    ws = workbook.add_worksheet("Bill")
+    ws.set_paper(9); ws.set_portrait(); ws.fit_to_pages(1, 1)
+    ws.set_column("A:A", 42.86); ws.set_column("B:B", 12.71)
+    ws.set_column("C:C", 10.71); ws.set_column("D:D", 10.71)
+    ws.set_column("E:E", 11.71); ws.set_column("F:F", 11.14)
+    ws.set_column("G:G", 11.14); ws.set_column("H:H", 12.14)
+    ws.set_column("I:I", 13.14); ws.set_column("J:J", 13.14)
     title = workbook.add_format({"bold":True, "font_size":18, "align":"center", "border":2})
     header = workbook.add_format({"bold":True, "font_size":11, "bg_color":"#BBDEFB", "align":"center", "border":2, "text_wrap": True})
     cell_left = workbook.add_format({"font_size":12, "border":1, "align":"left"})
@@ -3470,91 +2631,60 @@ def export_bill_callback():
     total = workbook.add_format({"bold":True, "font_size":12, "bg_color":"#FFF2CC", "align":"center", "border":2})
     disc_hl = workbook.add_format({"font_size":12, "border":1, "align":"center", "bg_color":"#E8F5E9", "bold": True})
     pkg_info = workbook.add_format({"font_size":10, "italic": True, "align":"left", "font_color":"#1b5e20"})
-
-    worksheet.merge_range("A1:J1", COMPANY_NAME, title)
-    worksheet.write("A3","Shop Name",header); worksheet.write("B3", shop, cell_center)
-    worksheet.write("D3","Booker",header); worksheet.write("E3", st.session_state.get("order_booker", ""), cell_center)
-    worksheet.write("G3","Bill No",header)
+    ws.merge_range("A1:J1", COMPANY_NAME, title)
+    ws.write("A3","Shop Name",header); ws.write("B3", shop, cell_center)
+    ws.write("D3","Booker",header); ws.write("E3", st.session_state.get("order_booker", ""), cell_center)
+    ws.write("G3","Bill No",header)
     last_bill = st.session_state.get("last_bill_no") or (db["next_bill_no"] - 1)
-    worksheet.write("H3", last_bill, cell_center)
-    worksheet.write("I3","Date",header); worksheet.write("J3", datetime.now().strftime("%d-%m-%Y"), cell_center)
-
+    ws.write("H3", last_bill, cell_center)
+    ws.write("I3","Date",header); ws.write("J3", datetime.now().strftime("%d-%m-%Y"), cell_center)
     if wholesaler_rule_active() and is_wholesaler(shop):
-        worksheet.merge_range("A4:J4", f"🏢 Wholesaler — Flat {pkg_pct}% discount applied", pkg_info)
+        ws.merge_range("A4:J4", f"🏢 Wholesaler — Flat {pkg_pct}%", pkg_info)
     elif pkg_pct > 0:
-        worksheet.merge_range("A4:J4", f"🎁 Best Discount: {pkg_name} | {tier_label} | {pkg_pct}%", pkg_info)
+        ws.merge_range("A4:J4", f"🎁 Best Discount: {pkg_name} | {tier_label} | {pkg_pct}%", pkg_info)
     else:
-        worksheet.merge_range("A4:J4", "💡 Koi discount apply nahi hua", pkg_info)
-
+        ws.merge_range("A4:J4", "💡 Koi discount apply nahi hua", pkg_info)
     start_row = 6
     headers = ["Product", "Code", "Boxes", "TP/Box", "Gross", "Disc %", "Net", "Pkg Disc %", "After Disc Net", "Saved"]
-    for col, h in enumerate(headers):
-        worksheet.write(start_row, col, h, header)
+    for col, h in enumerate(headers): ws.write(start_row, col, h, header)
     row = start_row + 1
-
     gross_total = 0; total_boxes = 0; net_total = 0; after_disc_total = 0; saved_total = 0
     for bill in shop_bills:
-        b_net = float(bill.get("Net", 0))
-        b_gross = float(bill.get("Gross", 0))
+        b_net = float(bill.get("Net", 0)); b_gross = float(bill.get("Gross", 0))
         b_boxes = int(bill.get("Boxes", 0))
-        after_net = b_net - (b_net * pkg_pct / 100)
-        saved = b_net - after_net
-        worksheet.write(row, 0, bill["Product"], cell_left)
-        worksheet.write(row, 1, bill["Code"], cell_center)
-        worksheet.write(row, 2, b_boxes, cell_center)
-        worksheet.write(row, 3, bill.get("TP/Box", 0), cell_center)
-        worksheet.write(row, 4, b_gross, cell_center)
-        worksheet.write(row, 5, bill.get("Discount %", 0), cell_center)
-        worksheet.write(row, 6, b_net, cell_center)
+        after_net = b_net - (b_net * pkg_pct / 100); saved = b_net - after_net
+        ws.write(row, 0, bill["Product"], cell_left); ws.write(row, 1, bill["Code"], cell_center)
+        ws.write(row, 2, b_boxes, cell_center); ws.write(row, 3, bill.get("TP/Box", 0), cell_center)
+        ws.write(row, 4, b_gross, cell_center); ws.write(row, 5, bill.get("Discount %", 0), cell_center)
+        ws.write(row, 6, b_net, cell_center)
         if pkg_pct > 0:
-            worksheet.write(row, 7, pkg_pct, disc_hl)
-            worksheet.write(row, 8, after_net, disc_hl)
-            worksheet.write(row, 9, saved, disc_hl)
+            ws.write(row, 7, pkg_pct, disc_hl); ws.write(row, 8, after_net, disc_hl); ws.write(row, 9, saved, disc_hl)
         else:
-            worksheet.write(row, 7, 0, cell_center)
-            worksheet.write(row, 8, b_net, cell_center)
-            worksheet.write(row, 9, 0, cell_center)
+            ws.write(row, 7, 0, cell_center); ws.write(row, 8, b_net, cell_center); ws.write(row, 9, 0, cell_center)
         gross_total += b_gross; total_boxes += b_boxes
-        net_total += b_net; after_disc_total += after_net; saved_total += saved
-        row += 1
-
-    worksheet.write(row, 1, "TOTAL", total)
-    worksheet.write(row, 2, total_boxes, total)
-    worksheet.write(row, 4, gross_total, total)
-    worksheet.write(row, 6, net_total, total)
-    worksheet.write(row, 8, after_disc_total, total)
-    worksheet.write(row, 9, saved_total, total)
-
+        net_total += b_net; after_disc_total += after_net; saved_total += saved; row += 1
+    ws.write(row, 1, "TOTAL", total); ws.write(row, 2, total_boxes, total)
+    ws.write(row, 4, gross_total, total); ws.write(row, 6, net_total, total)
+    ws.write(row, 8, after_disc_total, total); ws.write(row, 9, saved_total, total)
     row += 2
-    worksheet.merge_range(row, 0, row, 6, "NET AMOUNT (After Discount)", header)
-    worksheet.merge_range(row, 7, row, 9, f"Rs {after_disc_total:,.0f}", total)
-    row += 1
-    if pkg_pct > 0:
-        worksheet.merge_range(row, 0, row, 6, "TOTAL SAVED", header)
-        worksheet.merge_range(row, 7, row, 9, f"Rs {saved_total:,.0f}", total)
-
+    ws.merge_range(row, 0, row, 6, "NET AMOUNT (After Discount)", header)
+    ws.merge_range(row, 7, row, 9, f"Rs {after_disc_total:,.0f}", total)
     workbook.close(); output.seek(0)
     st.session_state["download_file"] = (f"{shop}.xlsx", output.getvalue())
     db["next_bill_no"] += 1; save_database(db)
     st.session_state["last_bill_no"] = None
     if wholesaler_rule_active() and is_wholesaler(shop):
-        st.session_state["success_msg"] = f"✅ Bill Exported | Wholesaler {pkg_pct}% | Net: Rs {after_disc_total:,.0f}"
+        st.session_state["success_msg"] = f"✅ Exported | Wholesaler {pkg_pct}% | Net: Rs {after_disc_total:,.0f}"
     elif pkg_pct > 0:
-        st.session_state["success_msg"] = f"✅ Bill Exported | {pkg_pct}% | Net: Rs {after_disc_total:,.0f}"
+        st.session_state["success_msg"] = f"✅ Exported | {pkg_pct}% | Net: Rs {after_disc_total:,.0f}"
     else:
-        st.session_state["success_msg"] = f"✅ Bill Exported | Next: {db['next_bill_no']}"
+        st.session_state["success_msg"] = f"✅ Exported | Next: {db['next_bill_no']}"
 
-# ============================================================
-# EXPORT LOAD FORM — WITH UPDATE LOGIC (FIX)
-# ============================================================
 def export_load_form_from_billing_callback():
-    db = st.session_state.database
     booker = st.session_state.get("order_booker", "").strip()
-    if not booker:
-        st.session_state["error_msg"] = "❌ Select Order Booker first"; return
+    if not booker: st.session_state["error_msg"] = "❌ Select Order Booker"; return
     booker_bills = [b for b in db["bills"] if b["Order Booker"].strip() == booker]
-    if not booker_bills:
-        st.session_state["error_msg"] = f"❌ No bills for: {booker}"; return
+    if not booker_bills: st.session_state["error_msg"] = f"❌ No bills for: {booker}"; return
     summary = {}
     for b in booker_bills:
         code = b["Code"]
@@ -3562,80 +2692,66 @@ def export_load_form_from_billing_callback():
         summary[code]["Boxes"] += b["Boxes"]
     items = list(summary.values()); total_boxes = sum(it["Boxes"] for it in items)
     if "load_forms" not in db: db["load_forms"] = []
-
-    # 🔍 Find LAST untransferred, non-refreshed load form for same booker
     existing_lf = None
     for lf in reversed(db["load_forms"]):
         if (str(lf.get("booker", "")).strip() == booker
                 and not lf.get("transferred_to_dsr")
                 and not lf.get("refreshed")):
-            existing_lf = lf
-            break
-
+            existing_lf = lf; break
     if existing_lf:
-        # 🔄 UPDATE existing load form
         existing_lf["items"] = items
         existing_lf["total_boxes"] = total_boxes
         existing_lf["total_products"] = len(items)
         existing_lf["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         load_form_id = existing_lf["id"]
-        msg = f"🔄 Load Form #{load_form_id} UPDATE ho gaya | {len(items)} products, {total_boxes} boxes"
+        msg = f"🔄 Load Form #{load_form_id} UPDATE | {len(items)} products"
     else:
-        # ➕ CREATE new load form
         next_id = 1
         if db["load_forms"]: next_id = max(lf.get("id", 0) for lf in db["load_forms"]) + 1
-        lf_record = {
+        db["load_forms"].append({
             "id": next_id, "date": datetime.now().strftime("%d-%m-%Y"),
             "time": datetime.now().strftime("%H:%M"),
             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "booker": booker, "items": items,
             "total_boxes": total_boxes, "total_products": len(items),
-            "transferred_to_dsr": False,
-            "refreshed": False,
-        }
-        db["load_forms"].append(lf_record)
+            "transferred_to_dsr": False, "refreshed": False,
+        })
         load_form_id = next_id
-        msg = f"✅ Naya Load Form #{load_form_id} ban gaya | {len(items)} products, {total_boxes} boxes"
-
+        msg = f"✅ Naya Load Form #{load_form_id} | {len(items)} products"
     save_database(db)
     export_load_form_for_booker(booker, booker_bills)
     st.session_state["success_msg"] = msg
 
 def export_load_form_for_booker(booker, booker_bills=None):
-    db = st.session_state.database
     if booker_bills is None:
         booker_bills = [b for b in db["bills"] if b["Order Booker"].strip() == booker]
-    if not booker_bills:
-        st.session_state["error_msg"] = "❌ No Bills for this Booker"; return
+    if not booker_bills: st.session_state["error_msg"] = "❌ No Bills"; return
     summary = {}
     for bill in booker_bills:
         code = bill["Code"]
         if code not in summary: summary[code] = {"Product": bill["Product"], "Boxes": 0}
         summary[code]["Boxes"] += bill["Boxes"]
-    output = BytesIO()
-    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
-    worksheet = workbook.add_worksheet("Load Form")
+    output = BytesIO(); workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+    ws = workbook.add_worksheet("Load Form")
     title = workbook.add_format({"bold":True, "font_size":16, "align":"center", "border":2})
     header = workbook.add_format({"bold":True, "font_size":12, "bg_color":"#BBDEFB", "align":"center", "border":2})
     cell_left = workbook.add_format({"font_size":14, "border":1, "align":"left"})
     cell_center = workbook.add_format({"font_size":14, "border":1, "align":"center"})
     total = workbook.add_format({"bold":True, "font_size":14, "bg_color":"#FFF2CC", "align":"center", "border":2})
-    worksheet.set_column("A:A", 47.86); worksheet.set_column("B:B", 12.71)
-    worksheet.merge_range("A1:B1", COMPANY_NAME, title)
-    worksheet.write("A3","Order Booker",header); worksheet.write("B3",booker,cell_center)
-    worksheet.write("A5","Product",header); worksheet.write("B5","Boxes",header)
+    ws.set_column("A:A", 47.86); ws.set_column("B:B", 12.71)
+    ws.merge_range("A1:B1", COMPANY_NAME, title)
+    ws.write("A3","Order Booker",header); ws.write("B3",booker,cell_center)
+    ws.write("A5","Product",header); ws.write("B5","Boxes",header)
     row = 5; total_boxes = 0
     for item in summary.values():
-        worksheet.write(row, 0, item["Product"], cell_left)
-        worksheet.write(row, 1, item["Boxes"], cell_center)
+        ws.write(row, 0, item["Product"], cell_left); ws.write(row, 1, item["Boxes"], cell_center)
         total_boxes += item["Boxes"]; row += 1
-    worksheet.write(row, 0, "TOTAL", total); worksheet.write(row, 1, total_boxes, total)
+    ws.write(row, 0, "TOTAL", total); ws.write(row, 1, total_boxes, total)
     workbook.close(); output.seek(0)
     st.session_state["download_file"] = (f"{booker}_Load_Form.xlsx", output.getvalue())
 
 def export_all_filtered_load_forms(filtered_lfs):
-    if not filtered_lfs:
-        st.session_state["error_msg"] = "❌ No Load Forms"; return
+    if not filtered_lfs: st.session_state["error_msg"] = "❌ No Load Forms"; return
     output = BytesIO(); wb = xlsxwriter.Workbook(output, {'in_memory': True})
     title_fmt = wb.add_format({"bold": True, "font_size": 14, "align": "center", "border": 2, "bg_color": "#BBDEFB"})
     header_fmt = wb.add_format({"bold": True, "bg_color": "#E3F2FD", "border": 1, "align": "center"})
@@ -3664,20 +2780,10 @@ def export_all_filtered_load_forms(filtered_lfs):
     fname = f"Load_Forms_{datetime.now().strftime('%d-%m-%Y_%H%M')}.xlsx"
     st.session_state["download_file"] = (fname, output.getvalue())
 
-# ============================================================
-# REFRESH LOAD FORM — MARKS OLD FORM SO NEXT = NEW
-# ============================================================
 def refresh_load_form_callback():
-    db = st.session_state.database
     booker = st.session_state.get("order_booker", "").strip()
-    if not booker:
-        st.session_state["error_msg"] = "❌ Enter Order Booker"; return
-
-    # Clear current bills for this booker
+    if not booker: st.session_state["error_msg"] = "❌ Enter Order Booker"; return
     db["bills"] = [b for b in db["bills"] if b["Order Booker"].strip() != booker]
-
-    # Mark ALL untransferred load forms for this booker as "refreshed"
-    # → Next export will CREATE NEW
     marked = 0
     for lf in db.get("load_forms", []):
         if (str(lf.get("booker", "")).strip() == booker
@@ -3686,42 +2792,26 @@ def refresh_load_form_callback():
             lf["refreshed"] = True
             lf["refreshed_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             marked += 1
-
     save_database(db)
     for k in ["search_text", "product_sel"]: st.session_state[k] = ""
     st.session_state["_prev_prod"] = None
     for k in ["boxes", "tp_box", "discount"]: st.session_state[k] = 0
-    st.session_state["success_msg"] = (
-        f"✅ Bills cleared for {booker} | {marked} load form(s) marked as Refreshed — "
-        f"ab next export se NAYA Load Form banega"
-    )
+    st.session_state["success_msg"] = f"✅ Bills cleared | {marked} form(s) marked Refreshed — next export = NAYA form"
 
 # ============================================================
 # RENDER SELECTED PAGE
 # ============================================================
-if st.session_state["page"] == "📊 Dashboard":
-    render_dashboard()
-elif st.session_state["page"] == "🧾 Billing":
-    render_billing()
-elif st.session_state["page"] == "🛒 All Products":
-    render_all_products()
-elif st.session_state["page"] == "🎁 Discount":
-    render_discount()
-elif st.session_state["page"] == "👤 Bookers":
-    render_bookers()
-elif st.session_state["page"] == "💰 Bookers Salary":
-    render_salaries("bookers")
-elif st.session_state["page"] == "🧑‍💼 Salesmen":
-    render_salesmen()
-elif st.session_state["page"] == "💰 Salesmen Salary":
-    render_salaries("salesmen")
-elif st.session_state["page"] == "💵 Daily Expense":
-    render_daily_expense()
-elif st.session_state["page"] == "📋 Bills List":
-    render_bills_list()
-elif st.session_state["page"] == "💳 Credit Bills":
-    render_credit_bills()
-elif st.session_state["page"] == "📦 Load Form":
-    render_load_form()
-elif st.session_state["page"] == "📋 DSR":
-    render_dsr()
+if st.session_state["page"] == "📊 Dashboard": render_dashboard()
+elif st.session_state["page"] == "🧾 Billing": render_billing()
+elif st.session_state["page"] == "🛒 All Products": render_all_products()
+elif st.session_state["page"] == "🎁 Discount": render_discount()
+elif st.session_state["page"] == "👤 Bookers": render_bookers()
+elif st.session_state["page"] == "💰 Bookers Salary": render_salaries("bookers")
+elif st.session_state["page"] == "🧑‍💼 Salesmen": render_salesmen()
+elif st.session_state["page"] == "💰 Salesmen Salary": render_salaries("salesmen")
+elif st.session_state["page"] == "💵 Daily Expense": render_daily_expense()
+elif st.session_state["page"] == "📋 Bills List": render_bills_list()
+elif st.session_state["page"] == "💳 Credit Bills": render_credit_bills()
+elif st.session_state["page"] == "📦 Load Form": render_load_form()
+elif st.session_state["page"] == "📋 DSR": render_dsr()
+elif st.session_state["page"] == "🧮 Calculation": render_calculation()
