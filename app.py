@@ -85,7 +85,7 @@ def default_discount_packages():
     ]
 
 # ============================================================
-# CSS (same as before + booker UI additions)
+# CSS
 # ============================================================
 st.markdown("""
 <style>
@@ -202,6 +202,26 @@ st.markdown("""
         text-align: center; min-width: 90px; color: #ffffff !important;
     }
     .lf-simple-card .lf-boxes small { display: block; font-size: 10px; font-weight: 500; opacity: 0.9; }
+    .lf-simple-card.dsr { border-left-color: #e65100; }
+    .lf-simple-card.dsr .lf-boxes { background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); }
+    .lf-simple-card.credit-pending { border-left-color: #e65100; }
+    .lf-simple-card.credit-pending .lf-boxes { background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); }
+    .lf-simple-card.credit-paid { border-left-color: #2e7d32; background: #f1f8e9; }
+    .lf-simple-card.credit-paid .lf-boxes { background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%); }
+
+    .sal-metric { display: inline-block; padding: 8px 14px; margin-right: 8px; margin-bottom: 6px; border-radius: 8px; font-size: 13px; font-weight: 600; }
+    .sal-metric.base { background: #e3f2fd; color: #0d47a1 !important; }
+    .sal-metric.adv { background: #fff3e0; color: #e65100 !important; }
+    .sal-metric.short { background: #ffebee; color: #c62828 !important; }
+    .sal-metric.remain { background: #e8f5e9; color: #1b5e20 !important; }
+    .sal-metric.paid { background: #c8e6c9; color: #2e7d32 !important; }
+
+    .status-pending { background: #fff3e0; color: #e65100 !important; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+    .status-paid { background: #c8e6c9; color: #1b5e20 !important; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+    .badge-pending { background: #ffe0b2; color: #e65100 !important; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px; }
+    .badge-refreshed { background: #e1bee7; color: #6a1b9a !important; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px; }
+    .badge-paid-credit { background: #c8e6c9; color: #1b5e20 !important; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px; }
+    .badge-credit-tag { background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: #ffffff !important; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px; }
 
     .auth-title { text-align: center; font-size: 36px; font-weight: 900; color: #1976d2; margin-bottom: 6px; margin-top: 20px; }
     .auth-subtitle { text-align: center; font-size: 14px; color: #0277bd; margin-bottom: 24px; font-weight: 600; }
@@ -209,7 +229,6 @@ st.markdown("""
     .stAlert { border-radius: 10px !important; }
     hr { border-color: #90caf9 !important; opacity: 0.6 !important; }
 
-    /* BOOKER UI */
     .bk-product-card {
         background: #ffffff; border: 1.5px solid #90caf9; border-radius: 10px;
         padding: 8px 12px; margin-bottom: 6px;
@@ -425,7 +444,7 @@ PRODUCTS = sorted([
     {"code":"109","name":"KIMS – CHOCO DELIGHT CREAMY CHOCOLATE","price":219},
     {"code":"110","name":"KIMS – GUMMY GUAVA JELLY","price":202},
     {"code":"111","name":"KIMS – GUMMY STRAWBERRY JELLY","price":202},
-    {"code":"112","name":"KIMS – AMROOS CANDY","price":139},
+    {"code":"112","name":"KIMS – AMROOD CANDY","price":139},
     {"code":"113","name":"KIMS – KHOPRA PLUS","price":139},
     {"code":"114","name":"KIMS – AAM MAZA CANDY","price":139},
     {"code":"115","name":"KIMS – FRUITO CANDY","price":139},
@@ -435,7 +454,7 @@ PRODUCTS = sorted([
 ], key=lambda x: x["name"])
 
 # ============================================================
-# AUTH SCREEN (Admin + Booker)
+# AUTH SCREEN
 # ============================================================
 def render_auth_page():
     st.markdown(f"<div class='auth-title'>🧾 {COMPANY_NAME}</div>", unsafe_allow_html=True)
@@ -445,10 +464,8 @@ def render_auth_page():
         st.markdown("<div class='auth-card'>", unsafe_allow_html=True)
         tab1, tab2, tab3 = st.tabs(["🔐 Admin Login", "👤 Booker Login", "📝 Signup"])
 
-        # -------- ADMIN LOGIN --------
         with tab1:
             st.markdown("### 🔐 Admin Login")
-            st.caption("Software administrator ke liye")
             login_user = st.text_input("Username:", key="login_username", placeholder="admin username")
             login_pass = st.text_input("Password:", key="login_password", type="password", placeholder="password")
             if st.button("🔓 Admin Login", key="btn_login", use_container_width=True, type="primary"):
@@ -464,7 +481,6 @@ def render_auth_page():
                     st.session_state["page"] = "📊 Dashboard"
                     st.rerun()
 
-        # -------- BOOKER LOGIN --------
         with tab2:
             st.markdown("### 👤 Booker Login")
             st.caption("Sirf wahi bookers jinka naam admin ne Bookers section mein add kiya hai")
@@ -478,7 +494,6 @@ def render_auth_page():
                 elif bk_uname not in registry: st.error("❌ Ye booker exist nahi karta. Admin se contact karo.")
                 elif registry[bk_uname].get("password_hash") != hash_password(bk_pass): st.error("❌ Password galat")
                 else:
-                    # Check karo booker still in admin's bookers list
                     admin_uname = registry[bk_uname].get("admin", "")
                     admin_db = load_database_for(admin_uname)
                     if registry[bk_uname].get("display_name") not in admin_db.get("bookers", []):
@@ -496,7 +511,6 @@ def render_auth_page():
                         st.session_state["bk_bills_created"] = 0
                         st.rerun()
 
-        # -------- SIGNUP --------
         with tab3:
             st.markdown("### 📝 Admin Signup")
             su_user = st.text_input("Naya Username:", key="su_username", placeholder="3-20 chars")
@@ -520,7 +534,7 @@ def render_auth_page():
         st.markdown("</div>", unsafe_allow_html=True)
 
 # ============================================================
-# LOAD FUNCTIONS (role-aware)
+# LOAD FUNCTIONS
 # ============================================================
 def load_database_for(username):
     if not username: return default_blank_db()
@@ -581,7 +595,8 @@ for _k, _v in [("_prev_prod", None), ("last_bill_no", None), ("download_file", N
                ("_dl_counter", 0), ("page", "📊 Dashboard"), ("view_bill_key", None),
                ("view_lf_key", None), ("view_dsr_key", None), ("view_credit_key", None),
                ("bk_page", "🧾 New Bill"), ("bk_bill_draft", []), ("bk_load_draft", []),
-               ("bk_current_shop", ""), ("bk_bills_created", 0), ("bk_bill_items", [])]:
+               ("bk_current_shop", ""), ("bk_bills_created", 0),
+               ("bk_reset_item_form", False), ("bk_reset_shop_form", False)]:
     if _k not in st.session_state: st.session_state[_k] = _v
 
 db = st.session_state.database
@@ -666,9 +681,7 @@ def get_effective_discount_pct(shop_name, bill_total):
 
 def get_dsr_credit_info(dsr):
     booker = dsr.get("booker", "").strip()
-    credit_total = 0.0
-    credit_shops = {}
-    credit_details = []
+    credit_total = 0.0; credit_shops = {}; credit_details = []
     for sb in dsr.get("source_bills", []):
         shop = sb.get("shop", ""); bill_no = sb.get("bill_no", "")
         for cb in db.get("credit_bills", []):
@@ -703,7 +716,7 @@ def show_auto_download():
         </script>""", height=0)
 
 # ============================================================
-# BOOKER UI (only shown when role == "booker")
+# BOOKER UI
 # ============================================================
 def render_booker_sidebar():
     with st.sidebar:
@@ -728,16 +741,13 @@ def render_booker_sidebar():
         """, unsafe_allow_html=True)
         st.markdown('<div class="sb-section-label">Menu</div>', unsafe_allow_html=True)
 
-        bk_page = st.radio(
-            "BK MENU",
+        bk_page = st.radio("BK MENU",
             ["🧾 New Bill", "🛒 All Products", "📦 Load Form Status"],
-            key="bk_page_selector", label_visibility="collapsed"
-        )
+            key="bk_page_selector", label_visibility="collapsed")
         st.session_state["bk_page"] = bk_page
 
         st.markdown(f'<div class="sb-date">📅 {datetime.now().strftime("%A, %d %b %Y")}</div>', unsafe_allow_html=True)
 
-        # Stats
         bill_count = st.session_state.get("bk_bills_created", 0)
         load_count = len(st.session_state.get("bk_load_draft", []))
         total_boxes = sum(int(it.get("Boxes", 0)) for it in st.session_state.get("bk_load_draft", []))
@@ -754,8 +764,9 @@ def render_booker_sidebar():
 
         if st.button("🚪  Logout", key="btn_bk_logout", use_container_width=True):
             for k in ["logged_in_user", "display_name", "role", "booker_name", "booker_admin",
-                      "bk_bill_draft", "bk_load_draft", "bk_current_shop", "bk_bills_created",
-                      "bk_bill_items", "bk_page", "database", "_db_user"]:
+                      "bk_bill_draft", "bk_load_draft", "bk_current_shop",
+                      "bk_bill_items", "bk_page", "database", "_db_user",
+                      "bk_reset_item_form", "bk_reset_shop_form"]:
                 st.session_state[k] = None if k not in ["bk_bill_draft", "bk_load_draft", "bk_bill_items"] else []
             st.session_state["bk_bills_created"] = 0
             st.rerun()
@@ -765,7 +776,12 @@ def render_booker_new_bill():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🧾 New Bill — <small style='color:#2e7d32;'>👤 {bk_name}</small></h1>", unsafe_allow_html=True)
     st.markdown("---")
 
-    # Wholesaler hint
+    # ⚡ DEFERRED RESETS — sabse pehle, widgets banne se pehle
+    if st.session_state.get("bk_reset_item_form"):
+        st.session_state["bk_product_sel"] = "-- Select --"
+        st.session_state["bk_qty"] = 0
+        st.session_state["bk_reset_item_form"] = False
+
     if wholesaler_rule_active():
         st.markdown(f"<div class='hint-box' style='background:#f3e5f5;border-left-color:#8e24aa;color:#6a1b9a !important;'>🏢 Wholesaler rule ON — 'whole seller' naam wali shop pe {get_wholesaler_pct()}% milega</div>", unsafe_allow_html=True)
 
@@ -776,19 +792,18 @@ def render_booker_new_bill():
                              key="bk_shop_input", placeholder="Pehle shop ka naam likho")
     with col_b:
         st.markdown("<br>", unsafe_allow_html=True)
-        if shop:
-            new_shop = shop.strip()
-            if new_shop != st.session_state.get("bk_current_shop", ""):
-                # Shop changed → reset draft
-                st.session_state["bk_current_shop"] = new_shop
-                st.session_state["bk_bill_draft"] = []
-                st.rerun()
+
+    if shop:
+        new_shop = shop.strip()
+        if new_shop != st.session_state.get("bk_current_shop", ""):
+            st.session_state["bk_current_shop"] = new_shop
+            st.session_state["bk_bill_draft"] = []
+            st.rerun()
 
     if not shop.strip():
         st.warning("⚠️ Pehle shop ka naam likho, phir item add karo")
         return
 
-    # Show whole seller hint for current shop
     if wholesaler_rule_active() and is_wholesaler(shop):
         st.markdown(f"<div class='hint-box' style='background:#f3e5f5;border-left-color:#8e24aa;color:#6a1b9a !important;font-weight:700;'>🏢 Wholesaler shop detected — {get_wholesaler_pct()}% discount lagega</div>", unsafe_allow_html=True)
 
@@ -797,13 +812,10 @@ def render_booker_new_bill():
     # ====== ADD ITEM ======
     st.markdown("### ➕ Add Item")
     all_products = get_all_products()
-    p_options = [f"{p['name']} (Code: {p['code']})" for p in all_products]
 
-    c1, c2, c3, c4 = st.columns([3, 1, 1, 1])
+    c1, c2 = st.columns([3, 1])
     with c1:
         search_txt = st.text_input("🔍 Search:", key="bk_search", placeholder="Type name...")
-    with c2:
-        st.markdown("<br>", unsafe_allow_html=True)
 
     su = search_txt.strip().upper()
     filtered = [p for p in all_products if su in p["name"].upper() or su in str(p["code"]).upper()] if su else all_products
@@ -818,7 +830,6 @@ def render_booker_new_bill():
         st.markdown("<br>", unsafe_allow_html=True)
         add_clicked = st.button("➕ Add Item", key="bk_add_item_btn", use_container_width=True, type="primary")
 
-    # Show selected product's TP
     selected_product = None
     if selected != "-- Select --":
         for p in all_products:
@@ -829,8 +840,10 @@ def render_booker_new_bill():
         st.success(f"💰 {selected_product['name']} — TP: **Rs {tp:,.0f}** | Boxes: {boxes} → Total: **Rs {boxes * tp:,.0f}**")
 
     if add_clicked:
-        if not selected_product: st.error("❌ Product select karo")
-        elif boxes <= 0: st.error("❌ Boxes daalo")
+        if not selected_product:
+            st.error("❌ Product select karo")
+        elif boxes <= 0:
+            st.error("❌ Boxes daalo")
         else:
             tp = get_price(selected_product["code"], selected_product["price"])
             st.session_state["bk_bill_draft"].append({
@@ -838,8 +851,8 @@ def render_booker_new_bill():
                 "Boxes": int(boxes), "TP/Box": float(tp),
                 "Gross": float(boxes * tp), "Discount %": 0.0, "Net": float(boxes * tp),
             })
-            st.session_state["bk_product_sel"] = "-- Select --"
-            st.session_state["bk_qty"] = 0
+            # ⚡ FLAG set karo, direct assignment NAHI
+            st.session_state["bk_reset_item_form"] = True
             st.rerun()
 
     st.markdown("---")
@@ -854,7 +867,6 @@ def render_booker_new_bill():
             "Boxes": it["Boxes"], "TP/Box": it["TP/Box"], "Total": it["Gross"]} for it in draft]),
             use_container_width=True, hide_index=True)
 
-        # Remove item
         c1, c2 = st.columns([3, 1])
         with c1:
             remove_idx = st.selectbox("Delete item:", options=["--"] + [f"{i+1}. {it['Product']} ({it['Boxes']} boxes)" for i, it in enumerate(draft)], key="bk_remove_sel")
@@ -869,7 +881,6 @@ def render_booker_new_bill():
         gross_total = sum(float(it["Gross"]) for it in draft)
         st.markdown(f"<div class='summary-box'><b>Gross Total:</b> <span style='color:#1976d2;font-weight:800;font-size:18px;'>Rs {gross_total:,.0f}</span></div>", unsafe_allow_html=True)
 
-        # ====== DONE BILL ======
         c1, c2 = st.columns(2)
         with c1:
             if st.button("✅ Done Bill (Save + Excel)", key="bk_done_bill", use_container_width=True, type="primary"):
@@ -880,7 +891,6 @@ def render_booker_new_bill():
                 st.rerun()
 
     st.markdown("---")
-    # ====== DONE LOAD FORM ======
     load_draft = st.session_state.get("bk_load_draft", [])
     total_load_boxes = sum(int(it.get("Boxes", 0)) for it in load_draft)
     st.markdown(f"### 📦 Load Form — Session Total")
@@ -895,7 +905,6 @@ def render_booker_new_bill():
             finalize_booker_load_form()
 
 def finalize_booker_bill(shop, draft):
-    """Save bill to admin DB, export Excel, add to load draft."""
     global db
     bill_no = db["next_bill_no"]
     date_str = datetime.now().strftime("%d-%m-%Y")
@@ -911,7 +920,6 @@ def finalize_booker_bill(shop, draft):
     db["next_bill_no"] += 1
     save_database(db)
 
-    # Add to load draft (aggregate by code)
     for it in draft:
         found = False
         for ld in st.session_state["bk_load_draft"]:
@@ -919,19 +927,16 @@ def finalize_booker_bill(shop, draft):
                 ld["Boxes"] += int(it["Boxes"]); found = True; break
         if not found:
             st.session_state["bk_load_draft"].append({
-                "Code": it["Code"], "Product": it["Product"], "Boxes": int(it["Boxes"]),
-            })
+                "Code": it["Code"], "Product": it["Product"], "Boxes": int(it["Boxes"])})
 
-    # Export Excel
     bill_total_net = sum(float(it["Net"]) for it in draft)
     pkg_pct, pkg_name, tier_label = get_effective_discount_pct(shop, bill_total_net)
     output = BytesIO()
     wb = xlsxwriter.Workbook(output, {'in_memory': True})
     ws = wb.add_worksheet("Bill")
     ws.set_paper(9); ws.set_portrait(); ws.fit_to_pages(1, 1)
-    ws.set_column("A:A", 42.86); ws.set_column("B:B", 12.71); ws.set_column("C:C", 10.71)
-    ws.set_column("D:D", 10.71); ws.set_column("E:E", 11.71); ws.set_column("F:F", 11.14)
-    ws.set_column("G:G", 11.14); ws.set_column("H:H", 12.14); ws.set_column("I:I", 13.14); ws.set_column("J:J", 13.14)
+    for col, w in [("A",42.86),("B",12.71),("C",10.71),("D",10.71),("E",11.71),("F",11.14),("G",11.14),("H",12.14),("I",13.14),("J",13.14)]:
+        ws.set_column(f"{col}:{col}", w)
     title = wb.add_format({"bold":True, "font_size":18, "align":"center", "border":2})
     header = wb.add_format({"bold":True, "font_size":11, "bg_color":"#BBDEFB", "align":"center", "border":2, "text_wrap": True})
     cell_left = wb.add_format({"font_size":12, "border":1, "align":"left"})
@@ -1011,8 +1016,7 @@ def render_booker_all_products():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🛒 All Products with TP</h1>", unsafe_allow_html=True)
     st.markdown("---")
     all_products = get_all_products()
-    c1, c2 = st.columns([3, 1])
-    with c1: search = st.text_input("🔍 Search:", key="bk_prod_search", placeholder="Type product name or code...")
+    search = st.text_input("🔍 Search:", key="bk_prod_search", placeholder="Type product name or code...")
     su = search.strip().upper()
     shown = [p for p in all_products if su in p["name"].upper() or su in str(p["code"]).upper()] if su else all_products
     st.markdown(f"<div class='summary-box'><b>Total Products:</b> {len(all_products)} | <b>Showing:</b> {len(shown)}</div>", unsafe_allow_html=True)
@@ -1067,25 +1071,8 @@ if ROLE == "booker":
     st.stop()
 
 # ============================================================
-# ADMIN UI (everything below is admin-only)
+# ADMIN SIDEBAR
 # ============================================================
-# ... (all the admin pages from previous version — Dashboard, Discount, All Products,
-#      Billing, Bills List, Credit Bills, Load Form, DSR, Calculation, etc.)
-# ...
-
-def render_dashboard():
-    # Same as before - simple
-    pass
-
-# ============================================================
-# ADMIN — All remaining pages (same as before)
-# ============================================================
-# NOTE: Because of response length, below is compact version of all admin pages
-# You can paste your existing admin pages here (Dashboard, Discount, All Products,
-# Bookers, Salesmen, Salary, Daily Expense, Billing, Bills List, Credit Bills,
-# Load Form, DSR, Calculation) — they remain UNCHANGED from the last version.
-
-# --- SIDEBAR (admin) ---
 with st.sidebar:
     display_name = st.session_state.get("display_name", CURRENT_USER)
     avatar_letter = (display_name[0] if display_name else "A").upper()
@@ -1142,9 +1129,8 @@ with st.sidebar:
         st.rerun()
 
 # ============================================================
-# ADMIN PAGES (compact implementation)
+# ADMIN PAGES
 # ============================================================
-
 def render_admin_dashboard():
     display_name = st.session_state.get("display_name", CURRENT_USER)
     today_str = date.today().strftime("%A, %d %B %Y")
@@ -1170,7 +1156,7 @@ def render_admin_dashboard():
     with c3: st.markdown(f"<div class='metric-card'><h3>PRODUCTS</h3><h1>{total_products}</h1></div>", unsafe_allow_html=True)
     with c4: st.markdown(f"<div class='metric-card'><h3>TOTAL BILLS</h3><h1>{total_bills}</h1></div>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
-    c1, c2, c3, c4 = st.columns(4)
+    c1, c2, c3 = st.columns(3)
     with c1: st.markdown(f"<div class='metric-card'><h3>PENDING CREDIT</h3><h1>{len(pending_credits)}</h1><p style='color:#e65100;font-weight:700;'>Rs {pending_amt:,.0f}</p></div>", unsafe_allow_html=True)
     with c2: st.markdown(f"<div class='metric-card'><h3>LOAD FORMS</h3><h1>{total_load_forms}</h1></div>", unsafe_allow_html=True)
     with c3: st.markdown(f"<div class='metric-card'><h3>DSR FORMS</h3><h1>{total_dsr}</h1></div>", unsafe_allow_html=True)
@@ -1295,15 +1281,12 @@ def render_admin_bookers():
         elif name in db.get("bookers", []): st.warning("⚠️ Exists")
         else:
             db.setdefault("bookers", []).append(name); db["bookers"] = sorted(db["bookers"]); save_database(db)
-            # Auto-create booker login
             registry = load_bookers()
             bk_uname = sanitize_username(name)
             if bk_uname not in registry:
                 registry[bk_uname] = {
-                    "display_name": name,
-                    "username": bk_uname,
-                    "admin": CURRENT_USER,
-                    "password_hash": hash_password("1234"),  # default
+                    "display_name": name, "username": bk_uname, "admin": CURRENT_USER,
+                    "password_hash": hash_password("1234"),
                     "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 }
                 save_bookers(registry)
@@ -1326,12 +1309,10 @@ def render_admin_bookers():
         with c3:
             if st.button("🗑 Delete", key=f"del_bk_{i}_{bk}", use_container_width=True):
                 db["bookers"].remove(bk); save_database(db)
-                # Also remove from registry
                 bk_uname = sanitize_username(bk)
                 if bk_uname in registry: del registry[bk_uname]; save_bookers(registry)
                 st.session_state["success_msg"] = "🗑 Deleted"; st.rerun()
 
-    # Set password dialog
     target = st.session_state.get("setpw_booker")
     if target:
         st.markdown("---")
@@ -1625,7 +1606,7 @@ def render_admin_load_form():
             <div class='lf-line2'>📅 {dt} · 📦 {len(items)} products</div></div>
             <div class='lf-boxes'>{tb}<small>BOXES</small></div>
         </div>""", unsafe_allow_html=True)
-        c1, c2, c3 = st.columns(3)
+        c1, c2 = st.columns(2)
         with c1:
             if not trf:
                 if st.button("📤 Transfer to DSR", key=f"trf_{lf_id}"):
@@ -1689,31 +1670,7 @@ def render_admin_calculation():
         st.markdown(f"<div style='background:linear-gradient(135deg,#065f46,#10b981);border-radius:16px;padding:24px;text-align:center;color:white;margin-top:10px;'><div style='font-size:12px;letter-spacing:2px;font-weight:700;'>🔒 LOCKED TOTAL</div><div style='font-size:42px;font-weight:800;'>Rs {locked:,.0f}</div></div>", unsafe_allow_html=True)
 
 # ============================================================
-# RENDER ADMIN PAGE
-# ============================================================
-if st.session_state["page"] == "📊 Dashboard": render_admin_dashboard()
-elif st.session_state["page"] == "🧾 Billing": render_admin_billing()
-elif st.session_state["page"] == "🛒 All Products": render_admin_products()
-elif st.session_state["page"] == "🎁 Discount": render_admin_discount()
-elif st.session_state["page"] == "👤 Bookers": render_admin_bookers()
-elif st.session_state["page"] == "💰 Bookers Salary": render_admin_salaries("bookers")
-elif st.session_state["page"] == "🧑‍💼 Salesmen": render_admin_salesmen()
-elif st.session_state["page"] == "💰 Salesmen Salary": render_admin_salaries("salesmen")
-elif st.session_state["page"] == "💵 Daily Expense": render_admin_expense()
-elif st.session_state["page"] == "📋 Bills List": render_admin_bills_list()
-elif st.session_state["page"] == "💳 Credit Bills": render_admin_credit()
-elif st.session_state["page"] == "📦 Load Form": render_admin_load_form()
-elif st.session_state["page"] == "📋 DSR": render_admin_dsr()
-elif st.session_state["page"] == "🧮 Calculation": render_admin_calculation()
-
-if st.session_state.get("success_msg"):
-    st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
-if st.session_state.get("error_msg"):
-    st.error(st.session_state["error_msg"]); st.session_state["error_msg"] = None
-show_auto_download()
-
-# ============================================================
-# CALLBACKS (shared)
+# CALLBACKS
 # ============================================================
 def add_bill_callback():
     ps = st.session_state.get("product_sel", "")
@@ -1739,21 +1696,10 @@ def add_bill_callback():
     for k in ["boxes", "tp_box", "discount"]: st.session_state[k] = 0
 
 def refresh_callback():
-    for k in ["search_text", "product_sel", "boxes", "tp_box", "discount"]: st.session_state[k] = "" if k in ["search_text", "product_sel"] else 0
+    for k in ["search_text", "product_sel"]: st.session_state[k] = ""
+    for k in ["boxes", "tp_box", "discount"]: st.session_state[k] = 0
     st.session_state["_prev_prod"] = None
     st.session_state["success_msg"] = "✅"
-
-def export_bill_callback():
-    if not db["bills"]: st.session_state["error_msg"] = "❌ No Bills"; return
-    shop = st.session_state.get("shop_name", "").strip() or "Bill"
-    for ch in ['\\','/',':','*','?','"','<','>','|']: shop = shop.replace(ch, "")
-    sb = [b for b in db["bills"] if b["Shop"].strip() == shop]
-    if not sb: st.session_state["error_msg"] = "❌ No bills"; return
-    tot = sum(float(b.get("Net",0)) for b in sb)
-    pct, pn, tl = get_effective_discount_pct(shop, tot)
-    st.session_state["download_file"] = (f"{shop}.xlsx", _build_bill_excel(shop, sb, pct, pn, tl))
-    db["next_bill_no"] += 1; save_database(db)
-    st.session_state["success_msg"] = f"✅ Exported"
 
 def _build_bill_excel(shop, bills, pkg_pct, pkg_name, tier_label):
     output = BytesIO(); wb = xlsxwriter.Workbook(output, {'in_memory': True})
@@ -1794,6 +1740,25 @@ def _build_bill_excel(shop, bills, pkg_pct, pkg_name, tier_label):
     wb.close(); output.seek(0)
     return output.getvalue()
 
+def export_single_group_bill(shop, date_str, booker, salesman, items, bill_no):
+    tot = sum(float(it.get("Net",0)) for it in items)
+    pct, pn, tl = get_effective_discount_pct(shop, tot)
+    fname = f"{shop}_{date_str.replace('-','')}.xlsx".replace("/","-").replace(" ","_").replace(":","")
+    st.session_state["download_file"] = (fname, _build_bill_excel(shop, items, pct, pn, tl))
+    st.session_state["success_msg"] = f"✅ Excel ready"
+
+def export_bill_callback():
+    if not db["bills"]: st.session_state["error_msg"] = "❌ No Bills"; return
+    shop = st.session_state.get("shop_name", "").strip() or "Bill"
+    for ch in ['\\','/',':','*','?','"','<','>','|']: shop = shop.replace(ch, "")
+    sb = [b for b in db["bills"] if b["Shop"].strip() == shop]
+    if not sb: st.session_state["error_msg"] = "❌ No bills"; return
+    tot = sum(float(b.get("Net",0)) for b in sb)
+    pct, pn, tl = get_effective_discount_pct(shop, tot)
+    st.session_state["download_file"] = (f"{shop}.xlsx", _build_bill_excel(shop, sb, pct, pn, tl))
+    db["next_bill_no"] += 1; save_database(db)
+    st.session_state["success_msg"] = f"✅ Exported"
+
 def export_load_form_from_billing_callback():
     bk = st.session_state.get("order_booker", "").strip()
     if not bk: st.session_state["error_msg"] = "❌ Select Booker"; return
@@ -1830,9 +1795,9 @@ def refresh_load_form_callback():
         if (str(lf.get("booker","")).strip() == bk and not lf.get("transferred_to_dsr") and not lf.get("refreshed")):
             lf["refreshed"] = True; lf["refreshed_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     save_database(db)
-    for k in ["search_text","product_sel"]: st.session_state[k] = ""
+    for k in ["search_text", "product_sel"]: st.session_state[k] = ""
+    for k in ["boxes", "tp_box", "discount"]: st.session_state[k] = 0
     st.session_state["_prev_prod"] = None
-    for k in ["boxes","tp_box","discount"]: st.session_state[k] = 0
     st.session_state["success_msg"] = f"✅ Cleared"
 
 def move_group_to_credit(group):
@@ -1892,3 +1857,65 @@ def transfer_load_form_to_dsr(lf_id):
     for x in db["load_forms"]:
         if x.get("id") == lf_id: x["transferred_to_dsr"] = True; x["dsr_id"] = nid; break
     save_database(db); st.session_state["success_msg"] = f"✅ DSR #{nid}"
+
+def export_dsr_excel(dsr):
+    ct, cs, _ = get_dsr_credit_info(dsr)
+    fin = float(dsr.get("amount_to_collect", 0)) - ct
+    output = BytesIO(); wb = xlsxwriter.Workbook(output, {'in_memory': True})
+    ws = wb.add_worksheet("DSR")
+    title = wb.add_format({"bold":True, "font_size":16, "align":"center", "border":2, "bg_color":"#FFE0B2"})
+    header = wb.add_format({"bold":True, "font_size":11, "bg_color":"#BBDEFB", "align":"center", "border":2})
+    cl = wb.add_format({"font_size":11, "border":1, "align":"left"})
+    cc = wb.add_format({"font_size":11, "border":1, "align":"center"})
+    cn = wb.add_format({"font_size":11, "border":1, "align":"right", "num_format":"#,##0"})
+    tot = wb.add_format({"bold":True, "font_size":11, "bg_color":"#FFF2CC", "align":"center", "border":2})
+    hi = wb.add_format({"bold":True, "font_size":12, "bg_color":"#E8F5E9", "align":"center", "border":2})
+    for col, w in [("A",10),("B",40),("C",10),("D",12),("E",14),("F",10),("G",14)]: ws.set_column(f"{col}:{col}", w)
+    ws.merge_range("A1:G1", f"{COMPANY_NAME} — DSR #{dsr['id']}", title)
+    ws.write("A3","Booker",header); ws.write("B3", dsr.get("booker",""), cl)
+    ws.write("C3","Date",header); ws.write("D3", dsr.get("date",""), cc)
+    ws.write("E3","Time",header); ws.write("F3", dsr.get("time",""), cc)
+    ws.write("A5","Code",header); ws.write("B5","Product",header); ws.write("C5","Boxes",header)
+    ws.write("D5","TP/Box",header); ws.write("E5","Total",header)
+    row = 5
+    for it in dsr.get("items", []):
+        ws.write(row,0,str(it.get("Code","")),cc); ws.write(row,1,it.get("Product",""),cl)
+        ws.write(row,2,int(it.get("Boxes",0)),cc); ws.write(row,3,float(it.get("TP/Box",0)),cn)
+        ws.write(row,4,float(it.get("Total",0)),cn); row += 1
+    ws.write(row,2,"TOTAL",tot); ws.write(row,4,float(dsr.get("total_amount",0)),tot)
+    row += 2
+    ws.merge_range(row,0,row,4,"Stock Value",header); ws.merge_range(row,5,row,6,f"Rs {float(dsr.get('total_amount',0)):,.0f}",cn); row += 1
+    ws.merge_range(row,0,row,4,"(−) Returns",header); ws.merge_range(row,5,row,6,f"Rs {float(dsr.get('total_return_amount',0)):,.0f}",cn); row += 1
+    ws.merge_range(row,0,row,4,"(=) Net Stock",header); ws.merge_range(row,5,row,6,f"Rs {float(dsr.get('net_amount',0)):,.0f}",cn); row += 1
+    ws.merge_range(row,0,row,4,"(−) Discount",header); ws.merge_range(row,5,row,6,f"Rs {float(dsr.get('total_discount',0)):,.0f}",cn); row += 1
+    ws.merge_range(row,0,row,4,"(=) Ye Lena Hai",header); ws.merge_range(row,5,row,6,f"Rs {float(dsr.get('amount_to_collect',0)):,.0f}",cn); row += 1
+    ws.merge_range(row,0,row,4,"(−) Credit Bills",header); ws.merge_range(row,5,row,6,f"Rs {ct:,.0f}",cn); row += 1
+    ws.merge_range(row,0,row,4,"💰 FINAL YE LENA HAI",hi); ws.merge_range(row,5,row,6,f"Rs {fin:,.0f}",hi)
+    wb.close(); output.seek(0)
+    fname = f"DSR_{dsr['id']}_{dsr.get('booker','')}.xlsx".replace("/","-").replace(" ","_")
+    st.session_state["download_file"] = (fname, output.getvalue())
+    st.session_state["success_msg"] = f"✅ DSR #{dsr['id']} Excel ready"
+
+# ============================================================
+# RENDER ADMIN PAGE
+# ============================================================
+if st.session_state["page"] == "📊 Dashboard": render_admin_dashboard()
+elif st.session_state["page"] == "🧾 Billing": render_admin_billing()
+elif st.session_state["page"] == "🛒 All Products": render_admin_products()
+elif st.session_state["page"] == "🎁 Discount": render_admin_discount()
+elif st.session_state["page"] == "👤 Bookers": render_admin_bookers()
+elif st.session_state["page"] == "💰 Bookers Salary": render_admin_salaries("bookers")
+elif st.session_state["page"] == "🧑‍💼 Salesmen": render_admin_salesmen()
+elif st.session_state["page"] == "💰 Salesmen Salary": render_admin_salaries("salesmen")
+elif st.session_state["page"] == "💵 Daily Expense": render_admin_expense()
+elif st.session_state["page"] == "📋 Bills List": render_admin_bills_list()
+elif st.session_state["page"] == "💳 Credit Bills": render_admin_credit()
+elif st.session_state["page"] == "📦 Load Form": render_admin_load_form()
+elif st.session_state["page"] == "📋 DSR": render_admin_dsr()
+elif st.session_state["page"] == "🧮 Calculation": render_admin_calculation()
+
+if st.session_state.get("success_msg"):
+    st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
+if st.session_state.get("error_msg"):
+    st.error(st.session_state["error_msg"]); st.session_state["error_msg"] = None
+show_auto_download()
