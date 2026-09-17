@@ -1,7 +1,8 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
 # + Credit → DSR Auto Deduction
-# + Cash Calculation Page
+# + Cash Calculation Page + DSR Excel Calculation
+# + Light Green Sidebar Theme
 # ============================================================
 
 import os
@@ -74,7 +75,7 @@ def default_discount_packages():
     ]
 
 # ============================================================
-# GLOBAL CSS
+# GLOBAL CSS - LIGHT GREEN SIDEBAR THEME
 # ============================================================
 st.markdown("""
 <style>
@@ -292,80 +293,279 @@ st.markdown("""
         padding-left: 10px;
         border-left: 4px solid #2563eb;
     }
-    .calc-row-amt {
-        padding-top: 8px; font-size: 15px; font-weight: 700; color: #2e7d32 !important;
-    }
-    .calc-row-label {
-        padding-top: 8px; font-size: 15px; font-weight: 700; color: #1976d2 !important;
-    }
+    .calc-row-amt { padding-top: 8px; font-size: 15px; font-weight: 700; color: #2e7d32 !important; }
+    .calc-row-label { padding-top: 8px; font-size: 15px; font-weight: 700; color: #1976d2 !important; }
 
-    /* SIDEBAR */
+    /* ============================================================
+       PROFESSIONAL LIGHT GREEN SIDEBAR
+       ============================================================ */
     section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0b1220 0%, #111a2e 50%, #0b1220 100%) !important;
-        border-right: 1px solid rgba(59,130,246,0.15) !important;
-        box-shadow: 4px 0 24px rgba(0,0,0,0.25) !important;
+        background: linear-gradient(180deg, #f1f8e9 0%, #e8f5e9 50%, #dcedc8 100%) !important;
+        border-right: 2px solid #a5d6a7 !important;
+        box-shadow: 4px 0 20px rgba(76,175,80,0.12) !important;
     }
     section[data-testid="stSidebar"] > div:first-child { padding-top: 0 !important; }
     section[data-testid="stSidebar"] .block-container { padding: 0 !important; }
     section[data-testid="stSidebar"] ::-webkit-scrollbar { width: 6px; }
-    section[data-testid="stSidebar"] ::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.35); border-radius: 3px; }
+    section[data-testid="stSidebar"] ::-webkit-scrollbar-thumb {
+        background: rgba(76,175,80,0.4); border-radius: 3px;
+    }
 
-    .sb-brand { text-align: center; padding: 22px 16px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); position: relative; background: radial-gradient(circle at 50% 0%, rgba(59,130,246,0.18) 0%, transparent 70%); }
-    .sb-brand-logo { display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); font-size: 28px; margin-bottom: 10px; box-shadow: 0 8px 24px rgba(59,130,246,0.45), inset 0 1px 0 rgba(255,255,255,0.25); }
-    .sb-brand-name { font-size: 17px; font-weight: 800; color: #ffffff !important; letter-spacing: 2px; margin: 0; text-shadow: 0 2px 8px rgba(59,130,246,0.3); }
-    .sb-brand-sub { font-size: 9px; color: #64748b !important; letter-spacing: 4px; font-weight: 700; margin-top: 3px; }
-    .sb-brand-dot { display: inline-block; width: 6px; height: 6px; background: #22c55e; border-radius: 50%; margin-right: 4px; box-shadow: 0 0 8px #22c55e; vertical-align: middle; }
-    .sb-brand-status { font-size: 9px; color: #94a3b8 !important; letter-spacing: 1px; margin-top: 6px; font-weight: 600; }
-    .sb-user { display: flex; align-items: center; gap: 12px; background: linear-gradient(135deg, rgba(59,130,246,0.12) 0%, rgba(29,78,216,0.06) 100%); border: 1px solid rgba(59,130,246,0.22); border-radius: 12px; padding: 10px 12px; margin: 14px 14px 16px; position: relative; overflow: hidden; }
-    .sb-user::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%); }
-    .sb-user-avatar { width: 40px; height: 40px; border-radius: 11px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; color: #ffffff !important; flex-shrink: 0; box-shadow: 0 4px 12px rgba(59,130,246,0.4), inset 0 1px 0 rgba(255,255,255,0.3); text-transform: uppercase; }
+    .sb-brand {
+        text-align: center;
+        padding: 22px 16px 18px;
+        border-bottom: 1px solid rgba(76,175,80,0.20);
+        position: relative;
+        background: radial-gradient(circle at 50% 0%, rgba(76,175,80,0.15) 0%, transparent 70%);
+    }
+    .sb-brand-logo {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 56px; height: 56px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #66bb6a 0%, #2e7d32 100%);
+        font-size: 28px;
+        margin-bottom: 10px;
+        box-shadow: 0 8px 20px rgba(76,175,80,0.35),
+                    inset 0 1px 0 rgba(255,255,255,0.35);
+    }
+    .sb-brand-name {
+        font-size: 17px;
+        font-weight: 800;
+        color: #1b5e20 !important;
+        letter-spacing: 2px;
+        margin: 0;
+        text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+    }
+    .sb-brand-sub {
+        font-size: 9px;
+        color: #558b2f !important;
+        letter-spacing: 4px;
+        font-weight: 700;
+        margin-top: 3px;
+    }
+    .sb-brand-dot {
+        display: inline-block;
+        width: 6px; height: 6px;
+        background: #43a047;
+        border-radius: 50%;
+        margin-right: 4px;
+        box-shadow: 0 0 8px #43a047;
+        vertical-align: middle;
+    }
+    .sb-brand-status {
+        font-size: 9px;
+        color: #689f38 !important;
+        letter-spacing: 1px;
+        margin-top: 6px;
+        font-weight: 700;
+    }
+
+    .sb-user {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #ffffff;
+        border: 1px solid rgba(76,175,80,0.25);
+        border-radius: 12px;
+        padding: 10px 12px;
+        margin: 14px 14px 16px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(76,175,80,0.10);
+    }
+    .sb-user::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 4px;
+        background: linear-gradient(180deg, #66bb6a 0%, #2e7d32 100%);
+    }
+    .sb-user-avatar {
+        width: 40px; height: 40px;
+        border-radius: 11px;
+        background: linear-gradient(135deg, #66bb6a 0%, #2e7d32 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 16px;
+        color: #ffffff !important;
+        flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(76,175,80,0.35),
+                    inset 0 1px 0 rgba(255,255,255,0.3);
+        text-transform: uppercase;
+    }
     .sb-user-info { display: flex; flex-direction: column; min-width: 0; }
-    .sb-user-label { font-size: 9px; color: #64748b !important; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 2px; }
-    .sb-user-name { font-size: 13px; font-weight: 700; color: #ffffff !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .sb-section-label { font-size: 9px; color: #475569 !important; letter-spacing: 2.5px; font-weight: 800; padding: 0 20px 8px; text-transform: uppercase; }
+    .sb-user-label {
+        font-size: 9px;
+        color: #689f38 !important;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        font-weight: 800;
+        margin-bottom: 2px;
+    }
+    .sb-user-name {
+        font-size: 13px;
+        font-weight: 800;
+        color: #1b5e20 !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 
-    section[data-testid="stSidebar"] div[role="radiogroup"] { gap: 2px !important; padding: 0 10px 8px !important; display: flex !important; flex-direction: column !important; }
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label { background-color: transparent !important; border: 1px solid transparent !important; border-radius: 10px !important; margin-bottom: 2px !important; padding: 9px 12px !important; transition: all 0.18s ease !important; cursor: pointer !important; display: flex !important; align-items: center !important; width: 100% !important; position: relative !important; }
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover { background-color: rgba(59,130,246,0.10) !important; border-color: rgba(59,130,246,0.22) !important; transform: translateX(2px); }
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label p { color: #cbd5e1 !important; font-size: 13.5px !important; font-weight: 500 !important; margin: 0 !important; letter-spacing: 0.2px !important; }
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover p { color: #ffffff !important; }
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child { display: none !important; }
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label > div[data-testid="stMarkdownContainer"] { width: 100% !important; }
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important; border-color: #3b82f6 !important; box-shadow: 0 6px 18px rgba(59,130,246,0.45), inset 0 1px 0 rgba(255,255,255,0.2) !important; transform: translateX(0) !important; }
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) p { color: #ffffff !important; font-weight: 700 !important; }
-    section[data-testid="stSidebar"] hr { border-color: rgba(255,255,255,0.06) !important; margin: 10px 14px !important; opacity: 1 !important; }
+    .sb-section-label {
+        font-size: 9px;
+        color: #558b2f !important;
+        letter-spacing: 2.5px;
+        font-weight: 800;
+        padding: 0 20px 8px;
+        text-transform: uppercase;
+    }
+
+    section[data-testid="stSidebar"] div[role="radiogroup"] {
+        gap: 2px !important;
+        padding: 0 10px 8px !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label {
+        background-color: #ffffff !important;
+        border: 1px solid rgba(76,175,80,0.18) !important;
+        border-radius: 10px !important;
+        margin-bottom: 2px !important;
+        padding: 9px 12px !important;
+        transition: all 0.18s ease !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        width: 100% !important;
+        position: relative !important;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover {
+        background-color: #f1f8e9 !important;
+        border-color: #66bb6a !important;
+        transform: translateX(2px);
+        box-shadow: 0 2px 8px rgba(76,175,80,0.15);
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label p {
+        color: #1b5e20 !important;
+        font-size: 13.5px !important;
+        font-weight: 600 !important;
+        margin: 0 !important;
+        letter-spacing: 0.2px !important;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover p {
+        color: #1b5e20 !important;
+        font-weight: 700 !important;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child {
+        display: none !important;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label > div[data-testid="stMarkdownContainer"] {
+        width: 100% !important;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) {
+        background: linear-gradient(135deg, #66bb6a 0%, #2e7d32 100%) !important;
+        border-color: #2e7d32 !important;
+        box-shadow: 0 6px 16px rgba(76,175,80,0.4),
+                    inset 0 1px 0 rgba(255,255,255,0.25) !important;
+        transform: translateX(0) !important;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) p {
+        color: #ffffff !important;
+        font-weight: 700 !important;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label[data-checked="true"] {
+        background: linear-gradient(135deg, #66bb6a 0%, #2e7d32 100%) !important;
+        border-color: #2e7d32 !important;
+        box-shadow: 0 6px 16px rgba(76,175,80,0.4) !important;
+    }
+
+    section[data-testid="stSidebar"] hr {
+        border-color: rgba(76,175,80,0.25) !important;
+        margin: 10px 14px !important;
+        opacity: 1 !important;
+    }
 
     .sb-stats { padding: 4px 14px 12px; }
-    .sb-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-    .sb-stat-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 10px 10px; text-align: center; transition: all 0.2s ease; }
-    .sb-stat-card:hover { background: rgba(59,130,246,0.10); border-color: rgba(59,130,246,0.30); transform: translateY(-1px); }
-    .sb-stat-card .sb-stat-icon { font-size: 16px; margin-bottom: 4px; line-height: 1; }
-    .sb-stat-card .sb-stat-value { font-size: 16px; font-weight: 800; color: #ffffff !important; line-height: 1.1; }
-    .sb-stat-card .sb-stat-label { font-size: 8.5px; color: #64748b !important; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-top: 3px; }
-    .sb-stat-card.warn .sb-stat-value { color: #fbbf24 !important; }
-    .sb-stat-card.good .sb-stat-value { color: #4ade80 !important; }
-    .sb-stat-card.blue .sb-stat-value { color: #60a5fa !important; }
+    .sb-stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+    .sb-stat-card {
+        background: #ffffff;
+        border: 1px solid rgba(76,175,80,0.18);
+        border-radius: 10px;
+        padding: 10px 10px;
+        text-align: center;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 4px rgba(76,175,80,0.08);
+    }
+    .sb-stat-card:hover {
+        background: #f1f8e9;
+        border-color: #66bb6a;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(76,175,80,0.20);
+    }
+    .sb-stat-card .sb-stat-icon {
+        font-size: 16px;
+        margin-bottom: 4px;
+        line-height: 1;
+    }
+    .sb-stat-card .sb-stat-value {
+        font-size: 16px;
+        font-weight: 800;
+        color: #1b5e20 !important;
+        line-height: 1.1;
+    }
+    .sb-stat-card .sb-stat-label {
+        font-size: 8.5px;
+        color: #558b2f !important;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 800;
+        margin-top: 3px;
+    }
+    .sb-stat-card.warn .sb-stat-value { color: #e65100 !important; }
+    .sb-stat-card.good .sb-stat-value { color: #2e7d32 !important; }
+    .sb-stat-card.blue .sb-stat-value { color: #1976d2 !important; }
 
-    .sb-date { text-align: center; padding: 10px 14px 6px; font-size: 10px; color: #64748b !important; letter-spacing: 1px; font-weight: 600; text-transform: uppercase; }
+    .sb-date {
+        text-align: center;
+        padding: 10px 14px 6px;
+        font-size: 10px;
+        color: #558b2f !important;
+        letter-spacing: 1px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
 
     section[data-testid="stSidebar"] .stButton > button {
-        background: linear-gradient(135deg, rgba(239,68,68,0.18) 0%, rgba(220,38,38,0.12) 100%) !important;
-        border: 1px solid rgba(239,68,68,0.35) !important;
-        color: #fca5a5 !important; font-weight: 700 !important;
+        background: linear-gradient(135deg, #ffffff 0%, #f1f8e9 100%) !important;
+        border: 1.5px solid rgba(239,68,68,0.35) !important;
+        color: #c62828 !important;
+        font-weight: 800 !important;
         border-radius: 10px !important;
         transition: all 0.2s ease !important;
         margin: 0 14px 16px !important;
         width: calc(100% - 28px) !important;
+        box-shadow: 0 2px 6px rgba(239,68,68,0.10);
     }
     section[data-testid="stSidebar"] .stButton > button:hover {
         background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
         border-color: #ef4444 !important;
         color: #ffffff !important;
-        box-shadow: 0 6px 18px rgba(239,68,68,0.4) !important;
+        box-shadow: 0 6px 14px rgba(239,68,68,0.4) !important;
     }
     section[data-testid="stSidebar"] .stButton > button p,
     section[data-testid="stSidebar"] .stButton > button span,
-    section[data-testid="stSidebar"] .stButton > button div { color: inherit !important; }
+    section[data-testid="stSidebar"] .stButton > button div {
+        color: inherit !important;
+    }
 
     /* DASHBOARD */
     .dash-hero { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%); border-radius: 20px; padding: 26px 32px; margin-bottom: 22px; color: #fff; position: relative; overflow: hidden; box-shadow: 0 12px 32px rgba(37, 99, 235, 0.35); }
@@ -453,10 +653,10 @@ components.html("""
             btn.title = 'Sidebar';
             btn.innerHTML = '\\u2630';
             var s = {'position':'fixed','top':'14px','left':'14px','z-index':'2147483647',
-                'background':'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                'background':'linear-gradient(135deg, #66bb6a 0%, #2e7d32 100%)',
                 'color':'#fff','border':'none','border-radius':'10px','padding':'8px 14px',
                 'font-size':'18px','font-weight':'bold','cursor':'pointer',
-                'box-shadow':'0 4px 14px rgba(59,130,246,0.5)'};
+                'box-shadow':'0 4px 14px rgba(76,175,80,0.5)'};
             for (var k in s) btn.style.setProperty(k, s[k], 'important');
             btn.onclick = function() {
                 var targets = ['[data-testid="stSidebarCollapseButton"] button',
@@ -790,7 +990,6 @@ def get_effective_discount_pct(shop_name, bill_total):
     return get_package_discount_pct(bill_total)
 
 def get_dsr_credit_info(dsr):
-    """Returns (total_credit, {shop: amount}, [credit_details])"""
     booker = dsr.get("booker", "").strip()
     credit_total = 0.0
     credit_shops = {}
@@ -861,7 +1060,7 @@ def export_single_group_bill(shop, date_str, booker, salesman, items, bill_no):
     ws.write("G3","Bill No",header); ws.write("H3", bill_no, cell_center)
     ws.write("I3","Date",header); ws.write("J3", date_str, cell_center)
     if wholesaler_rule_active() and is_wholesaler(shop):
-        ws.merge_range("A4:J4", f"🏢 Wholesaler — Flat {pkg_pct}% discount", pkg_info)
+        ws.merge_range("A4:J4", f"🏢 Wholesaler — Flat {pkg_pct}%", pkg_info)
     elif pkg_pct > 0:
         ws.merge_range("A4:J4", f"🎁 Best Discount: {pkg_name} | {tier_label} | {pkg_pct}%", pkg_info)
     else:
@@ -875,12 +1074,9 @@ def export_single_group_bill(shop, date_str, booker, salesman, items, bill_no):
         b_net = float(it.get("Net", 0)); b_gross = float(it.get("Gross", 0))
         b_boxes = int(it.get("Boxes", 0))
         after_net = b_net - (b_net * pkg_pct / 100); saved = b_net - after_net
-        ws.write(row, 0, it.get("Product",""), cell_left)
-        ws.write(row, 1, it.get("Code",""), cell_center)
-        ws.write(row, 2, b_boxes, cell_center)
-        ws.write(row, 3, it.get("TP/Box", 0), cell_center)
-        ws.write(row, 4, b_gross, cell_center)
-        ws.write(row, 5, it.get("Discount %", 0), cell_center)
+        ws.write(row, 0, it.get("Product",""), cell_left); ws.write(row, 1, it.get("Code",""), cell_center)
+        ws.write(row, 2, b_boxes, cell_center); ws.write(row, 3, it.get("TP/Box", 0), cell_center)
+        ws.write(row, 4, b_gross, cell_center); ws.write(row, 5, it.get("Discount %", 0), cell_center)
         ws.write(row, 6, b_net, cell_center)
         if pkg_pct > 0:
             ws.write(row, 7, pkg_pct, disc_hl); ws.write(row, 8, after_net, disc_hl); ws.write(row, 9, saved, disc_hl)
@@ -894,10 +1090,6 @@ def export_single_group_bill(shop, date_str, booker, salesman, items, bill_no):
     row += 2
     ws.merge_range(row, 0, row, 6, "NET AMOUNT (After Discount)", header)
     ws.merge_range(row, 7, row, 9, f"Rs {after_disc_total:,.0f}", total)
-    row += 1
-    if pkg_pct > 0:
-        ws.merge_range(row, 0, row, 6, "TOTAL SAVED", header)
-        ws.merge_range(row, 7, row, 9, f"Rs {saved_total:,.0f}", total)
     workbook.close(); output.seek(0)
     fname = f"{shop}_{date_str.replace('-','')}.xlsx".replace("/","-").replace(" ","_").replace(":","")
     st.session_state["download_file"] = (fname, output.getvalue())
@@ -924,6 +1116,13 @@ def export_dsr_excel(dsr):
     highlight = wb.add_format({"bold":True, "font_size":12, "bg_color":"#E8F5E9", "align":"center", "border":2})
     credit_fmt = wb.add_format({"bold":True, "font_size":12, "bg_color":"#F3E5F5", "align":"center", "border":2, "font_color":"#6a1b9a"})
     final_fmt = wb.add_format({"bold":True, "font_size":13, "bg_color":"#C8E6C9", "align":"center", "border":2, "font_color":"#1b5e20"})
+
+    # Calc section formats
+    calc_title = wb.add_format({"bold":True, "font_size":13, "align":"center", "border":2, "bg_color":"#C8E6C9", "font_color":"#1b5e20"})
+    calc_hdr = wb.add_format({"bold":True, "font_size":11, "bg_color":"#A5D6A7", "align":"center", "border":2, "font_color":"#1b5e20"})
+    calc_cell = wb.add_format({"font_size":11, "border":1, "align":"center"})
+    calc_num = wb.add_format({"font_size":11, "border":1, "align":"right", "num_format": "#,##0"})
+    calc_total = wb.add_format({"bold":True, "font_size":12, "bg_color":"#FFF9C4", "align":"center", "border":2, "font_color":"#F57F17"})
 
     ws.set_column("A:A", 10); ws.set_column("B:B", 40); ws.set_column("C:C", 10)
     ws.set_column("D:D", 12); ws.set_column("E:E", 14); ws.set_column("F:F", 10); ws.set_column("G:G", 14)
@@ -961,6 +1160,52 @@ def export_dsr_excel(dsr):
     ws.merge_range(row, 5, row, 6, f"Rs {credit_total:,.0f}", credit_fmt); row += 1
     ws.merge_range(row, 0, row, 4, "💰 FINAL YE LENA HAI", final_fmt)
     ws.merge_range(row, 5, row, 6, f"Rs {final_amount:,.0f}", final_fmt); row += 2
+
+    # ============================================================
+    # CASH CALCULATION SECTION (NEW)
+    # ============================================================
+    ws.merge_range(row, 0, row, 6, "🧮 CASH CALCULATION (Notes + Coins)", calc_title); row += 1
+    ws.write(row, 0, "Type", calc_hdr); ws.write(row, 1, "Denomination", calc_hdr)
+    ws.write(row, 2, "Qty", calc_hdr); ws.write(row, 3, "Amount", calc_hdr)
+    ws.write(row, 4, "Type", calc_hdr); ws.write(row, 5, "Denomination", calc_hdr)
+    ws.write(row, 6, "Qty", calc_hdr); row += 1
+    # Two columns layout: Notes (left), Coins (right)
+    notes = [(5000, "₹5000"), (1000, "₹1000"), (500, "₹500"), (100, "₹100"), (50, "₹50"), (20, "₹20"), (10, "₹10")]
+    coins = [(5, "₹5"), (2, "₹2"), (1, "₹1")]
+    calc_total_amount = 0
+    max_rows = max(len(notes), len(coins))
+    calc_start_row = row
+    for i in range(max_rows):
+        # Notes side (cols A-D)
+        if i < len(notes):
+            d, label = notes[i]
+            qty = i + 1
+            amt = d * qty
+            calc_total_amount += amt
+            ws.write(row, 0, "💵 Note", calc_cell)
+            ws.write(row, 1, label, calc_cell)
+            ws.write(row, 2, qty, calc_cell)
+            ws.write(row, 3, amt, calc_num)
+        # Coins side (cols E-G)
+        if i < len(coins):
+            d, label = coins[i]
+            qty = 1
+            amt = d * qty
+            calc_total_amount += amt
+            ws.write(row, 4, "🪙 Coin", calc_cell)
+            ws.write(row, 5, label, calc_cell)
+            ws.write(row, 6, qty, calc_cell)
+        row += 1
+    # Add extra blank calc rows for coins section
+    for _ in range(2):
+        ws.write(row, 4, "🪙 Coin", calc_cell)
+        ws.write(row, 5, "", calc_cell)
+        ws.write(row, 6, "", calc_cell)
+        row += 1
+    # Empty amount column - user can fill
+    ws.merge_range(row, 0, row, 6, "🖊️  KHALI COLUMNS MEIN APNI QTY LIKHO  —  Excel mein multiply karke total nikaalo",
+                   wb.add_format({"font_size":10, "italic":True, "align":"center", "font_color":"#666666"}))
+    row += 2
 
     ws.merge_range(row, 0, row, 6, "Shop-wise Discount + Credit", header); row += 1
     ws.write(row, 0, "Shop", header); ws.write(row, 1, "Gross", header)
@@ -1077,8 +1322,8 @@ with st.sidebar:
             <div class="sb-stat-card warn"><div class="sb-stat-icon">💳</div><div class="sb-stat-value">{pending_credit}</div><div class="sb-stat-label">Cr. Pending</div></div>
             <div class="sb-stat-card good"><div class="sb-stat-icon">🎁</div><div class="sb-stat-value">{len(active_pkgs)}</div><div class="sb-stat-label">Pkgs Active</div></div>
         </div>
-        <div style="text-align:center;font-size:10px;color:#94a3b8;padding:4px 0 8px;">
-            Pending Credit: <b style="color:#fbbf24;">Rs {pending_amt:,.0f}</b>
+        <div style="text-align:center;font-size:10px;color:#558b2f;padding:4px 0 8px;font-weight:700;">
+            Pending Credit: <b style="color:#e65100;">Rs {pending_amt:,.0f}</b>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1181,21 +1426,18 @@ def render_dashboard():
 def render_discount():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🎁 Discount Settings</h1>", unsafe_allow_html=True)
     st.markdown("---")
-
     st.markdown("### 🏢 Wholesaler Special Rule")
     st.caption("Agar shop ke naam mein **'whole seller'** ho to special flat discount milega")
     wh_on = bool(db.get("wholesaler_rule_enabled", True))
     wh_pct = get_wholesaler_pct()
     card_class = "wholesaler-card" if wh_on else "wholesaler-card off"
     badge = '<span class="wholesaler-badge-on">✅ ON</span>' if wh_on else '<span class="wholesaler-badge-off">⭕ OFF</span>'
-
     st.markdown(f"""
     <div class="{card_class}">
         <div class="wholesaler-title">🏢 Wholesaler Rule {badge}</div>
         <div class="wholesaler-desc">Jab bhi kisi shop ke naam mein "whole seller" likha ho, usko <b>{wh_pct}%</b> ka flat discount milega.</div>
     </div>
     """, unsafe_allow_html=True)
-
     wc1, wc2, wc3 = st.columns([1, 1, 2])
     with wc1:
         new_on = st.checkbox("🏢 Rule Enable Karo", value=wh_on, key="wholesaler_toggle")
@@ -1213,7 +1455,6 @@ def render_discount():
         st.markdown(f"""<div class="hint-box" style="background:#f3e5f5;border-left-color:#8e24aa;color:#6a1b9a !important;margin-top:6px;">
         💡 <b>Current:</b> {'<span style="color:#2e7d32;font-weight:800;">Active</span> — Wholesaler shops ko ' + str(wh_pct) + '% milega' if wh_on else '<span style="color:#c62828;font-weight:800;">Disabled</span> — normal package discount chalega'}
         </div>""", unsafe_allow_html=True)
-
     st.markdown("---")
     pkgs = db.get("discount_packages", [])
     if not pkgs:
@@ -1223,7 +1464,6 @@ def render_discount():
         if "tier3_pct" not in p: p["tier3_pct"] = 0.0
     active_names = [p.get("name", "Package") for p in pkgs if p.get("active")]
     active_str = ", ".join(active_names) if active_names else "Koi nahi"
-
     st.markdown("### 🎁 Discount Packages")
     st.markdown(f"""
     <div class='summary-box'>
@@ -1232,7 +1472,6 @@ def render_discount():
         <br><span style='font-size:12px;color:#0277bd;'>Har package apne aap check hoga — jo sabse zyada % de raha ho, wahi apply hoga.</span>
     </div>
     """, unsafe_allow_html=True)
-
     for i, pkg in enumerate(pkgs):
         pid = pkg.get("id", i+1)
         is_active = pkg.get("active", False)
@@ -1249,7 +1488,6 @@ def render_discount():
         with c2:
             new_name = st.text_input(f"Package {pid} Name", value=pkg.get("name", f"Package {pid}"), key=f"pkgname_{pid}", label_visibility="collapsed")
         st.markdown(f"<div style='font-size:13px;color:#{'2e7d32' if is_active else '1976d2'};font-weight:800;margin:2px 0 4px 0;'>🎁 {pkg.get('name','Package')} {badge}</div>", unsafe_allow_html=True)
-
         t1, t2, t3 = st.columns(3)
         with t1:
             st.markdown("<div style='font-size:11px;font-weight:700;color:#1976d2;'>Tier 1</div>", unsafe_allow_html=True)
@@ -1266,7 +1504,6 @@ def render_discount():
             tc1, tc2 = st.columns(2)
             with tc1: ta3 = st.number_input("Min", value=float(pkg.get("tier3_amount", 0) or 0), min_value=0.0, step=50.0, key=f"t3a_{pid}", label_visibility="collapsed"); st.caption("Min Rs")
             with tc2: tp3 = st.number_input("%", value=float(pkg.get("tier3_pct", 0) or 0), min_value=0.0, max_value=100.0, step=0.5, key=f"t3p_{pid}", label_visibility="collapsed"); st.caption("Disc %")
-
         sc1, sc2 = st.columns([1, 5])
         with sc1:
             if st.button("💾 Save", key=f"savepkg_{pid}", use_container_width=True, type="primary"):
@@ -1275,14 +1512,12 @@ def render_discount():
                         pp["name"] = new_name.strip() or f"Package {pid}"
                         pp["tier1_amount"] = float(ta1); pp["tier1_pct"] = float(tp1)
                         pp["tier2_amount"] = float(ta2); pp["tier2_pct"] = float(tp2)
-                        pp["tier3_amount"] = float(ta3); pp["tier3_pct"] = float(tp3)
-                        break
+                        pp["tier3_amount"] = float(ta3); pp["tier3_pct"] = float(tp3); break
                 save_database(db); st.session_state["success_msg"] = "✅ Package saved"; st.rerun()
         with sc2:
             st.markdown(f"<div style='padding-top:10px;font-size:11px;color:#0277bd;'>&gt; Rs {ta1:,.0f} → {tp1}% | &gt; Rs {ta2:,.0f} → {tp2}% | &gt; Rs {ta3:,.0f} → {tp3}%</div>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
         st.markdown("<hr style='margin:8px 0;'>", unsafe_allow_html=True)
-
     if st.session_state.get("success_msg"):
         st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
 
@@ -1294,7 +1529,6 @@ def render_all_products():
     st.markdown("---")
     if "custom_products" not in db: db["custom_products"] = []
     all_products = get_all_products()
-
     with st.expander("➕ Naya Product Add Karo (Single)", expanded=False):
         c1, c2, c3, c4 = st.columns([1.5, 3.5, 1.5, 1])
         with c1: new_code = st.text_input("Code:", key="new_prod_code")
@@ -1316,7 +1550,6 @@ def render_all_products():
                         save_database(db)
                         st.session_state["success_msg"] = f"✅ '{name_s}' add"
                         st.rerun()
-
     with st.expander("📤 Bulk Upload", expanded=False):
         st.markdown("**Format:** Code, Name, Price")
         uploaded_file = st.file_uploader("Excel/CSV:", type=["xlsx", "xls", "csv"], key="bulk_upload_file")
@@ -1349,7 +1582,6 @@ def render_all_products():
         sample_out.seek(0)
         st.download_button("⬇️ Sample Template", data=sample_out.getvalue(), file_name="product_upload_template.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", key="dl_sample_template")
-
     st.markdown("### 🔍 Search / Manage")
     c1, c2 = st.columns([3, 2])
     with c1: search = st.text_input("🔍 Search:", key="prod_search")
@@ -1366,24 +1598,20 @@ def render_all_products():
         if show_only_edited and str(p["code"]) not in edited_prices: continue
         if show_only_custom and str(p["code"]) not in custom_codes: continue
         shown.append(p)
-
     st.markdown(f"""<div class='summary-box'><b style='color:#1976d2;font-size:16px;'>📊 Summary</b><br><span style='color:#0277bd;'>
         Total: <b>{len(all_products)}</b> | 🆕 Custom: <b>{len(db.get('custom_products', []))}</b> |
         Showing: <b>{len(shown)}</b> | Edited: <b>{len(edited_prices)}</b></span></div>""", unsafe_allow_html=True)
-
     if edited_prices:
         if st.button("🔄 Reset All Prices", key="reset_all_prices"):
             db["product_prices"] = {}; save_database(db)
             st.session_state["success_msg"] = "✅ Reset"
             st.rerun()
-
     st.markdown("---")
     if not shown:
         st.info("Koi product nahi mila.")
         if st.session_state.get("success_msg"):
             st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
         return
-
     st.markdown(f"### 📋 Products ({len(shown)})")
     for p in shown:
         code = str(p["code"]); base = float(p["price"]); current = get_price(code, base)
@@ -1422,7 +1650,6 @@ def render_all_products():
                     st.session_state["success_msg"] = f"🗑 '{p['name']}' deleted"
                     st.rerun()
             else: st.markdown("<div style='text-align:center;color:#bbb;padding-top:8px;'>—</div>", unsafe_allow_html=True)
-
     if st.session_state.get("success_msg"):
         st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
 
@@ -1501,7 +1728,6 @@ def render_salaries(role_type):
     st.markdown("---")
     if sal_key not in db: db[sal_key] = {}
     if not names: st.info(f"❌ Pehle **{other_page}** pe add karo."); return
-
     total_base = 0; total_adv_pending = 0; total_adv_paid = 0
     total_short_pending = 0; total_short_paid = 0
     for n in names:
@@ -1516,12 +1742,10 @@ def render_salaries(role_type):
                 if is_pending: total_short_pending += t["amount"]
                 else: total_short_paid += t["amount"]
     total_remaining = total_base - total_adv_pending - total_short_pending
-
     st.markdown(f"""<div class='summary-box'><b style='color:#1976d2;font-size:16px;'>📊 Summary</b><br>
         <span style='color:#0277bd;'>Base: <b>Rs {total_base:,.0f}</b> | Adv Pend: <b>Rs {total_adv_pending:,.0f}</b> |
         Adv Paid: <b>Rs {total_adv_paid:,.0f}</b> | Short Pend: <b>Rs {total_short_pending:,.0f}</b> |
         Short Paid: <b>Rs {total_short_paid:,.0f}</b> | <b style='color:#1b5e20;'>Remaining: Rs {total_remaining:,.0f}</b></span></div>""", unsafe_allow_html=True)
-
     for person_name in names:
         sd = db[sal_key].get(person_name, {"base_salary": 0, "transactions": []})
         base = sd.get("base_salary", 0); txns = sd.get("transactions", [])
@@ -1713,11 +1937,9 @@ def render_billing():
         st.markdown(f"<div class='hint-box'>🎁 Active: <b>{names}</b></div>", unsafe_allow_html=True)
     if wholesaler_rule_active():
         st.markdown(f"<div class='hint-box' style='background:#f3e5f5;border-left-color:#8e24aa;color:#6a1b9a !important;'>🏢 Wholesaler rule <b>ON</b> — {get_wholesaler_pct()}%</div>", unsafe_allow_html=True)
-
     c1, c2 = st.columns(2)
     with c1: st.text_input("Bill No:", value=str(db["next_bill_no"]), disabled=True, key="dash_bill_no")
     with c2: st.text_input("Date:", value=datetime.now().strftime("%d-%m-%Y"), disabled=True, key="dash_bill_date")
-
     c1, c2, c3 = st.columns(3)
     with c1:
         shop_name = st.text_input("Shop:", key="shop_name")
@@ -1737,7 +1959,6 @@ def render_billing():
             sel = st.selectbox("Salesman:", options=options, key="salesman_select")
             st.session_state["salesman"] = "" if sel == "-- Select --" else sel
         else: st.text_input("Salesman:", key="salesman")
-
     c1, c2 = st.columns([1, 3])
     with c1: search_text = st.text_input("🔍 Search:", key="search_text")
     with c2:
@@ -1747,7 +1968,6 @@ def render_billing():
         if st.session_state.get("product_sel") and st.session_state["product_sel"] not in filtered_names:
             st.session_state["product_sel"] = ""
         product_sel = st.selectbox("Product:", options=[""] + filtered_names, key="product_sel")
-
     selected_product = None
     if product_sel:
         for p in get_all_products():
@@ -1759,7 +1979,6 @@ def render_billing():
     else: st.error("No Product Selected"); tp_default = 0.0
     if st.session_state["_prev_prod"] != product_sel:
         st.session_state["tp_box"] = tp_default; st.session_state["_prev_prod"] = product_sel
-
     c1, c2, c3, c4, c5 = st.columns(5)
     with c1: boxes = st.number_input("Boxes:", min_value=0, step=1, key="boxes")
     with c2: tp_box = st.number_input("TP/Box:", min_value=0.0, step=1.0, key="tp_box")
@@ -1767,21 +1986,17 @@ def render_billing():
     gross = boxes * tp_box; net = gross - (gross * discount / 100)
     with c4: st.text_input("Gross:", value=f"{gross:.0f}", disabled=True, key="gross_disp")
     with c5: st.text_input("Net:", value=f"{net:.0f}", disabled=True, key="net_disp")
-
     if st.session_state.get("success_msg"):
         st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
     if st.session_state.get("error_msg"):
         st.error(st.session_state["error_msg"]); st.session_state["error_msg"] = None
-
     b1, b2 = st.columns(2)
     with b1: st.button("➕ Add Bill", key="btn_add", on_click=add_bill_callback, use_container_width=True, type="primary")
     with b2: st.button("🔄 Refresh", key="btn_refresh", on_click=refresh_callback, use_container_width=True)
-
     e1, e2, e3 = st.columns(3)
     with e1: st.button("📄 Export Bill", key="btn_export", on_click=export_bill_callback, use_container_width=True)
     with e2: st.button("📦 Export Load Form", key="btn_export_lf", on_click=export_load_form_from_billing_callback, use_container_width=True)
     with e3: st.button("🔄 Refresh Load Form", key="btn_load_refresh", on_click=refresh_load_form_callback, use_container_width=True)
-
     st.markdown("""<div class='hint-box' style='margin-top:8px;background:#fff8e1;border-left-color:#ffa000;color:#e65100 !important;'>
         💡 Same booker ke multiple bills → <b>SAME Load Form update</b>. <b>🔄 Refresh Load Form</b> ke baad next export se <b>NAYA Load Form</b>.
     </div>""", unsafe_allow_html=True)
@@ -1799,7 +2014,6 @@ def render_bills_list():
     for cb in credit_bills:
         k = (cb.get("shop", ""), cb.get("date", ""), cb.get("booker", ""), cb.get("bill_no", ""))
         credit_map[k] = cb
-
     today = date.today()
     c1, c2, c3 = st.columns(3)
     with c1: filter_mode = st.selectbox("Filter Mode:", ["📅 Aaj (Today)", "📆 Custom Range", "🗓️ Specific", "📋 All Bills"], key="bills_filter_mode")
@@ -1810,7 +2024,6 @@ def render_bills_list():
     with c2:
         shops_list = sorted(set(b["Shop"] for b in db["bills"] if b["Shop"]))
         shop_filter = st.selectbox("Shop:", options=["All"] + shops_list, key="shop_filter")
-
     groups = {}
     for orig_idx, b in enumerate(db["bills"]):
         bdate = parse_date(b.get("Date", ""))
@@ -1832,7 +2045,6 @@ def render_bills_list():
             "Boxes": b.get("Boxes"), "TP/Box": b.get("TP/Box"),
             "Discount %": b.get("Discount %"), "Gross": b.get("Gross"), "Net": b.get("Net")})
         groups[key]["orig_indices"].append(orig_idx)
-
     if not groups: st.warning("❌ Koi bill nahi mila."); return
     all_items = []
     for g in groups.values(): all_items.extend(g["items"])
@@ -1843,7 +2055,6 @@ def render_bills_list():
     st.markdown(f"""<div class='summary-box'><b style='color:#1976d2;font-size:16px;'>📊 Summary</b><br>
         <span style='color:#0277bd;'>Bills: <b>{len(groups)}</b> | Boxes: <b>{total_boxes}</b> | Shops: <b>{unique_shops}</b> |
         Gross: <b>Rs {total_gross:,.0f}</b> | Net: <b>Rs {total_net:,.0f}</b></span></div>""", unsafe_allow_html=True)
-
     st.markdown(f"### 📋 Bills ({len(groups)})")
     sorted_keys = sorted(groups.keys(), key=lambda k: (parse_date(k[1]) or date.min, k[0]), reverse=True)
     for idx, key in enumerate(sorted_keys):
@@ -1989,7 +2200,6 @@ def render_credit_bills():
         shops_list = sorted(set(c.get("shop", "") for c in credit_bills if c.get("shop")))
         shop_filter = st.selectbox("Shop:", ["All"] + shops_list, key="credit_shop_filter")
     with c3: search = st.text_input("🔍 Search:", key="credit_search")
-
     filtered = []
     for c in credit_bills:
         cdate = parse_date(c.get("date", ""))
@@ -2226,13 +2436,11 @@ def transfer_load_form_to_dsr(lf_id):
         dsr_items.append({"Code": code, "Product": it.get("Product", ""), "Boxes": boxes,
             "TP/Box": float(price), "Total": line_total, "ReturnBoxes": 0, "ReturnAmount": 0.0})
         total_boxes += boxes; total_amount += line_total
-
     booker_bills = [b for b in db.get("bills", []) if b.get("Order Booker", "").strip() == booker]
     shop_groups = {}
     source_bills = []
     for b in booker_bills:
-        shop = b.get("Shop", "-") or "-"
-        bill_no = b.get("Bill No", "")
+        shop = b.get("Shop", "-") or "-"; bill_no = b.get("Bill No", "")
         net = float(b.get("Net", 0)); gross = float(b.get("Gross", 0))
         if shop not in shop_groups:
             shop_groups[shop] = {"shop": shop, "gross": 0.0, "net": 0.0, "individual_discount": 0.0, "bill_nos": set()}
@@ -2241,7 +2449,6 @@ def transfer_load_form_to_dsr(lf_id):
         shop_groups[shop]["individual_discount"] += (gross - net)
         shop_groups[shop]["bill_nos"].add(bill_no)
         source_bills.append({"shop": shop, "bill_no": bill_no, "net": net})
-
     shop_discounts = []; total_discount = 0.0
     for shop, g in shop_groups.items():
         pkg_pct, pkg_name, _ = get_effective_discount_pct(shop, g["net"])
@@ -2252,7 +2459,6 @@ def transfer_load_form_to_dsr(lf_id):
             "package_name": pkg_name or "", "package_discount": pkg_discount,
             "total_discount": shop_total_discount, "bill_nos": sorted([str(x) for x in g["bill_nos"]])})
         total_discount += shop_total_discount
-
     if "dsr_forms" not in db: db["dsr_forms"] = []
     next_id = 1
     if db["dsr_forms"]: next_id = max(x.get("id", 0) for x in db["dsr_forms"]) + 1
@@ -2264,7 +2470,7 @@ def transfer_load_form_to_dsr(lf_id):
         "total_return_boxes": 0, "total_return_amount": 0.0, "net_amount": total_amount,
         "shop_discounts": shop_discounts, "total_discount": total_discount,
         "amount_to_collect": total_amount - total_discount,
-        "source_bills": source_bills,  # ← IMPORTANT: Store for credit matching
+        "source_bills": source_bills,
         "status": "open", "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     }
     db["dsr_forms"].append(dsr_record)
@@ -2301,7 +2507,6 @@ def render_dsr():
         if booker_filter != "All" and d.get("booker") != booker_filter: continue
         filtered.append(d)
     if not filtered: st.warning("❌ Koi DSR nahi."); return
-
     total_dsr = len(filtered)
     total_boxes = sum(d.get("total_boxes", 0) for d in filtered)
     total_amt = sum(float(d.get("total_amount", 0)) for d in filtered)
@@ -2313,14 +2518,12 @@ def render_dsr():
         ct, _, _ = get_dsr_credit_info(d)
         total_credit += ct
         total_final += float(d.get("amount_to_collect", 0)) - ct
-
     st.markdown(f"""<div class='summary-box'><b style='color:#1976d2;font-size:16px;'>📊 Overall Summary</b><br>
         <span style='color:#0277bd;'>DSR: <b>{total_dsr}</b> | Boxes: <b>{total_boxes}</b> |
         Stock: <b>Rs {total_amt:,.0f}</b> | Returns: <b>Rs {total_ret_amt:,.0f}</b> |
         Discount: <b>Rs {total_disc:,.0f}</b> |
         💳 Credit: <b style="color:#6a1b9a;">Rs {total_credit:,.0f}</b> |
         <b style='color:#c62828;'>FINAL YE LENA HAI: Rs {total_final:,.0f}</b></span></div>""", unsafe_allow_html=True)
-
     st.markdown("---")
     sorted_dsr = sorted(filtered, key=lambda x: x.get("created_at", ""), reverse=True)
     for idx, dsr in enumerate(sorted_dsr):
@@ -2365,19 +2568,16 @@ def render_dsr_detail(dsr):
     dsr_id = dsr["id"]
     credit_total, credit_shops, credit_details = get_dsr_credit_info(dsr)
     final_amount = float(dsr.get("amount_to_collect", 0)) - credit_total
-
     st.markdown(f"""<div class='full-bill-box dsr'>
         <div class='full-bill-title'>📋 DSR #{dsr_id} — {dsr.get('booker','')}</div>
         <div class='full-bill-meta'>📅 {dsr.get('date','')} · 🕐 {dsr.get('time','')} · 📦 {dsr.get('total_boxes',0)} boxes · 🔗 LF #{dsr.get('source_load_form_id','-')}</div>
     </div>""", unsafe_allow_html=True)
-
     cc1, cc2, cc3, cc4, cc5 = st.columns(5)
     with cc1: st.markdown(f"<div class='metric-card'><h3>STOCK</h3><h1>Rs {float(dsr.get('total_amount',0)):,.0f}</h1></div>", unsafe_allow_html=True)
     with cc2: st.markdown(f"<div class='metric-card'><h3>DISCOUNT</h3><h1>Rs {float(dsr.get('total_discount',0)):,.0f}</h1></div>", unsafe_allow_html=True)
     with cc3: st.markdown(f"<div class='metric-card'><h3>RETURNS</h3><h1>Rs {float(dsr.get('total_return_amount',0)):,.0f}</h1></div>", unsafe_allow_html=True)
     with cc4: st.markdown(f"<div class='metric-card'><h3>💳 CREDIT</h3><h1>Rs {credit_total:,.0f}</h1></div>", unsafe_allow_html=True)
     with cc5: st.markdown(f"<div class='metric-card'><h3>FINAL LENA</h3><h1>Rs {final_amount:,.0f}</h1></div>", unsafe_allow_html=True)
-
     st.markdown("### 📦 Return Boxes Daalo")
     df = pd.DataFrame([{
         "Code": str(it.get("Code", "")), "Product": it.get("Product", ""),
@@ -2401,7 +2601,6 @@ def render_dsr_detail(dsr):
             _ = st.number_input(f"Return: {it.get('Product','')} (max {it.get('Boxes',0)})",
                 min_value=0, max_value=int(it.get("Boxes", 0)),
                 value=int(it.get("ReturnBoxes", 0)), step=1, key=f"fb_{dsr_id}_{j}")
-
     if st.button("💾 Save Returns", key=f"save_returns_{dsr_id}", use_container_width=True, type="primary"):
         total_ret_boxes = 0; total_ret_amt = 0.0; updated_items = []
         if edited is not None:
@@ -2433,7 +2632,6 @@ def render_dsr_detail(dsr):
         save_database(db)
         st.session_state["success_msg"] = f"✅ Saved | {total_ret_boxes} boxes = Rs {total_ret_amt:,.0f}"
         st.rerun()
-
     st.markdown("### 🏪 Shop-wise Discount + Credit")
     shop_discs = dsr.get("shop_discounts", [])
     if shop_discs:
@@ -2449,9 +2647,7 @@ def render_dsr_detail(dsr):
         st.dataframe(pd.DataFrame(shop_rows), use_container_width=True, hide_index=True)
         st.markdown(f"""<div class='hint-box'>💰 Total Discount: <b>Rs {float(dsr.get('total_discount',0)):,.0f}</b>
             &nbsp;|&nbsp; 💳 Credit Deducted: <b style="color:#6a1b9a;">Rs {credit_total:,.0f}</b></div>""", unsafe_allow_html=True)
-    else:
-        st.info("Koi shop discount nahi.")
-
+    else: st.info("Koi shop discount nahi.")
     if credit_details:
         st.markdown("### 💳 Credit Bills (is DSR se credit gaye)")
         for cd in credit_details:
@@ -2464,7 +2660,6 @@ def render_dsr_detail(dsr):
                 <div style='font-weight:800;color:#c62828;'>− Rs {cd['amount']:,.0f}</div>
             </div>""", unsafe_allow_html=True)
         st.markdown(f"<div class='hint-box'>💳 Total Credit Deducted: <b>Rs {credit_total:,.0f}</b></div>", unsafe_allow_html=True)
-
     st.markdown("### 🧮 Final Calculation")
     st.markdown(f"""
     <div class='summary-box'>
@@ -2476,7 +2671,6 @@ def render_dsr_detail(dsr):
         <div class='dsr-summary-line credit'><b style='color:#6a1b9a;'>(−) Credit Bills:</b><span style='float:right;color:#6a1b9a;font-weight:700;'>Rs {credit_total:,.0f}</span></div>
         <div class='dsr-summary-line total'>💰 <b>FINAL YE LENA HAI:</b><span style='float:right;font-weight:800;'>Rs {final_amount:,.0f}</span></div>
     </div>""", unsafe_allow_html=True)
-
     ac1, ac2 = st.columns([1, 1])
     with ac1:
         if st.button("❌ Close", key=f"close_dsr_view_{dsr_id}", use_container_width=True):
@@ -2486,35 +2680,20 @@ def render_dsr_detail(dsr):
             export_dsr_excel(dsr); st.rerun()
 
 # ============================================================
-# PAGE: CALCULATION (NEW)
+# PAGE: CALCULATION
 # ============================================================
 def render_calculation():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🧮 Cash Calculation</h1>", unsafe_allow_html=True)
     st.markdown("<p style='color:#0277bd;font-weight:500;'>Notes aur coins count karo — total nikal aayega</p>", unsafe_allow_html=True)
     st.markdown("---")
-
     denominations = [
-        ("💵 Notes", [
-            (5000, "₹5000"),
-            (1000, "₹1000"),
-            (500, "₹500"),
-            (100, "₹100"),
-            (50, "₹50"),
-            (20, "₹20"),
-            (10, "₹10"),
-        ]),
-        ("🪙 Coins", [
-            (5, "₹5"),
-            (2, "₹2"),
-            (1, "₹1"),
-        ]),
+        ("💵 Notes", [(5000, "₹5000"), (1000, "₹1000"), (500, "₹500"),
+                      (100, "₹100"), (50, "₹50"), (20, "₹20"), (10, "₹10")]),
+        ("🪙 Coins", [(5, "₹5"), (2, "₹2"), (1, "₹1")]),
     ]
-
     if "calc_reset_token" not in st.session_state:
         st.session_state["calc_reset_token"] = 0
-
     total_amount = 0
-
     for section_name, denoms in denominations:
         st.markdown(f'<div class="calc-section-hdr">{section_name}</div>', unsafe_allow_html=True)
         hc1, hc2, hc3 = st.columns([2, 2, 3])
@@ -2523,8 +2702,7 @@ def render_calculation():
         with hc3: st.markdown("**Amount**")
         for d, label in denoms:
             c1, c2, c3 = st.columns([2, 2, 3])
-            with c1:
-                st.markdown(f'<div class="calc-row-label">{label}</div>', unsafe_allow_html=True)
+            with c1: st.markdown(f'<div class="calc-row-label">{label}</div>', unsafe_allow_html=True)
             with c2:
                 qty_key = f"calc_qty_{d}_{st.session_state['calc_reset_token']}"
                 qty = st.number_input(f"Qty {d}", min_value=0, step=1, value=0,
@@ -2533,7 +2711,6 @@ def render_calculation():
                 amount = qty * d
                 total_amount += amount
                 st.markdown(f'<div class="calc-row-amt">Rs {amount:,.0f}</div>', unsafe_allow_html=True)
-
     st.markdown("---")
     c1, c2, c3 = st.columns([1, 1, 2])
     with c1:
@@ -2546,17 +2723,14 @@ def render_calculation():
             st.session_state["calc_locked_total"] = 0
             st.session_state["calc_locked_at"] = ""
             st.rerun()
-
     st.markdown(f"""
     <div class="calc-total-box">
         <div class="calc-total-label">Live Total</div>
         <div class="calc-total-value">Rs {total_amount:,.0f}</div>
     </div>
     """, unsafe_allow_html=True)
-
     locked_total = st.session_state.get("calc_locked_total", 0)
     locked_at = st.session_state.get("calc_locked_at", "")
-
     if locked_total and locked_total > 0:
         st.markdown(f"""
         <div class="calc-total-box locked" style="margin-top:10px;">
