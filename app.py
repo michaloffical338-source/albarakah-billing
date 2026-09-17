@@ -1,8 +1,8 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
 # + Admin + Booker separate login
-# + Booker billing flow → bills auto-save to admin DB
-# + Booker load form → auto-save to admin DB
+# + Booker: Bill → admin Bills List (no download)
+# + Booker: Load Form → admin Load Form list
 # ============================================================
 
 import os
@@ -85,7 +85,7 @@ def default_discount_packages():
     ]
 
 # ============================================================
-# CSS
+# GLOBAL CSS
 # ============================================================
 st.markdown("""
 <style>
@@ -312,6 +312,66 @@ st.markdown("""
     section[data-testid="stSidebar"] .stButton > button p,
     section[data-testid="stSidebar"] .stButton > button span,
     section[data-testid="stSidebar"] .stButton > button div { color: inherit !important; }
+
+    /* ============================================================
+       PROFESSIONAL DASHBOARD
+       ============================================================ */
+    .dash-hero {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%);
+        border-radius: 20px; padding: 26px 32px; margin-bottom: 22px;
+        color: #fff; position: relative; overflow: hidden;
+        box-shadow: 0 12px 32px rgba(37, 99, 235, 0.35);
+    }
+    .dash-hero::before { content: ''; position: absolute; top: -50%; right: -10%; width: 420px; height: 420px; background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%); border-radius: 50%; }
+    .dash-hero::after { content: ''; position: absolute; bottom: -80%; left: -10%; width: 320px; height: 320px; background: radial-gradient(circle, rgba(255,255,255,0.10) 0%, transparent 70%); border-radius: 50%; }
+    .dash-hero-content { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
+    .dash-hero-left { display: flex; flex-direction: column; gap: 6px; }
+    .dash-hero-welcome { font-size: 11px; font-weight: 800; letter-spacing: 2.5px; text-transform: uppercase; color: rgba(255,255,255,0.75) !important; }
+    .dash-hero-title { font-size: 28px; font-weight: 800; margin: 0; color: #fff !important; letter-spacing: -0.6px; }
+    .dash-hero-sub { font-size: 13px; color: rgba(255,255,255,0.9) !important; font-weight: 500; }
+    .dash-hero-right { display: flex; gap: 22px; align-items: center; }
+    .dash-hero-stat { text-align: right; }
+    .dash-hero-stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.6px; color: rgba(255,255,255,0.7) !important; font-weight: 700; }
+    .dash-hero-stat-val { font-size: 24px; font-weight: 800; color: #fff !important; line-height: 1.1; }
+
+    .dash-section-title { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 800; color: #1e3a8a !important; margin: 10px 0 14px 0; letter-spacing: 0.3px; }
+    .dash-section-title::before { content: ''; display: inline-block; width: 4px; height: 18px; background: linear-gradient(180deg, #2563eb 0%, #3b82f6 100%); border-radius: 3px; }
+
+    .kpi-card { background: #ffffff; border-radius: 16px; padding: 20px 22px; border: 1px solid rgba(37,99,235,0.12); box-shadow: 0 4px 16px rgba(37,99,235,0.08); display: flex; flex-direction: column; gap: 12px; transition: all 0.2s ease; position: relative; overflow: hidden; height: 100%; }
+    .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(37,99,235,0.18); border-color: rgba(37,99,235,0.30); }
+    .kpi-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%); opacity: 0; transition: opacity 0.2s ease; }
+    .kpi-card:hover::after { opacity: 1; }
+    .kpi-top { display: flex; align-items: center; justify-content: space-between; }
+    .kpi-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); color: #1e40af !important; box-shadow: 0 3px 8px rgba(37,99,235,0.15); }
+    .kpi-icon.green { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color: #065f46 !important; }
+    .kpi-icon.orange { background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%); color: #9a3412 !important; }
+    .kpi-icon.purple { background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%); color: #6b21a8 !important; }
+    .kpi-icon.teal { background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%); color: #115e59 !important; }
+    .kpi-icon.red { background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%); color: #991b1b !important; }
+    .kpi-label { font-size: 10.5px; font-weight: 800; color: #64748b !important; text-transform: uppercase; letter-spacing: 1.2px; }
+    .kpi-value { font-size: 32px; font-weight: 800; color: #0f172a !important; line-height: 1; letter-spacing: -1.2px; }
+    .kpi-sub { font-size: 11.5px; color: #64748b !important; font-weight: 600; }
+    .kpi-sub.blue { color: #2563eb !important; }
+    .kpi-sub.green { color: #059669 !important; }
+    .kpi-sub.orange { color: #ea580c !important; }
+    .kpi-sub.red { color: #dc2626 !important; }
+    .kpi-value-group { display: flex; align-items: baseline; gap: 6px; }
+    .kpi-value-unit { font-size: 12px; color: #94a3b8 !important; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .team-card { background: #ffffff; border-radius: 14px; padding: 14px 18px; border: 1px solid rgba(37,99,235,0.10); box-shadow: 0 2px 10px rgba(37,99,235,0.06); display: flex; align-items: center; gap: 14px; margin-bottom: 10px; transition: all 0.18s ease; }
+    .team-card:hover { transform: translateX(3px); box-shadow: 0 8px 22px rgba(37,99,235,0.15); border-color: rgba(37,99,235,0.28); }
+    .team-avatar { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; color: #fff !important; flex-shrink: 0; text-transform: uppercase; box-shadow: 0 4px 10px rgba(37,99,235,0.3); background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
+    .team-avatar.booker { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
+    .team-avatar.salesman { background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); box-shadow: 0 4px 10px rgba(139,92,246,0.3); }
+    .team-info { flex: 1; min-width: 0; }
+    .team-name { font-size: 14.5px; font-weight: 700; color: #0f172a !important; margin-bottom: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .team-meta { font-size: 11.5px; color: #64748b !important; font-weight: 500; }
+    .team-meta b { color: #2563eb !important; font-weight: 700; }
+    .team-meta.warn b { color: #ea580c !important; }
+    .team-meta.good b { color: #059669 !important; }
+    .team-badge { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); color: #1e40af !important; font-size: 10px; font-weight: 800; padding: 5px 10px; border-radius: 8px; letter-spacing: 0.8px; border: 1px solid rgba(37,99,235,0.15); flex-shrink: 0; }
+    .team-badge.orange { background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); color: #9a3412 !important; border-color: rgba(234,88,12,0.2); }
+    .empty-team { background: #ffffff; border: 2px dashed rgba(37,99,235,0.25); border-radius: 14px; padding: 28px; text-align: center; color: #64748b !important; font-size: 13px; font-weight: 600; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -534,7 +594,7 @@ def render_auth_page():
         st.markdown("</div>", unsafe_allow_html=True)
 
 # ============================================================
-# LOAD FUNCTIONS
+# LOAD DB
 # ============================================================
 def load_database_for(username):
     if not username: return default_blank_db()
@@ -776,7 +836,6 @@ def render_booker_new_bill():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🧾 New Bill — <small style='color:#2e7d32;'>👤 {bk_name}</small></h1>", unsafe_allow_html=True)
     st.markdown("---")
 
-    # ⚡ DEFERRED RESETS — sabse pehle, widgets banne se pehle
     if st.session_state.get("bk_reset_item_form"):
         st.session_state["bk_product_sel"] = "-- Select --"
         st.session_state["bk_qty"] = 0
@@ -785,7 +844,6 @@ def render_booker_new_bill():
     if wholesaler_rule_active():
         st.markdown(f"<div class='hint-box' style='background:#f3e5f5;border-left-color:#8e24aa;color:#6a1b9a !important;'>🏢 Wholesaler rule ON — 'whole seller' naam wali shop pe {get_wholesaler_pct()}% milega</div>", unsafe_allow_html=True)
 
-    # ====== SHOP NAME ======
     col_a, col_b = st.columns([3, 1])
     with col_a:
         shop = st.text_input("🏪 Shop Name:", value=st.session_state.get("bk_current_shop", ""),
@@ -808,15 +866,10 @@ def render_booker_new_bill():
         st.markdown(f"<div class='hint-box' style='background:#f3e5f5;border-left-color:#8e24aa;color:#6a1b9a !important;font-weight:700;'>🏢 Wholesaler shop detected — {get_wholesaler_pct()}% discount lagega</div>", unsafe_allow_html=True)
 
     st.markdown("---")
-
-    # ====== ADD ITEM ======
     st.markdown("### ➕ Add Item")
     all_products = get_all_products()
 
-    c1, c2 = st.columns([3, 1])
-    with c1:
-        search_txt = st.text_input("🔍 Search:", key="bk_search", placeholder="Type name...")
-
+    search_txt = st.text_input("🔍 Search:", key="bk_search", placeholder="Type name...")
     su = search_txt.strip().upper()
     filtered = [p for p in all_products if su in p["name"].upper() or su in str(p["code"]).upper()] if su else all_products
     filtered_labels = [f"{p['name']} (Code: {p['code']})" for p in filtered]
@@ -851,13 +904,10 @@ def render_booker_new_bill():
                 "Boxes": int(boxes), "TP/Box": float(tp),
                 "Gross": float(boxes * tp), "Discount %": 0.0, "Net": float(boxes * tp),
             })
-            # ⚡ FLAG set karo, direct assignment NAHI
             st.session_state["bk_reset_item_form"] = True
             st.rerun()
 
     st.markdown("---")
-
-    # ====== CURRENT BILL ITEMS ======
     draft = st.session_state.get("bk_bill_draft", [])
     if not draft:
         st.info("Koi item nahi. Upar se add karo.")
@@ -883,7 +933,7 @@ def render_booker_new_bill():
 
         c1, c2 = st.columns(2)
         with c1:
-            if st.button("✅ Done Bill (Save + Excel)", key="bk_done_bill", use_container_width=True, type="primary"):
+            if st.button("✅ Done Bill (Save to Admin)", key="bk_done_bill", use_container_width=True, type="primary"):
                 finalize_booker_bill(shop, draft)
         with c2:
             if st.button("🗑 Clear Draft", key="bk_clear_draft", use_container_width=True):
@@ -905,6 +955,7 @@ def render_booker_new_bill():
             finalize_booker_load_form()
 
 def finalize_booker_bill(shop, draft):
+    """Save bill to admin DB. NO Excel download. Just save + reset draft."""
     global db
     bill_no = db["next_bill_no"]
     date_str = datetime.now().strftime("%d-%m-%Y")
@@ -920,6 +971,7 @@ def finalize_booker_bill(shop, draft):
     db["next_bill_no"] += 1
     save_database(db)
 
+    # Add to load draft
     for it in draft:
         found = False
         for ld in st.session_state["bk_load_draft"]:
@@ -929,66 +981,18 @@ def finalize_booker_bill(shop, draft):
             st.session_state["bk_load_draft"].append({
                 "Code": it["Code"], "Product": it["Product"], "Boxes": int(it["Boxes"])})
 
+    # NO EXCEL DOWNLOAD — just save and reset
     bill_total_net = sum(float(it["Net"]) for it in draft)
-    pkg_pct, pkg_name, tier_label = get_effective_discount_pct(shop, bill_total_net)
-    output = BytesIO()
-    wb = xlsxwriter.Workbook(output, {'in_memory': True})
-    ws = wb.add_worksheet("Bill")
-    ws.set_paper(9); ws.set_portrait(); ws.fit_to_pages(1, 1)
-    for col, w in [("A",42.86),("B",12.71),("C",10.71),("D",10.71),("E",11.71),("F",11.14),("G",11.14),("H",12.14),("I",13.14),("J",13.14)]:
-        ws.set_column(f"{col}:{col}", w)
-    title = wb.add_format({"bold":True, "font_size":18, "align":"center", "border":2})
-    header = wb.add_format({"bold":True, "font_size":11, "bg_color":"#BBDEFB", "align":"center", "border":2, "text_wrap": True})
-    cell_left = wb.add_format({"font_size":12, "border":1, "align":"left"})
-    cell_center = wb.add_format({"font_size":12, "border":1, "align":"center"})
-    total = wb.add_format({"bold":True, "font_size":12, "bg_color":"#FFF2CC", "align":"center", "border":2})
-    disc_hl = wb.add_format({"font_size":12, "border":1, "align":"center", "bg_color":"#E8F5E9", "bold": True})
-    pkg_info = wb.add_format({"font_size":10, "italic": True, "align":"left", "font_color":"#1b5e20"})
-    ws.merge_range("A1:J1", COMPANY_NAME, title)
-    ws.write("A3","Shop Name",header); ws.write("B3", shop, cell_center)
-    ws.write("D3","Booker",header); ws.write("E3", bk_name, cell_center)
-    ws.write("G3","Bill No",header); ws.write("H3", bill_no, cell_center)
-    ws.write("I3","Date",header); ws.write("J3", date_str, cell_center)
-    if wholesaler_rule_active() and is_wholesaler(shop):
-        ws.merge_range("A4:J4", f"🏢 Wholesaler — Flat {pkg_pct}%", pkg_info)
-    elif pkg_pct > 0:
-        ws.merge_range("A4:J4", f"🎁 Best Discount: {pkg_name} | {tier_label} | {pkg_pct}%", pkg_info)
-    else:
-        ws.merge_range("A4:J4", "💡 Koi discount apply nahi hua", pkg_info)
-    start_row = 6
-    headers = ["Product", "Code", "Boxes", "TP/Box", "Gross", "Disc %", "Net", "Pkg Disc %", "After Disc Net", "Saved"]
-    for col, h in enumerate(headers): ws.write(start_row, col, h, header)
-    row = start_row + 1
-    gross_total = 0; total_boxes = 0; net_total = 0; after_disc_total = 0; saved_total = 0
-    for it in draft:
-        b_net = float(it["Net"]); b_gross = float(it["Gross"]); b_boxes = int(it["Boxes"])
-        after_net = b_net - (b_net * pkg_pct / 100); saved = b_net - after_net
-        ws.write(row, 0, it["Product"], cell_left); ws.write(row, 1, it["Code"], cell_center)
-        ws.write(row, 2, b_boxes, cell_center); ws.write(row, 3, it["TP/Box"], cell_center)
-        ws.write(row, 4, b_gross, cell_center); ws.write(row, 5, it["Discount %"], cell_center)
-        ws.write(row, 6, b_net, cell_center)
-        if pkg_pct > 0:
-            ws.write(row, 7, pkg_pct, disc_hl); ws.write(row, 8, after_net, disc_hl); ws.write(row, 9, saved, disc_hl)
-        else:
-            ws.write(row, 7, 0, cell_center); ws.write(row, 8, b_net, cell_center); ws.write(row, 9, 0, cell_center)
-        gross_total += b_gross; total_boxes += b_boxes
-        net_total += b_net; after_disc_total += after_net; saved_total += saved; row += 1
-    ws.write(row, 1, "TOTAL", total); ws.write(row, 2, total_boxes, total)
-    ws.write(row, 4, gross_total, total); ws.write(row, 6, net_total, total)
-    ws.write(row, 8, after_disc_total, total); ws.write(row, 9, saved_total, total)
-    row += 2
-    ws.merge_range(row, 0, row, 6, "NET AMOUNT (After Discount)", header)
-    ws.merge_range(row, 7, row, 9, f"Rs {after_disc_total:,.0f}", total)
-    wb.close(); output.seek(0)
-    fname = f"{shop}_{date_str.replace('-','')}_{bk_name}.xlsx".replace("/","-").replace(" ","_").replace(":","")
-    st.session_state["download_file"] = (fname, output.getvalue())
+    pkg_pct, _, _ = get_effective_discount_pct(shop, bill_total_net)
+    after_disc_total = bill_total_net - (bill_total_net * pkg_pct / 100)
 
     st.session_state["bk_bill_draft"] = []
     st.session_state["bk_bills_created"] = st.session_state.get("bk_bills_created", 0) + 1
-    st.session_state["success_msg"] = f"✅ Bill #{bill_no} saved | {shop} | Net: Rs {after_disc_total:,.0f}"
+    st.session_state["success_msg"] = f"✅ Bill #{bill_no} saved to Admin | {shop} | Net: Rs {after_disc_total:,.0f}"
     st.rerun()
 
 def finalize_booker_load_form():
+    """Save load form to admin DB."""
     global db
     load_draft = st.session_state.get("bk_load_draft", [])
     if not load_draft:
@@ -1009,7 +1013,7 @@ def finalize_booker_load_form():
     db["load_forms"].append(lf_record)
     save_database(db)
     st.session_state["bk_load_draft"] = []
-    st.session_state["success_msg"] = f"✅ Load Form #{next_id} saved | {len(load_draft)} products, {total_boxes} boxes"
+    st.session_state["success_msg"] = f"✅ Load Form #{next_id} saved to Admin | {len(load_draft)} products, {total_boxes} boxes"
     st.rerun()
 
 def render_booker_all_products():
@@ -1067,7 +1071,6 @@ if ROLE == "booker":
         st.success(st.session_state["success_msg"]); st.session_state["success_msg"] = None
     if st.session_state.get("error_msg"):
         st.error(st.session_state["error_msg"]); st.session_state["error_msg"] = None
-    show_auto_download()
     st.stop()
 
 # ============================================================
@@ -1129,7 +1132,7 @@ with st.sidebar:
         st.rerun()
 
 # ============================================================
-# ADMIN PAGES
+# ADMIN DASHBOARD (RESTORED - PROFESSIONAL)
 # ============================================================
 def render_admin_dashboard():
     display_name = st.session_state.get("display_name", CURRENT_USER)
@@ -1138,29 +1141,142 @@ def render_admin_dashboard():
     total_products = len(get_all_products()); total_bills = len(db["bills"])
     total_load_forms = len(db.get("load_forms", [])); total_dsr = len(db.get("dsr_forms", []))
     pending_credits = [c for c in db.get("credit_bills", []) if c.get("status") == "pending"]
+    paid_credits = [c for c in db.get("credit_bills", []) if c.get("status") == "paid"]
     pending_amt = sum(float(c.get("total_net", 0)) for c in pending_credits)
+    paid_amt = sum(float(c.get("total_net", 0)) for c in paid_credits)
 
+    # HERO BANNER
     st.markdown(f"""
-    <div style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%);
-        border-radius: 20px; padding: 26px 32px; margin-bottom: 22px;
-        box-shadow: 0 12px 32px rgba(37, 99, 235, 0.35); color: #fff;">
-        <div style="font-size: 11px; font-weight: 800; letter-spacing: 2.5px; color: rgba(255,255,255,0.75);">WELCOME BACK</div>
-        <h1 style="font-size: 28px; font-weight: 800; margin: 6px 0; color:#fff;">👋 {display_name}</h1>
-        <div style="font-size: 13px; color: rgba(255,255,255,0.9);">🏢 {COMPANY_NAME} · 📅 {today_str}</div>
+    <div class="dash-hero">
+        <div class="dash-hero-content">
+            <div class="dash-hero-left">
+                <div class="dash-hero-welcome">Welcome back</div>
+                <h1 class="dash-hero-title">👋 {display_name}</h1>
+                <div class="dash-hero-sub">🏢 {COMPANY_NAME} &nbsp;·&nbsp; 📅 {today_str}</div>
+            </div>
+            <div class="dash-hero-right">
+                <div class="dash-hero-stat">
+                    <div class="dash-hero-stat-label">Total Bills</div>
+                    <div class="dash-hero-stat-val">{total_bills}</div>
+                </div>
+                <div class="dash-hero-stat">
+                    <div class="dash-hero-stat-label">Products</div>
+                    <div class="dash-hero-stat-val">{total_products}</div>
+                </div>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
+    # KPI 1 - Business Overview
+    st.markdown('<div class="dash-section-title">Business Overview</div>', unsafe_allow_html=True)
     c1, c2, c3, c4 = st.columns(4)
-    with c1: st.markdown(f"<div class='metric-card'><h3>BOOKERS</h3><h1>{len(bookers)}</h1></div>", unsafe_allow_html=True)
-    with c2: st.markdown(f"<div class='metric-card'><h3>SALESMEN</h3><h1>{len(salesmen)}</h1></div>", unsafe_allow_html=True)
-    with c3: st.markdown(f"<div class='metric-card'><h3>PRODUCTS</h3><h1>{total_products}</h1></div>", unsafe_allow_html=True)
-    with c4: st.markdown(f"<div class='metric-card'><h3>TOTAL BILLS</h3><h1>{total_bills}</h1></div>", unsafe_allow_html=True)
-    st.markdown("<br>", unsafe_allow_html=True)
-    c1, c2, c3 = st.columns(3)
-    with c1: st.markdown(f"<div class='metric-card'><h3>PENDING CREDIT</h3><h1>{len(pending_credits)}</h1><p style='color:#e65100;font-weight:700;'>Rs {pending_amt:,.0f}</p></div>", unsafe_allow_html=True)
-    with c2: st.markdown(f"<div class='metric-card'><h3>LOAD FORMS</h3><h1>{total_load_forms}</h1></div>", unsafe_allow_html=True)
-    with c3: st.markdown(f"<div class='metric-card'><h3>DSR FORMS</h3><h1>{total_dsr}</h1></div>", unsafe_allow_html=True)
+    with c1:
+        st.markdown(f"""<div class="kpi-card">
+            <div class="kpi-top"><div class="kpi-icon">👤</div><div class="kpi-label">Bookers</div></div>
+            <div class="kpi-value-group"><div class="kpi-value">{len(bookers)}</div><div class="kpi-value-unit">members</div></div>
+            <div class="kpi-sub blue">Order booking team</div>
+        </div>""", unsafe_allow_html=True)
+    with c2:
+        st.markdown(f"""<div class="kpi-card">
+            <div class="kpi-top"><div class="kpi-icon purple">🧑‍💼</div><div class="kpi-label">Salesmen</div></div>
+            <div class="kpi-value-group"><div class="kpi-value">{len(salesmen)}</div><div class="kpi-value-unit">members</div></div>
+            <div class="kpi-sub blue">Field sales team</div>
+        </div>""", unsafe_allow_html=True)
+    with c3:
+        st.markdown(f"""<div class="kpi-card">
+            <div class="kpi-top"><div class="kpi-icon teal">📦</div><div class="kpi-label">Products</div></div>
+            <div class="kpi-value-group"><div class="kpi-value">{total_products}</div><div class="kpi-value-unit">items</div></div>
+            <div class="kpi-sub blue">Active catalog</div>
+        </div>""", unsafe_allow_html=True)
+    with c4:
+        st.markdown(f"""<div class="kpi-card">
+            <div class="kpi-top"><div class="kpi-icon">🧾</div><div class="kpi-label">Total Bills</div></div>
+            <div class="kpi-value-group"><div class="kpi-value">{total_bills}</div><div class="kpi-value-unit">bills</div></div>
+            <div class="kpi-sub blue">Generated so far</div>
+        </div>""", unsafe_allow_html=True)
 
+    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+
+    # KPI 2 - Credit & Operations
+    st.markdown('<div class="dash-section-title">Credit & Operations</div>', unsafe_allow_html=True)
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        st.markdown(f"""<div class="kpi-card">
+            <div class="kpi-top"><div class="kpi-icon orange">⏳</div><div class="kpi-label">Pending Credit</div></div>
+            <div class="kpi-value-group"><div class="kpi-value">{len(pending_credits)}</div><div class="kpi-value-unit">bills</div></div>
+            <div class="kpi-sub orange">Rs {pending_amt:,.0f} receivable</div>
+        </div>""", unsafe_allow_html=True)
+    with c2:
+        st.markdown(f"""<div class="kpi-card">
+            <div class="kpi-top"><div class="kpi-icon green">✅</div><div class="kpi-label">Paid Credit</div></div>
+            <div class="kpi-value-group"><div class="kpi-value">{len(paid_credits)}</div><div class="kpi-value-unit">bills</div></div>
+            <div class="kpi-sub green">Rs {paid_amt:,.0f} settled</div>
+        </div>""", unsafe_allow_html=True)
+    with c3:
+        st.markdown(f"""<div class="kpi-card">
+            <div class="kpi-top"><div class="kpi-icon">📦</div><div class="kpi-label">Load Forms</div></div>
+            <div class="kpi-value-group"><div class="kpi-value">{total_load_forms}</div><div class="kpi-value-unit">saved</div></div>
+            <div class="kpi-sub blue">Stock dispatch forms</div>
+        </div>""", unsafe_allow_html=True)
+    with c4:
+        st.markdown(f"""<div class="kpi-card">
+            <div class="kpi-top"><div class="kpi-icon red">📋</div><div class="kpi-label">DSR Forms</div></div>
+            <div class="kpi-value-group"><div class="kpi-value">{total_dsr}</div><div class="kpi-value-unit">active</div></div>
+            <div class="kpi-sub blue">Daily sales reports</div>
+        </div>""", unsafe_allow_html=True)
+
+    st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    # TEAM SECTION
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown('<div class="dash-section-title">👤 Order Booker Team</div>', unsafe_allow_html=True)
+        if not bookers:
+            st.markdown('<div class="empty-team">Abhi tak koi booker add nahi hua</div>', unsafe_allow_html=True)
+        else:
+            for b_name in bookers:
+                sd = db.get("bookers_salaries", {}).get(b_name, {})
+                base = sd.get("base_salary", 0); txns = sd.get("transactions", [])
+                adv_p = sum(t["amount"] for t in txns if t.get("type") == "advanced" and t.get("status", "pending") == "pending")
+                short_p = sum(t["amount"] for t in txns if t.get("type") == "shortage" and t.get("status", "pending") == "pending")
+                remaining = base - adv_p - short_p
+                if base == 0: sub_class = ""; sub_text = 'Salary not set'
+                elif remaining > base * 0.7: sub_class = "good"; sub_text = f'Remaining: <b>Rs {remaining:,.0f}</b>'
+                elif remaining > 0: sub_class = ""; sub_text = f'Remaining: <b>Rs {remaining:,.0f}</b>'
+                else: sub_class = "warn"; sub_text = f'Over Paid: <b>Rs {abs(remaining):,.0f}</b>'
+                al = (b_name[0] if b_name else "?").upper()
+                st.markdown(f"""<div class="team-card">
+                    <div class="team-avatar booker">{al}</div>
+                    <div class="team-info"><div class="team-name">{b_name}</div><div class="team-meta {sub_class}">{sub_text}</div></div>
+                    <div class="team-badge">BOOKER</div>
+                </div>""", unsafe_allow_html=True)
+    with c2:
+        st.markdown('<div class="dash-section-title">🧑‍💼 Salesmen Team</div>', unsafe_allow_html=True)
+        if not salesmen:
+            st.markdown('<div class="empty-team">Abhi tak koi salesman add nahi hua</div>', unsafe_allow_html=True)
+        else:
+            for s_name in salesmen:
+                sd = db.get("salesmen_salaries", {}).get(s_name, {})
+                base = sd.get("base_salary", 0); txns = sd.get("transactions", [])
+                adv_p = sum(t["amount"] for t in txns if t.get("type") == "advanced" and t.get("status", "pending") == "pending")
+                short_p = sum(t["amount"] for t in txns if t.get("type") == "shortage" and t.get("status", "pending") == "pending")
+                remaining = base - adv_p - short_p
+                if base == 0: sub_class = ""; sub_text = 'Salary not set'
+                elif remaining > base * 0.7: sub_class = "good"; sub_text = f'Remaining: <b>Rs {remaining:,.0f}</b>'
+                elif remaining > 0: sub_class = ""; sub_text = f'Remaining: <b>Rs {remaining:,.0f}</b>'
+                else: sub_class = "warn"; sub_text = f'Over Paid: <b>Rs {abs(remaining):,.0f}</b>'
+                al = (s_name[0] if s_name else "?").upper()
+                st.markdown(f"""<div class="team-card">
+                    <div class="team-avatar salesman">{al}</div>
+                    <div class="team-info"><div class="team-name">{s_name}</div><div class="team-meta {sub_class}">{sub_text}</div></div>
+                    <div class="team-badge orange">SALESMAN</div>
+                </div>""", unsafe_allow_html=True)
+
+# ============================================================
+# ADMIN DISCOUNT
+# ============================================================
 def render_admin_discount():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🎁 Discount Settings</h1>", unsafe_allow_html=True)
     st.markdown("---")
@@ -1203,6 +1319,9 @@ def render_admin_discount():
                         break
                 save_database(db); st.session_state["success_msg"] = "✅ Saved"; st.rerun()
 
+# ============================================================
+# ADMIN PRODUCTS
+# ============================================================
 def render_admin_products():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🛒 All Products</h1>", unsafe_allow_html=True)
     st.markdown("---")
@@ -1269,6 +1388,9 @@ def render_admin_products():
                     db["custom_products"] = [cp for cp in db["custom_products"] if str(cp.get("code", "")) != code]
                     save_database(db); st.session_state["success_msg"] = "🗑 Deleted"; st.rerun()
 
+# ============================================================
+# ADMIN BOOKERS
+# ============================================================
 def render_admin_bookers():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>👤 Bookers</h1>", unsafe_allow_html=True)
     st.markdown("---")
@@ -1339,6 +1461,9 @@ def render_admin_bookers():
             if st.button("❌ Cancel", key="setpw_cancel", use_container_width=True):
                 st.session_state["setpw_booker"] = None; st.rerun()
 
+# ============================================================
+# ADMIN SALESMEN
+# ============================================================
 def render_admin_salesmen():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🧑‍💼 Salesmen</h1>", unsafe_allow_html=True)
     st.markdown("---")
@@ -1361,6 +1486,9 @@ def render_admin_salesmen():
                 db["salesmen"].remove(sm); save_database(db)
                 st.session_state["success_msg"] = "🗑 Deleted"; st.rerun()
 
+# ============================================================
+# ADMIN SALARIES
+# ============================================================
 def render_admin_salaries(role_type):
     if role_type == "bookers":
         title = "💰 Bookers Salary"; emoji = "👤"; names = db.get("bookers", []); sal_key = "bookers_salaries"
@@ -1421,6 +1549,9 @@ def render_admin_salaries(role_type):
                         db[sal_key][p_name]["transactions"] = [x for x in db[sal_key][p_name]["transactions"] if x.get("id") != t["id"]]
                         save_database(db); st.session_state["success_msg"] = "🗑"; st.rerun()
 
+# ============================================================
+# ADMIN DAILY EXPENSE
+# ============================================================
 def render_admin_expense():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>💵 Daily Expense</h1>", unsafe_allow_html=True)
     st.markdown("---")
@@ -1460,6 +1591,9 @@ def render_admin_expense():
                         "time": datetime.now().strftime("%H:%M"), "amount": float(la)})
                     save_database(db); st.session_state["success_msg"] = "✅"; st.rerun()
 
+# ============================================================
+# ADMIN BILLING
+# ============================================================
 def render_admin_billing():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🧾 Billing</h1>", unsafe_allow_html=True)
     st.markdown("---")
@@ -1509,6 +1643,9 @@ def render_admin_billing():
     with e3: st.button("🔄 Refresh Load Form", key="btn_load_refresh", on_click=refresh_load_form_callback, use_container_width=True)
     show_auto_download()
 
+# ============================================================
+# ADMIN BILLS LIST
+# ============================================================
 def render_admin_bills_list():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📋 Bills List</h1>", unsafe_allow_html=True)
     st.markdown("---")
@@ -1529,7 +1666,6 @@ def render_admin_bills_list():
     for key, g in sorted(groups.items(), key=lambda kv: kv[0][1], reverse=True):
         shop = g["shop"] or "-"; dt = g["date"] or "-"; bk = g["booker"] or "-"; sm = g["salesman"] or "-"; bn = g["bill_no"]
         tb = sum(int(it.get("Boxes",0)) for it in g["items"])
-        tn = sum(float(it.get("Net",0)) for it in g["items"])
         ck = (g["shop"] or "", g["date"] or "", g["booker"] or "", g["bill_no"] or "")
         ec = credit_map.get(ck)
         cbadge = ""
@@ -1556,6 +1692,9 @@ def render_admin_bills_list():
         st.markdown("---")
     show_auto_download()
 
+# ============================================================
+# ADMIN CREDIT BILLS
+# ============================================================
 def render_admin_credit():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>💳 Credit Bills</h1>", unsafe_allow_html=True)
     st.markdown("---")
@@ -1590,6 +1729,9 @@ def render_admin_credit():
                 db["credit_bills"] = [x for x in db["credit_bills"] if x.get("id") != cid]
                 save_database(db); st.session_state["success_msg"] = "🗑"; st.rerun()
 
+# ============================================================
+# ADMIN LOAD FORM
+# ============================================================
 def render_admin_load_form():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📦 Load Forms</h1>", unsafe_allow_html=True)
     st.markdown("---")
@@ -1617,6 +1759,9 @@ def render_admin_load_form():
                 save_database(db); st.session_state["success_msg"] = "🗑"; st.rerun()
         st.markdown("---")
 
+# ============================================================
+# ADMIN DSR
+# ============================================================
 def render_admin_dsr():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📋 DSR</h1>", unsafe_allow_html=True)
     st.markdown("---")
@@ -1644,6 +1789,9 @@ def render_admin_dsr():
                 save_database(db); st.session_state["success_msg"] = "🗑"; st.rerun()
         st.markdown("---")
 
+# ============================================================
+# ADMIN CALCULATION
+# ============================================================
 def render_admin_calculation():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🧮 Cash Calculation</h1>", unsafe_allow_html=True)
     st.markdown("---")
@@ -1692,8 +1840,8 @@ def add_bill_callback():
     st.session_state["last_bill_no"] = db["next_bill_no"]
     st.session_state["success_msg"] = f"✅ Bill #{db['next_bill_no']}"
     for k in ["search_text", "product_sel"]: st.session_state[k] = ""
-    st.session_state["_prev_prod"] = None
     for k in ["boxes", "tp_box", "discount"]: st.session_state[k] = 0
+    st.session_state["_prev_prod"] = None
 
 def refresh_callback():
     for k in ["search_text", "product_sel"]: st.session_state[k] = ""
