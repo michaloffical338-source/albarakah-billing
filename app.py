@@ -1,8 +1,8 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
 # Full code with Admin + Booker login, sidebar toggle working
-# + BOOKER-WISE BILLS & RETURNS SECTION
-# + MISCELLANEOUS DAILY EXPENSE (Pani, Baraf, etc.)
+# + BOOKER-WISE BILLS (date filter) + RETURNS via LOAD FORM
+# + BOOKER-WISE LOAD FORMS (date filter) + MISCELLANEOUS EXPENSE
 # ============================================================
 
 import os
@@ -1314,11 +1314,11 @@ def render_admin_dashboard():
                 </div>""", unsafe_allow_html=True)
 
 # ============================================================
-# ADMIN BOOKER BILLS (NEW - per booker section with bills + returns)
+# ADMIN BOOKER BILLS (per booker section with date filter, returns read-only from load form)
 # ============================================================
 def render_admin_booker_bills():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📈 Booker Bills & Returns</h1>", unsafe_allow_html=True)
-    st.caption("Har booker ka apna section — uske bills, month total boxes, aur returns (month-end net figure ke liye)")
+    st.caption("Har booker ka apna section — uske bills aur returns. Returns Load Form page se add hote hain.")
     st.markdown("---")
 
     bookers = db.get("bookers", [])
@@ -1328,56 +1328,41 @@ def render_admin_booker_bills():
 
     today = date.today()
 
-    # Month options (last 12 months)
-    month_options = []
-    seen_months = set()
-    for i in range(12):
-        d = today - timedelta(days=30 * i)
-        key = (d.year, d.month)
-        if key in seen_months: continue
-        seen_months.add(key)
-        month_options.append(d.strftime("%B %Y"))
-    if today.strftime("%B %Y") not in month_options:
-        month_options.insert(0, today.strftime("%B %Y"))
-
-    c1, c2 = st.columns([2, 2])
+    # ================= DATE FILTER =================
+    c1, c2, c3 = st.columns(3)
     with c1:
-        sel_month = st.selectbox("📅 Month:", month_options, key="bb_month_sel")
+        filter_mode = st.selectbox(
+            "Filter Mode:",
+            ["📅 Aaj (Today)", "📆 Custom Range", "🗓️ Specific", "📋 All"],
+            key="bb_filter_mode"
+        )
     with c2:
-        st.markdown("<br>", unsafe_allow_html=True)
+        from_date = st.date_input("From:", value=today, key="bb_from_date")
+    with c3:
+        to_date = st.date_input("To:", value=today, key="bb_to_date")
 
-    try:
-        sel_dt = datetime.strptime(sel_month, "%B %Y").date()
-    except Exception:
-        sel_dt = today
-
-    # Month totals
-    month_first = date(sel_dt.year, sel_dt.month, 1)
-    if sel_dt.month == 12:
-        month_last = date(sel_dt.year + 1, 1, 1) - timedelta(days=1)
-    else:
-        month_last = date(sel_dt.year, sel_dt.month + 1, 1) - timedelta(days=1)
-
-    def in_selected_month(dstr):
+    def in_range(dstr):
         d = parse_date(dstr)
         if d is None: return False
-        return d.year == sel_dt.year and d.month == sel_dt.month
+        if filter_mode == "📅 Aaj (Today)":       return d == today
+        elif filter_mode == "🗓️ Specific":        return d == from_date
+        elif filter_mode == "📆 Custom Range":    return from_date <= d <= to_date
+        else:                                     return True
+    # ===============================================
 
     grand_sold = 0
     grand_ret = 0
     grand_net = 0
 
     for bk in bookers:
-        # Gather bills for this booker in selected month
         bk_bills = []
         for b in db.get("bills", []):
             if str(b.get("Order Booker", "")).strip() != bk: continue
-            if not in_selected_month(b.get("Date", "")): continue
+            if not in_range(b.get("Date", "")): continue
             bk_bills.append(b)
 
-        # Gather returns for this booker in selected month
         bk_returns = [r for r in db.get("booker_returns", [])
-                      if str(r.get("booker", "")).strip() == bk and in_selected_month(r.get("date", ""))]
+                      if str(r.get("booker", "")).strip() == bk and in_range(r.get("date", ""))]
 
         total_sold = sum(int(b.get("Boxes", 0)) for b in bk_bills)
         total_ret = sum(int(r.get("boxes", 0)) for r in bk_returns)
@@ -1387,7 +1372,6 @@ def render_admin_booker_bills():
         grand_ret += total_ret
         grand_net += net_boxes
 
-        # Group by shop
         shop_groups = {}
         for b in bk_bills:
             shop = b.get("Shop", "-") or "-"
@@ -1402,7 +1386,7 @@ def render_admin_booker_bills():
         with st.expander(expander_label, expanded=False):
             st.markdown(f"""
             <div class='bb-summary'>
-                <div class='bb-stat'><div class='bb-stat-label'>Month</div><div class='bb-stat-val' style='font-size:16px;'>{sel_month}</div></div>
+                <div class='bb-stat'><div class='bb-stat-label'>Filter</div><div class='bb-stat-val' style='font-size:14px;'>{filter_mode.replace('📅 ','').replace('📆 ','').replace('🗓️ ','').replace('📋 ','')}</div></div>
                 <div class='bb-stat'><div class='bb-stat-label'>Total Sold</div><div class='bb-stat-val'>{total_sold}</div></div>
                 <div class='bb-stat'><div class='bb-stat-label'>Returns</div><div class='bb-stat-val red'>-{total_ret}</div></div>
                 <div class='bb-stat'><div class='bb-stat-label'>Net Boxes</div><div class='bb-stat-val green'>{net_boxes}</div></div>
@@ -1410,10 +1394,9 @@ def render_admin_booker_bills():
             </div>
             """, unsafe_allow_html=True)
 
-            # ---------- Shop-wise bills ----------
             st.markdown("**🏪 Shop-wise Bills**")
             if not shop_groups:
-                st.info("Is month mein is booker ka koi bill nahi.")
+                st.info("Is filter mein is booker ka koi bill nahi.")
             else:
                 for shop, info in sorted(shop_groups.items()):
                     st.markdown(f"""<div class='lf-simple-card'>
@@ -1435,56 +1418,23 @@ def render_admin_booker_bills():
                         } for b in info["items"]]), use_container_width=True, hide_index=True)
 
             st.markdown("---")
-            # ---------- Returns section ----------
-            st.markdown("**↩️ Returns (this month)**")
+            st.markdown("**↩️ Returns (from Load Form)**")
+            st.caption("Returns Load Form page se add hote hain — yahan automatically aayenge.")
             if bk_returns:
-                ret_total_boxes = 0
                 for r in sorted(bk_returns, key=lambda x: x.get("created_at", ""), reverse=True):
-                    ret_total_boxes += int(r.get("boxes", 0))
+                    lf_id = r.get("load_form_id", "-")
                     st.markdown(f"""<div class='lf-simple-card ret'>
                         <div class='lf-info'>
                             <div class='lf-line1'>↩️ {r.get('shop','-')} — {r.get('boxes',0)} boxes</div>
-                            <div class='lf-line2'>📅 {r.get('date','')} · {r.get('note','') or '—'}</div>
+                            <div class='lf-line2'>📅 {r.get('date','')} · 📦 Load Form #{lf_id} · {r.get('note','') or '—'}</div>
                         </div>
                         <div class='lf-boxes'>{r.get('boxes',0)}<small>RET</small></div>
                     </div>""", unsafe_allow_html=True)
-                    if st.button("🗑 Delete Return", key=f"del_ret_{bk}_{r.get('id')}"):
-                        db["booker_returns"] = [x for x in db["booker_returns"] if x.get("id") != r.get("id")]
-                        save_database(db); st.session_state["success_msg"] = "🗑 Return deleted"; st.rerun()
             else:
-                st.caption("Is month mein koi return nahi.")
-
-            # ---------- Add return ----------
-            st.markdown("**➕ Add Return**")
-            rc1, rc2, rc3, rc4, rc5 = st.columns([2, 2, 1.4, 2, 1])
-            with rc1:
-                ret_date = st.date_input("Date", value=today, key=f"ret_date_{bk}")
-            with rc2:
-                ret_shop = st.text_input("Shop", key=f"ret_shop_{bk}", placeholder="shop name")
-            with rc3:
-                ret_boxes = st.number_input("Boxes", min_value=0, step=1, key=f"ret_boxes_{bk}")
-            with rc4:
-                ret_note = st.text_input("Note", key=f"ret_note_{bk}", placeholder="optional")
-            with rc5:
-                st.markdown("<br>", unsafe_allow_html=True)
-                if st.button("➕ Add", key=f"add_ret_{bk}", type="primary", use_container_width=True):
-                    if ret_boxes <= 0:
-                        st.session_state["error_msg"] = "❌ Boxes daalo"
-                    else:
-                        nid = max([r.get("id", 0) for r in db.get("booker_returns", [])] + [0]) + 1
-                        db.setdefault("booker_returns", []).append({
-                            "id": nid, "booker": bk,
-                            "date": ret_date.strftime("%d-%m-%Y"),
-                            "shop": ret_shop.strip(),
-                            "boxes": int(ret_boxes),
-                            "note": ret_note.strip(),
-                            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        })
-                        save_database(db); st.session_state["success_msg"] = f"✅ Return added ({ret_boxes} boxes)"; st.rerun()
+                st.caption("Is filter mein koi return nahi. Load Form page se add karo.")
 
             st.markdown("---")
-            # ---------- All bills this month ----------
-            st.markdown("**🧾 All Bills This Month**")
+            st.markdown("**🧾 All Bills (this filter)**")
             if bk_bills:
                 st.dataframe(pd.DataFrame([{
                     "Bill No": b.get("Bill No"),
@@ -1503,7 +1453,7 @@ def render_admin_booker_bills():
     st.markdown("---")
     st.markdown(f"""
     <div class='bb-summary'>
-        <div class='bb-stat'><div class='bb-stat-label'>Month</div><div class='bb-stat-val' style='font-size:16px;'>{sel_month}</div></div>
+        <div class='bb-stat'><div class='bb-stat-label'>Filter</div><div class='bb-stat-val' style='font-size:14px;'>{filter_mode.replace('📅 ','').replace('📆 ','').replace('🗓️ ','').replace('📋 ','')}</div></div>
         <div class='bb-stat'><div class='bb-stat-label'>All Bookers Sold</div><div class='bb-stat-val'>{grand_sold}</div></div>
         <div class='bb-stat'><div class='bb-stat-label'>Total Returns</div><div class='bb-stat-val red'>-{grand_ret}</div></div>
         <div class='bb-stat'><div class='bb-stat-label'>NET (All Bookers)</div><div class='bb-stat-val green'>{grand_net}</div></div>
@@ -1786,7 +1736,7 @@ def render_admin_salaries(role_type):
                         save_database(db); st.session_state["success_msg"] = "🗑"; st.rerun()
 
 # ============================================================
-# ADMIN DAILY EXPENSE (with Miscellaneous added)
+# ADMIN DAILY EXPENSE (with Miscellaneous)
 # ============================================================
 def render_admin_expense():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>💵 Daily Expense</h1>", unsafe_allow_html=True)
@@ -1795,7 +1745,6 @@ def render_admin_expense():
     if "lunch_expenses" not in db: db["lunch_expenses"] = []
     if "misc_expenses" not in db: db["misc_expenses"] = []
 
-    # ================= DATE FILTER =================
     today = date.today()
     c1, c2, c3 = st.columns([2, 2, 2])
     with c1:
@@ -1821,7 +1770,6 @@ def render_admin_expense():
     petrol_filtered = [x for x in db["petrol_expenses"] if date_match(x.get("date", ""))]
     lunch_filtered  = [x for x in db["lunch_expenses"]  if date_match(x.get("date", ""))]
     misc_filtered   = [x for x in db["misc_expenses"]   if date_match(x.get("date", ""))]
-    # ===============================================
 
     total_petrol = sum(float(x.get("amount", 0)) for x in petrol_filtered)
     total_lunch = sum(float(x.get("amount", 0)) for x in lunch_filtered)
@@ -1844,7 +1792,6 @@ def render_admin_expense():
                         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         "time": datetime.now().strftime("%H:%M"), "salesman": ps, "amount": float(pa)})
                     save_database(db); st.session_state["success_msg"] = "✅"; st.rerun()
-        # Petrol list
         if petrol_filtered:
             st.caption("Recent entries:")
             for x in sorted(petrol_filtered, key=lambda y: y.get("created_at",""), reverse=True)[:8]:
@@ -1870,7 +1817,6 @@ def render_admin_expense():
                         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         "time": datetime.now().strftime("%H:%M"), "amount": float(la)})
                     save_database(db); st.session_state["success_msg"] = "✅"; st.rerun()
-        # Lunch list
         if lunch_filtered:
             st.caption("Recent entries:")
             for x in sorted(lunch_filtered, key=lambda y: y.get("created_at",""), reverse=True)[:8]:
@@ -1882,7 +1828,6 @@ def render_admin_expense():
                         db["lunch_expenses"] = [y for y in db["lunch_expenses"] if y.get("id") != x.get("id")]
                         save_database(db); st.session_state["success_msg"] = "🗑"; st.rerun()
 
-    # ============ MISCELLANEOUS (NEW) ============
     st.markdown("---")
     st.markdown("### 🧾 Miscellaneous Expense (Pani, Baraf, etc.)")
     st.caption("Yahan koi bhe extra kharcha daal sakte hain — pani, baraf, chai, snacks, waghera")
@@ -1987,7 +1932,6 @@ def render_admin_bills_list():
     st.markdown("---")
     if not db["bills"]: st.info("Koi bill nahi."); return
 
-    # ================= DATE FILTER =================
     today = date.today()
     c1, c2, c3 = st.columns(3)
     with c1:
@@ -2001,7 +1945,6 @@ def render_admin_bills_list():
                                   key="bills_from_date")
     with c3:
         to_date = st.date_input("To:", value=today, key="bills_to_date")
-    # ===============================================
 
     credit_map = {(cb.get("shop",""), cb.get("date",""), cb.get("booker",""), cb.get("bill_no","")): cb
                   for cb in db.get("credit_bills", [])}
@@ -2015,7 +1958,6 @@ def render_admin_bills_list():
             if bdate != from_date: continue
         elif filter_mode == "📆 Custom Range":
             if bdate is None or not (from_date <= bdate <= to_date): continue
-        # "📋 All Bills" → continue nahi
 
         key = (b.get("Shop",""), b.get("Date",""), b.get("Order Booker",""), b.get("Bill No",""))
         if key not in groups:
@@ -2064,7 +2006,6 @@ def render_admin_credit():
     cbs = db.get("credit_bills", [])
     if not cbs: st.info("Koi credit bill nahi."); return
 
-    # ================= DATE FILTER =================
     today = date.today()
     c1, c2, c3 = st.columns(3)
     with c1:
@@ -2078,7 +2019,6 @@ def render_admin_credit():
                                   key="credit_from_date")
     with c3:
         to_date = st.date_input("To:", value=today, key="credit_to_date")
-    # ===============================================
 
     filtered_cbs = []
     for c in cbs:
@@ -2090,7 +2030,6 @@ def render_admin_credit():
             if cdate != from_date: continue
         elif filter_mode == "📆 Custom Range":
             if cdate is None or not (from_date <= cdate <= to_date): continue
-        # "📋 All Credit Bills" → continue nahi
         filtered_cbs.append(c)
 
     pend = [c for c in filtered_cbs if c.get("status") == "pending"]
@@ -2123,16 +2062,21 @@ def render_admin_credit():
                 save_database(db); st.session_state["success_msg"] = "🗑"; st.rerun()
 
 # ============================================================
-# ADMIN LOAD FORM
+# ADMIN LOAD FORM (BOOKER-WISE + DATE FILTER + RETURN + TRANSFER)
 # ============================================================
 def render_admin_load_form():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📦 Load Forms</h1>", unsafe_allow_html=True)
+    st.caption("Booker-wise load forms · Return add karo · Phir Transfer to DSR karo")
     st.markdown("---")
+
     lfs = db.get("load_forms", [])
-    if not lfs: st.info("Koi load form nahi."); return
+    if not lfs:
+        st.info("Koi load form nahi.")
+        return
+
+    today = date.today()
 
     # ================= DATE FILTER =================
-    today = date.today()
     c1, c2, c3 = st.columns(3)
     with c1:
         filter_mode = st.selectbox(
@@ -2141,51 +2085,147 @@ def render_admin_load_form():
             key="lf_filter_mode"
         )
     with c2:
-        from_date = st.date_input("From:", value=today - timedelta(days=7),
-                                  key="lf_from_date")
+        from_date = st.date_input("From:", value=today, key="lf_from_date")
     with c3:
         to_date = st.date_input("To:", value=today, key="lf_to_date")
+
+    def in_range(dstr):
+        d = parse_date(dstr)
+        if d is None: return False
+        if filter_mode == "📅 Aaj":             return d == today
+        elif filter_mode == "🗓️ Specific":       return d == from_date
+        elif filter_mode == "📆 Custom Range":   return from_date <= d <= to_date
+        else:                                    return True
     # ===============================================
 
-    filtered_lfs = []
-    for lf in lfs:
-        lf_date = parse_date(lf.get("date", ""))
-        if lf_date is None: continue
+    # Get all bookers that have load forms
+    bookers_in_lfs = sorted({lf.get("booker", "") for lf in lfs if lf.get("booker")})
 
-        if filter_mode == "📅 Aaj":
-            if lf_date != today: continue
-        elif filter_mode == "🗓️ Specific":
-            if lf_date != from_date: continue
-        elif filter_mode == "📆 Custom Range":
-            if not (from_date <= lf_date <= to_date): continue
-        # "📋 All" → continue nahi
-        filtered_lfs.append(lf)
-
-    if not filtered_lfs:
-        st.info("Is filter mein koi load form nahi mila.")
+    if not bookers_in_lfs:
+        st.info("Koi booker ke naam se load form nahi mila.")
         return
 
-    for i, lf in enumerate(sorted(filtered_lfs, key=lambda x: x.get("created_at",""), reverse=True)):
-        lf_id = lf.get("id", i); bk = lf.get("booker", "?"); dt = lf.get("date", "")
-        tb = lf.get("total_boxes", 0); items = lf.get("items", [])
-        trf = lf.get("transferred_to_dsr", False); ref = lf.get("refreshed", False)
-        src = lf.get("source", "admin")
-        badge = f'✅ DSR #{lf.get("dsr_id")}' if trf else ('🔄 Refreshed' if ref else ('👤 Booker' if src == "booker" else '🟢 Active'))
-        st.markdown(f"""<div class='lf-simple-card'>
-            <div class='lf-info'><div class='lf-line1'>👤 {bk} <span class='badge-pending'>{badge}</span></div>
-            <div class='lf-line2'>📅 {dt} · 📦 {len(items)} products</div></div>
-            <div class='lf-boxes'>{tb}<small>BOXES</small></div>
-        </div>""", unsafe_allow_html=True)
-        c1, c2 = st.columns(2)
-        with c1:
-            if not trf:
-                if st.button("📤 Transfer to DSR", key=f"trf_{lf_id}"):
-                    transfer_load_form_to_dsr(lf_id); st.rerun()
-        with c2:
-            if st.button("🗑 Delete", key=f"del_lf_{lf_id}"):
-                db["load_forms"] = [x for x in db["load_forms"] if x.get("id") != lf_id]
-                save_database(db); st.session_state["success_msg"] = "🗑"; st.rerun()
-        st.markdown("---")
+    grand_lf = 0
+    grand_boxes = 0
+    grand_ret = 0
+    grand_net = 0
+
+    for bk in bookers_in_lfs:
+        bk_lfs = [lf for lf in lfs if lf.get("booker") == bk and in_range(lf.get("date", ""))]
+        bk_returns = [r for r in db.get("booker_returns", [])
+                      if r.get("booker") == bk and in_range(r.get("date", ""))]
+
+        total_lf_boxes = sum(int(lf.get("total_boxes", 0)) for lf in bk_lfs)
+        total_returns = sum(int(r.get("boxes", 0)) for r in bk_returns)
+        net_boxes = total_lf_boxes - total_returns
+
+        grand_lf += len(bk_lfs)
+        grand_boxes += total_lf_boxes
+        grand_ret += total_returns
+        grand_net += net_boxes
+
+        expander_label = f"👤 {bk} — Load Forms: {len(bk_lfs)} | Boxes: {total_lf_boxes} | Returns: {total_returns} | 🟢 Net: {net_boxes}"
+        with st.expander(expander_label, expanded=False):
+            st.markdown(f"""
+            <div class='bb-summary'>
+                <div class='bb-stat'><div class='bb-stat-label'>Load Forms</div><div class='bb-stat-val'>{len(bk_lfs)}</div></div>
+                <div class='bb-stat'><div class='bb-stat-label'>Total Boxes</div><div class='bb-stat-val'>{total_lf_boxes}</div></div>
+                <div class='bb-stat'><div class='bb-stat-label'>Returns</div><div class='bb-stat-val red'>-{total_returns}</div></div>
+                <div class='bb-stat'><div class='bb-stat-label'>Net Boxes</div><div class='bb-stat-val green'>{net_boxes}</div></div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            if not bk_lfs:
+                st.info("Is date filter mein is booker ka koi load form nahi.")
+
+            for lf in sorted(bk_lfs, key=lambda x: x.get("created_at", ""), reverse=True):
+                lf_id = lf.get("id")
+                dt = lf.get("date", "")
+                tb = lf.get("total_boxes", 0)
+                items = lf.get("items", [])
+                trf = lf.get("transferred_to_dsr", False)
+                badge = f'✅ DSR #{lf.get("dsr_id")}' if trf else '🟢 Active'
+
+                st.markdown(f"""<div class='lf-simple-card'>
+                    <div class='lf-info'><div class='lf-line1'>📦 Load Form #{lf_id} <span class='badge-pending'>{badge}</span></div>
+                    <div class='lf-line2'>📅 {dt} · 🕐 {lf.get('time','')} · 📦 {len(items)} products</div></div>
+                    <div class='lf-boxes'>{tb}<small>BOXES</small></div>
+                </div>""", unsafe_allow_html=True)
+
+                # --- Buttons row ---
+                c1, c2, c3 = st.columns(3)
+                with c1:
+                    if st.button("↩️ Add Return", key=f"ret_open_{lf_id}", use_container_width=True):
+                        st.session_state[f"ret_show_{lf_id}"] = not st.session_state.get(f"ret_show_{lf_id}", False)
+                        st.rerun()
+                with c2:
+                    if not trf:
+                        if st.button("📤 Transfer to DSR", key=f"trf_{lf_id}", type="primary", use_container_width=True):
+                            transfer_load_form_to_dsr(lf_id); st.rerun()
+                    else:
+                        st.button(f"✅ DSR #{lf.get('dsr_id','')}", key=f"trfd_{lf_id}", disabled=True, use_container_width=True)
+                with c3:
+                    if st.button("🗑 Delete", key=f"del_lf_{lf_id}", use_container_width=True):
+                        db["load_forms"] = [x for x in db["load_forms"] if x.get("id") != lf_id]
+                        db["booker_returns"] = [r for r in db.get("booker_returns", []) if r.get("load_form_id") != lf_id]
+                        save_database(db); st.session_state["success_msg"] = "🗑 Deleted"; st.rerun()
+
+                # --- Add Return form (toggle) ---
+                if st.session_state.get(f"ret_show_{lf_id}", False):
+                    st.markdown(f"<div style='background:#fff8e1;border:2px dashed #f57c00;border-radius:10px;padding:12px 16px;margin:6px 0;'>", unsafe_allow_html=True)
+                    st.markdown(f"**↩️ Add Return for 👤 {bk}** (Load Form #{lf_id})")
+                    rc1, rc2, rc3, rc4, rc5 = st.columns([2, 2.5, 1.2, 1.5, 1])
+                    with rc1:
+                        r_date = st.date_input("Date", value=today, key=f"rd_{lf_id}")
+                    with rc2:
+                        r_shop = st.text_input("Shop", key=f"rs_{lf_id}", placeholder="shop name")
+                    with rc3:
+                        r_boxes = st.number_input("Boxes", min_value=0, step=1, key=f"rb_{lf_id}")
+                    with rc4:
+                        r_note = st.text_input("Note", key=f"rn_{lf_id}", placeholder="optional")
+                    with rc5:
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        if st.button("✅ Save", key=f"radd_{lf_id}", type="primary", use_container_width=True):
+                            if r_boxes <= 0:
+                                st.session_state["error_msg"] = "❌ Boxes > 0"
+                            else:
+                                nid = max([r.get("id", 0) for r in db.get("booker_returns", [])] + [0]) + 1
+                                db.setdefault("booker_returns", []).append({
+                                    "id": nid, "booker": bk, "load_form_id": lf_id,
+                                    "date": r_date.strftime("%d-%m-%Y"),
+                                    "shop": r_shop.strip(), "boxes": int(r_boxes),
+                                    "note": r_note.strip(),
+                                    "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                })
+                                save_database(db)
+                                st.session_state["success_msg"] = f"✅ Return {r_boxes} boxes added for {bk}"
+                                st.session_state[f"ret_show_{lf_id}"] = False
+                                st.rerun()
+                    st.markdown("</div>", unsafe_allow_html=True)
+
+                # --- Show returns for this LF ---
+                lf_returns = [r for r in db.get("booker_returns", []) if r.get("load_form_id") == lf_id]
+                if lf_returns:
+                    for r in sorted(lf_returns, key=lambda x: x.get("created_at", ""), reverse=True):
+                        cc1, cc2 = st.columns([6, 1])
+                        with cc1:
+                            st.markdown(f"↩️ 📅 {r.get('date','')} · 🏪 {r.get('shop','-')} · **{r.get('boxes',0)} boxes** · {r.get('note','') or '—'}")
+                        with cc2:
+                            if st.button("🗑", key=f"del_lfr_{lf_id}_{r.get('id')}"):
+                                db["booker_returns"] = [x for x in db["booker_returns"] if x.get("id") != r.get("id")]
+                                save_database(db); st.session_state["success_msg"] = "🗑 Return deleted"; st.rerun()
+
+                st.markdown("---")
+
+    st.markdown(f"""
+    <div class='bb-summary'>
+        <div class='bb-stat'><div class='bb-stat-label'>Filter</div><div class='bb-stat-val' style='font-size:14px;'>{filter_mode.replace('📅 ','').replace('📆 ','').replace('🗓️ ','').replace('📋 ','')}</div></div>
+        <div class='bb-stat'><div class='bb-stat-label'>Load Forms</div><div class='bb-stat-val'>{grand_lf}</div></div>
+        <div class='bb-stat'><div class='bb-stat-label'>Total Boxes</div><div class='bb-stat-val'>{grand_boxes}</div></div>
+        <div class='bb-stat'><div class='bb-stat-label'>Returns</div><div class='bb-stat-val red'>-{grand_ret}</div></div>
+        <div class='bb-stat'><div class='bb-stat-label'>NET (All Bookers)</div><div class='bb-stat-val green'>{grand_net}</div></div>
+    </div>
+    """, unsafe_allow_html=True)
 
 # ============================================================
 # ADMIN DSR
@@ -2196,7 +2236,6 @@ def render_admin_dsr():
     dsrs = db.get("dsr_forms", [])
     if not dsrs: st.info("Koi DSR nahi."); return
 
-    # ================= DATE FILTER =================
     today = date.today()
     c1, c2, c3 = st.columns(3)
     with c1:
@@ -2210,7 +2249,6 @@ def render_admin_dsr():
                                   key="dsr_from_date")
     with c3:
         to_date = st.date_input("To:", value=today, key="dsr_to_date")
-    # ===============================================
 
     filtered_dsrs = []
     for d in dsrs:
@@ -2223,7 +2261,6 @@ def render_admin_dsr():
             if d_date != from_date: continue
         elif filter_mode == "📆 Custom Range":
             if not (from_date <= d_date <= to_date): continue
-        # "📋 All" → continue nahi
         filtered_dsrs.append(d)
 
     if not filtered_dsrs:
