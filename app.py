@@ -1,9 +1,7 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
 # Full code with Admin + Booker login, sidebar toggle working
-# + BOOKER-WISE BILLS + ITEM-WISE RETURNS in LOAD FORM
-# + MISCELLANEOUS EXPENSE + PERMANENT PRODUCT DELETE + FIXED IMPORT
-# + PREMIUM FLOATING BUBBLES & HERO ANIMATION
+# + PRO ANIMATIONS (Live Counters, Floating Bubbles, Glass Login, Pulsing Dots)
 # ============================================================
 
 import os
@@ -88,11 +86,11 @@ def default_discount_packages():
     ]
 
 # ============================================================
-# GLOBAL CSS (PREMIUM ANIMATIONS ADDED)
+# GLOBAL CSS & ANIMATIONS
 # ============================================================
 st.markdown("""
 <style>
-    /* 1. LIVE BACKGROUND ANIMATION */
+    /* 1. BACKGROUND GRADIENT ANIMATION */
     @keyframes gradientBG {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
@@ -105,7 +103,7 @@ st.markdown("""
         overflow-x: hidden;
     }
 
-    /* 2. FLOATING COLORFUL BUBBLES */
+    /* 2. FLOATING PARTICLES (BUBBLES) */
     .bubbles {
         position: fixed; bottom: -100px; left: 0; width: 100%; height: 100%;
         z-index: 0; pointer-events: none; margin: 0; padding: 0;
@@ -144,22 +142,20 @@ st.markdown("""
         z-index: 2;
     }
 
-    /* 4. FLOATING LOGIN CARD ANIMATION */
-    @keyframes floatCard {
-        0% { transform: translateY(0px); }
-        50% { transform: translateY(-10px); }
-        100% { transform: translateY(0px); }
+    /* 4. PAGE LOAD FADE IN */
+    @keyframes fadeInPage {
+        0% { opacity: 0; transform: translateY(15px); }
+        100% { opacity: 1; transform: translateY(0); }
     }
-    .auth-card { 
-        background: rgba(255, 255, 255, 0.75) !important; 
-        backdrop-filter: blur(15px) !important; 
-        border: 1px solid rgba(255, 255, 255, 0.6) !important;
-        animation: floatCard 6s ease-in-out infinite !important;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
-        z-index: 10 !important;
+    .block-container {
+        animation: fadeInPage 0.6s ease-out !important;
+        position: relative; z-index: 2;
+        padding-top: 0.5rem !important; padding-left: 1.5rem !important;
+        padding-right: 1.5rem !important; padding-bottom: 0.5rem !important;
+        max-width: 100% !important;
     }
 
-    /* 5. BOUNCY KPI CARDS */
+    /* 5. 3D TILT & BOUNCY KPI CARDS */
     .kpi-card { 
         transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important; 
         z-index: 5 !important;
@@ -169,13 +165,14 @@ st.markdown("""
         box-shadow: 0 15px 30px rgba(37,99,235,0.25) !important; 
     }
 
-    /* 6. SIDEBAR MENU SLIDE ANIMATION */
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label { 
-        transition: all 0.25s ease !important; 
+    /* 6. PULSING LIVE DOT */
+    @keyframes pulseDot {
+        0% { box-shadow: 0 0 0 0 rgba(67, 160, 71, 0.7); }
+        70% { box-shadow: 0 0 0 6px rgba(67, 160, 71, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(67, 160, 71, 0); }
     }
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover { 
-        transform: translateX(6px) !important; 
-        background-color: #e8f5e9 !important; 
+    .sb-brand-dot { 
+        animation: pulseDot 2s infinite !important; 
     }
 
     /* 7. GLOWING BUTTONS */
@@ -188,17 +185,19 @@ st.markdown("""
         filter: brightness(1.1) !important;
     }
 
-    /* 8. PAGE LOAD FADE IN */
-    @keyframes fadeInPage {
-        0% { opacity: 0; transform: translateY(15px); }
-        100% { opacity: 1; transform: translateY(0); }
+    /* 8. FLOATING LOGIN CARD ANIMATION */
+    @keyframes floatCard {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
     }
-    .block-container {
-        animation: fadeInPage 0.6s ease-out !important;
-        position: relative; z-index: 2;
-        padding-top: 0.5rem !important; padding-left: 1.5rem !important;
-        padding-right: 1.5rem !important; padding-bottom: 0.5rem !important;
-        max-width: 100% !important;
+    .auth-card { 
+        background: rgba(255, 255, 255, 0.75) !important; 
+        backdrop-filter: blur(15px) !important; 
+        border: 1px solid rgba(255, 255, 255, 0.6) !important;
+        animation: floatCard 6s ease-in-out infinite !important;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+        z-index: 10 !important;
     }
 
     /* ---------- BASE STYLES (RESTORED) ---------- */
@@ -378,7 +377,7 @@ st.markdown("""
     .sb-brand-logo { display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #66bb6a 0%, #2e7d32 100%); font-size: 28px; margin-bottom: 10px; box-shadow: 0 8px 20px rgba(76,175,80,0.35), inset 0 1px 0 rgba(255,255,255,0.35); }
     .sb-brand-name { font-size: 17px; font-weight: 800; color: #1b5e20 !important; letter-spacing: 2px; margin: 0; text-shadow: 0 1px 2px rgba(255,255,255,0.8); }
     .sb-brand-sub { font-size: 9px; color: #558b2f !important; letter-spacing: 4px; font-weight: 700; margin-top: 3px; }
-    .sb-brand-dot { display: inline-block; width: 6px; height: 6px; background: #43a047; border-radius: 50%; margin-right: 4px; box-shadow: 0 0 8px #43a047; vertical-align: middle; }
+    .sb-brand-dot { display: inline-block; width: 6px; height: 6px; background: #43a047; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
     .sb-brand-status { font-size: 9px; color: #689f38 !important; letter-spacing: 1px; margin-top: 6px; font-weight: 700; }
     .sb-user { display: flex; align-items: center; gap: 12px; background: #ffffff; border: 1px solid rgba(76,175,80,0.25); border-radius: 12px; padding: 10px 12px; margin: 14px 14px 16px; position: relative; overflow: hidden; box-shadow: 0 2px 8px rgba(76,175,80,0.10); }
     .sb-user::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, #66bb6a 0%, #2e7d32 100%); }
@@ -497,7 +496,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# SIDEBAR TOGGLE JS — works on admin AND booker pages
+# SIDEBAR TOGGLE JS
 # ============================================================
 components.html("""
 <script>
@@ -583,9 +582,33 @@ components.html("""
 COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
 
 # ============================================================
-# PRODUCT LIST
+# HELPER: ANIMATED COUNT-UP
 # ============================================================
-PRODUCTS = []
+def animated_count(num, suffix=""):
+    """Returns an HTML snippet that counts up from 0 to `num` using JS."""
+    return f"""
+    <span class="js-counter" data-target="{num}" data-suffix="{suffix}">0</span>
+    <script>
+    (function() {{
+        var els = document.querySelectorAll('.js-counter');
+        var el = els[els.length - 1];
+        if (el.dataset.animated) return;
+        el.dataset.animated = true;
+        var target = parseInt(el.getAttribute('data-target')) || 0;
+        var sfx = el.getAttribute('data-suffix') || '';
+        var count = 0;
+        var step = Math.max(1, Math.ceil(target / 30));
+        var timer = setInterval(function() {{
+            count += step;
+            if (count >= target) {{
+                count = target;
+                clearInterval(timer);
+            }}
+            el.innerText = count.toLocaleString() + sfx;
+        }}, 25);
+    }})();
+    </script>
+    """
 
 # ============================================================
 # AUTH SCREEN
@@ -1289,19 +1312,19 @@ def render_admin_dashboard():
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">👤</div><div class="kpi-label">Bookers</div></div>
-            <div class="kpi-value-group"><div class="kpi-value">{len(bookers)}</div><div class="kpi-value-unit">members</div></div>
+            <div class="kpi-value-group"><div class="kpi-value">{animated_count(len(bookers))}</div><div class="kpi-value-unit">members</div></div>
             <div class="kpi-sub blue">Order booking team</div></div>""", unsafe_allow_html=True)
     with c2:
         st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon purple">🧑‍💼</div><div class="kpi-label">Salesmen</div></div>
-            <div class="kpi-value-group"><div class="kpi-value">{len(salesmen)}</div><div class="kpi-value-unit">members</div></div>
+            <div class="kpi-value-group"><div class="kpi-value">{animated_count(len(salesmen))}</div><div class="kpi-value-unit">members</div></div>
             <div class="kpi-sub blue">Field sales team</div></div>""", unsafe_allow_html=True)
     with c3:
         st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon teal">📦</div><div class="kpi-label">Products</div></div>
-            <div class="kpi-value-group"><div class="kpi-value">{total_products}</div><div class="kpi-value-unit">items</div></div>
+            <div class="kpi-value-group"><div class="kpi-value">{animated_count(total_products)}</div><div class="kpi-value-unit">items</div></div>
             <div class="kpi-sub blue">Active catalog</div></div>""", unsafe_allow_html=True)
     with c4:
         st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">🧾</div><div class="kpi-label">Total Bills</div></div>
-            <div class="kpi-value-group"><div class="kpi-value">{total_bills}</div><div class="kpi-value-unit">bills</div></div>
+            <div class="kpi-value-group"><div class="kpi-value">{animated_count(total_bills)}</div><div class="kpi-value-unit">bills</div></div>
             <div class="kpi-sub blue">Generated so far</div></div>""", unsafe_allow_html=True)
 
     st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
@@ -1309,19 +1332,19 @@ def render_admin_dashboard():
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon orange">⏳</div><div class="kpi-label">Pending Credit</div></div>
-            <div class="kpi-value-group"><div class="kpi-value">{len(pending_credits)}</div><div class="kpi-value-unit">bills</div></div>
+            <div class="kpi-value-group"><div class="kpi-value">{animated_count(len(pending_credits))}</div><div class="kpi-value-unit">bills</div></div>
             <div class="kpi-sub orange">Rs {pending_amt:,.0f} receivable</div></div>""", unsafe_allow_html=True)
     with c2:
         st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon green">✅</div><div class="kpi-label">Paid Credit</div></div>
-            <div class="kpi-value-group"><div class="kpi-value">{len(paid_credits)}</div><div class="kpi-value-unit">bills</div></div>
+            <div class="kpi-value-group"><div class="kpi-value">{animated_count(len(paid_credits))}</div><div class="kpi-value-unit">bills</div></div>
             <div class="kpi-sub green">Rs {paid_amt:,.0f} settled</div></div>""", unsafe_allow_html=True)
     with c3:
         st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">📦</div><div class="kpi-label">Load Forms</div></div>
-            <div class="kpi-value-group"><div class="kpi-value">{total_load_forms}</div><div class="kpi-value-unit">saved</div></div>
+            <div class="kpi-value-group"><div class="kpi-value">{animated_count(total_load_forms)}</div><div class="kpi-value-unit">saved</div></div>
             <div class="kpi-sub blue">Stock dispatch forms</div></div>""", unsafe_allow_html=True)
     with c4:
         st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon red">📋</div><div class="kpi-label">DSR Forms</div></div>
-            <div class="kpi-value-group"><div class="kpi-value">{total_dsr}</div><div class="kpi-value-unit">active</div></div>
+            <div class="kpi-value-group"><div class="kpi-value">{animated_count(total_dsr)}</div><div class="kpi-value-unit">active</div></div>
             <div class="kpi-sub blue">Daily sales reports</div></div>""", unsafe_allow_html=True)
 
     st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
