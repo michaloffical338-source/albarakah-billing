@@ -3,7 +3,7 @@
 # Full code with Admin + Booker login, sidebar toggle working
 # + BOOKER-WISE BILLS + ITEM-WISE RETURNS in LOAD FORM
 # + MISCELLANEOUS EXPENSE + PERMANENT PRODUCT DELETE + FIXED IMPORT
-# + PREMIUM ANIMATIONS (LIVE BACKGROUND, GLASS LOGIN, BOUNCY CARDS)
+# + PREMIUM FLOATING BUBBLES & HERO ANIMATION
 # ============================================================
 
 import os
@@ -88,11 +88,11 @@ def default_discount_packages():
     ]
 
 # ============================================================
-# GLOBAL CSS (PREMIUM ANIMATIONS ADDED)
+# GLOBAL CSS (PREMIUM BUBBLES & ANIMATIONS ADDED)
 # ============================================================
 st.markdown("""
 <style>
-    /* 1. LIVE BACKGROUND ANIMATION */
+    /* 1. BASE BACKGROUND ANIMATION */
     @keyframes gradientBG {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
@@ -102,9 +102,62 @@ st.markdown("""
         background: linear-gradient(-45deg, #e3f2fd, #bbdefb, #e0f7fa, #e8eaf6) !important;
         background-size: 400% 400% !important;
         animation: gradientBG 15s ease infinite !important;
+        overflow: hidden; /* Prevent scrollbars from bubbles */
     }
 
-    /* 2. FLOATING LOGIN CARD ANIMATION */
+    /* 2. FLOATING COLORFUL BUBBLES (Neecay se upar aane wale colors) */
+    .bubbles {
+        position: fixed;
+        bottom: -100px;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1; /* Behind content */
+        pointer-events: none; /* Ignore clicks */
+        margin: 0;
+        padding: 0;
+    }
+    .bubbles li {
+        position: absolute;
+        list-style: none;
+        display: block;
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.2);
+        bottom: -160px;
+        animation: square 25s infinite linear;
+        border-radius: 50%;
+    }
+    .bubbles li:nth-child(1) { left: 10%; width: 80px; height: 80px; animation-delay: 0s; background: rgba(33,150,243,0.15); }
+    .bubbles li:nth-child(2) { left: 20%; width: 30px; height: 30px; animation-delay: 2s; animation-duration: 12s; background: rgba(76,175,80,0.15); }
+    .bubbles li:nth-child(3) { left: 35%; width: 100px; height: 100px; animation-delay: 4s; background: rgba(255,152,0,0.15); }
+    .bubbles li:nth-child(4) { left: 50%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s; background: rgba(156,39,176,0.15); }
+    .bubbles li:nth-child(5) { left: 65%; width: 40px; height: 40px; animation-delay: 1s; background: rgba(0,188,212,0.15); }
+    .bubbles li:nth-child(6) { left: 80%; width: 120px; height: 120px; animation-delay: 3s; background: rgba(233,30,99,0.12); }
+    .bubbles li:nth-child(7) { left: 90%; width: 50px; height: 50px; animation-delay: 5s; animation-duration: 14s; background: rgba(255,193,7,0.15); }
+    .bubbles li:nth-child(8) { left: 25%; width: 90px; height: 90px; animation-delay: 7s; background: rgba(76,175,80,0.15); }
+    .bubbles li:nth-child(9) { left: 75%; width: 70px; height: 70px; animation-delay: 2s; animation-duration: 22s; background: rgba(33,150,243,0.15); }
+
+    @keyframes square {
+        0% { transform: translateY(0) rotate(0deg); opacity: 1; border-radius: 50%; }
+        100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; border-radius: 50%; }
+    }
+
+    /* 3. HERO CARD (Welcome Back) ANIMATED SHADE */
+    @keyframes heroShade {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    .dash-hero { 
+        background: linear-gradient(-45deg, #1e3a8a, #2563eb, #3b82f6, #8b5cf6, #2563eb) !important; 
+        background-size: 300% 300% !important;
+        animation: heroShade 8s ease infinite !important;
+        border-radius: 20px; padding: 26px 32px; margin-bottom: 22px; color: #fff; 
+        position: relative; overflow: hidden; box-shadow: 0 12px 32px rgba(37, 99, 235, 0.35); 
+    }
+
+    /* 4. FLOATING LOGIN CARD ANIMATION */
     @keyframes floatCard {
         0% { transform: translateY(0px); }
         50% { transform: translateY(-10px); }
@@ -116,18 +169,20 @@ st.markdown("""
         border: 1px solid rgba(255, 255, 255, 0.6) !important;
         animation: floatCard 6s ease-in-out infinite !important;
         box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+        z-index: 10 !important;
     }
 
-    /* 3. BOUNCY KPI CARDS */
+    /* 5. BOUNCY KPI CARDS */
     .kpi-card { 
         transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important; 
+        z-index: 5 !important;
     }
     .kpi-card:hover { 
         transform: translateY(-8px) scale(1.02) !important; 
         box-shadow: 0 15px 30px rgba(37,99,235,0.25) !important; 
     }
 
-    /* 4. SIDEBAR MENU SLIDE ANIMATION */
+    /* 6. SIDEBAR MENU SLIDE ANIMATION */
     section[data-testid="stSidebar"] div[role="radiogroup"] > label { 
         transition: all 0.25s ease !important; 
     }
@@ -136,7 +191,7 @@ st.markdown("""
         background-color: #e8f5e9 !important; 
     }
 
-    /* 5. GLOWING BUTTONS */
+    /* 7. GLOWING BUTTONS */
     .stButton > button { 
         transition: all 0.3s ease !important; 
     }
@@ -189,6 +244,8 @@ st.markdown("""
         padding-top: 0.5rem !important; padding-left: 1.5rem !important;
         padding-right: 1.5rem !important; padding-bottom: 0.5rem !important;
         max-width: 100% !important;
+        position: relative;
+        z-index: 2; /* Keep content above bubbles */
     }
     .stApp .element-container { margin-bottom: 0.35rem !important; }
     .stApp [data-testid="stVerticalBlock"] > div { gap: 0.35rem !important; }
@@ -317,6 +374,7 @@ st.markdown("""
         border-right: 2px solid #a5d6a7 !important;
         box-shadow: 4px 0 20px rgba(76,175,80,0.12) !important;
         backdrop-filter: blur(10px) !important;
+        z-index: 10 !important;
     }
     section[data-testid="stSidebar"] > div:first-child { padding-top: 0 !important; }
     section[data-testid="stSidebar"] .block-container { padding: 0 !important; }
@@ -381,7 +439,7 @@ st.markdown("""
     section[data-testid="stSidebar"] .stButton > button span,
     section[data-testid="stSidebar"] .stButton > button div { color: inherit !important; }
 
-    .dash-hero { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%); border-radius: 20px; padding: 26px 32px; margin-bottom: 22px; color: #fff; position: relative; overflow: hidden; box-shadow: 0 12px 32px rgba(37, 99, 235, 0.35); }
+    /* .dash-hero is defined at the top now */
     .dash-hero::before { content: ''; position: absolute; top: -50%; right: -10%; width: 420px; height: 420px; background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%); border-radius: 50%; }
     .dash-hero-content { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
     .dash-hero-left { display: flex; flex-direction: column; gap: 6px; }
@@ -438,6 +496,12 @@ st.markdown("""
 
     .item-line { display: flex; align-items: center; justify-content: space-between; background: #ffffff; border: 1px solid #b3e5fc; border-radius: 8px; padding: 8px 12px; margin-bottom: 6px; }
 </style>
+
+<!-- HTML Structure for Floating Background Bubbles -->
+<ul class="bubbles">
+    <li></li><li></li><li></li><li></li><li></li>
+    <li></li><li></li><li></li><li></li>
+</ul>
 """, unsafe_allow_html=True)
 
 # ============================================================
