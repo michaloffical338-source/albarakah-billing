@@ -5,7 +5,7 @@
 # + MISCELLANEOUS EXPENSE + PERMANENT PRODUCT DELETE + FIXED IMPORT
 # + PREMIUM FLOATING BUBBLES & HERO ANIMATION
 # + LOAD FORM EXCEL DOWNLOAD (per load form)
-# + BILL EXCEL NOW SHOWS BOOKER NAME + DATE
+# + BILL EXCEL NOW SHOWS BOOKER NAME + DATE (ALL CAPS + BOLD + AUTO WIDTH)
 # ============================================================
 
 import os
@@ -2630,14 +2630,14 @@ def refresh_callback():
     st.session_state["success_msg"] = "✅"
 
 # ============================================================
-# 🆕 BILL EXCEL BUILDER — booker + date clearly visible
+# 🆕 BILL EXCEL BUILDER — ALL CAPS + BOLD + AUTO WIDTH
 # ============================================================
 def _build_bill_excel(shop, bills, pkg_pct, pkg_name, tier_label, booker="", date_str=""):
     """
-    Bills ki Excel banata hai. Booker name aur date clearly top pe dikhte hain.
-    Agar bills list khaali ho to passed booker/date use hoti hai.
+    Bills ki Excel banata hai.
+    - Saari cheezein CAPITAL LETTERS me + BOLD
+    - Column width auto — Product naam bara ho ya chota, aadha nahi katega
     """
-    # Booker aur date bills se nikaalo agar pass nahi hua
     if not booker:
         try:
             booker = bills[0].get("Order Booker", "") if bills else ""
@@ -2653,74 +2653,112 @@ def _build_bill_excel(shop, bills, pkg_pct, pkg_name, tier_label, booker="", dat
     wb = xlsxwriter.Workbook(output, {'in_memory': True})
     ws = wb.add_worksheet("Bill")
 
-    # Column widths
-    ws.set_column("A:A", 40)   # Product
-    ws.set_column("B:B", 10)   # Code
-    ws.set_column("C:C", 8)    # Boxes
-    ws.set_column("D:D", 10)   # TP/Box
-    ws.set_column("E:E", 12)   # Gross
-    ws.set_column("F:F", 9)    # Disc %
-    ws.set_column("G:G", 12)   # Net
-    ws.set_column("H:H", 10)   # Pkg Disc %
-    ws.set_column("I:I", 14)   # After Disc Net
-    ws.set_column("J:J", 12)   # Saved
+    # ===== AUTO COLUMN WIDTH CALCULATION =====
+    # Har column ki max length nikaalo (header + data dono se)
+    headers_txt = ["PRODUCT", "CODE", "BOXES", "TP/BOX", "GROSS", "DISC %", "NET",
+                   "PKG DISC %", "AFTER DISC NET", "SAVED"]
 
+    max_lens = [len(h) for h in headers_txt]
+    for b in bills:
+        row_data = [
+            str(b.get("Product", "")).upper(),
+            str(b.get("Code", "")).upper(),
+            str(b.get("Boxes", 0)),
+            f"{float(b.get('TP/Box', 0)):,.0f}",
+            f"{float(b.get('Gross', 0)):,.0f}",
+            f"{float(b.get('Discount %', 0))}",
+            f"{float(b.get('Net', 0)):,.0f}",
+            f"{float(pkg_pct)}",
+            f"{float(b.get('Net', 0)) * (1 - pkg_pct/100):,.0f}",
+            f"{float(b.get('Net', 0)) * (pkg_pct/100):,.0f}",
+        ]
+        for i, val in enumerate(row_data):
+            if i < len(max_lens):
+                max_lens[i] = max(max_lens[i], len(val))
+
+    # Total row ki values bhi consider karo
+    total_len_check = ["TOTAL", "", "999999", "", "99999999", "", "99999999", "", "99999999", "99999999"]
+    for i, val in enumerate(total_len_check):
+        if i < len(max_lens):
+            max_lens[i] = max(max_lens[i], len(val))
+
+    # Column widths set karo — bold font ke liye extra 2 chars
+    for i, ml in enumerate(max_lens):
+        # Bold + CAPS me zyada space chahiye, is liye +3 padding
+        width = max(10, ml + 4)
+        # Product column ko thoda aur zyada space
+        if i == 0:
+            width = max(28, ml + 4)
+        ws.set_column(i, i, width)
+
+    # ===== FORMATS (ALL CAPS + BOLD) =====
     title = wb.add_format({"bold": True, "font_size": 18, "align": "center",
-                            "border": 2, "bg_color": "#BBDEFB"})
+                           "border": 2, "bg_color": "#BBDEFB"})
     info_lbl = wb.add_format({"bold": True, "font_size": 11, "bg_color": "#E3F2FD",
-                               "align": "right", "border": 1, "valign": "vcenter"})
-    info_val = wb.add_format({"font_size": 11, "align": "left", "border": 1,
-                               "valign": "vcenter", "bold": True, "font_color": "#1976d2"})
-    info_date = wb.add_format({"font_size": 11, "align": "left", "border": 1,
-                                "valign": "vcenter", "bold": True, "font_color": "#2e7d32"})
+                              "align": "right", "border": 1, "valign": "vcenter",
+                              "text_case": "upper"})
+    info_val = wb.add_format({"bold": True, "font_size": 11, "align": "left",
+                              "border": 1, "valign": "vcenter",
+                              "font_color": "#1976d2", "text_case": "upper"})
+    info_date = wb.add_format({"bold": True, "font_size": 11, "align": "left",
+                               "border": 1, "valign": "vcenter",
+                               "font_color": "#2e7d32", "text_case": "upper"})
     hdr = wb.add_format({"bold": True, "font_size": 11, "bg_color": "#BBDEFB",
                          "align": "center", "border": 2, "text_wrap": True,
-                         "valign": "vcenter"})
-    cl = wb.add_format({"font_size": 11, "border": 1, "align": "left", "text_wrap": True})
-    cc = wb.add_format({"font_size": 11, "border": 1, "align": "center"})
-    cn = wb.add_format({"font_size": 11, "border": 1, "align": "right", "num_format": "#,##0"})
+                         "valign": "vcenter", "text_case": "upper"})
+    # Table cells — BOLD + CAPS
+    cl = wb.add_format({"bold": True, "font_size": 11, "border": 1,
+                        "align": "left", "text_wrap": True,
+                        "valign": "vcenter", "text_case": "upper"})
+    cc = wb.add_format({"bold": True, "font_size": 11, "border": 1,
+                        "align": "center", "valign": "vcenter"})
+    cn = wb.add_format({"bold": True, "font_size": 11, "border": 1,
+                        "align": "right", "valign": "vcenter",
+                        "num_format": "#,##0"})
     tt = wb.add_format({"bold": True, "font_size": 12, "bg_color": "#FFF2CC",
-                        "align": "center", "border": 2})
+                        "align": "center", "border": 2, "text_case": "upper"})
     ttn = wb.add_format({"bold": True, "font_size": 12, "bg_color": "#FFF2CC",
                          "align": "right", "border": 2, "num_format": "#,##0"})
-    dl = wb.add_format({"font_size": 11, "border": 1, "align": "center",
-                        "bg_color": "#E8F5E9", "bold": True})
-    pi = wb.add_format({"font_size": 10, "italic": True, "align": "left",
-                        "font_color": "#1b5e20", "border": 1})
+    dl = wb.add_format({"bold": True, "font_size": 11, "border": 1,
+                        "align": "center", "bg_color": "#E8F5E9",
+                        "valign": "vcenter"})
+    pi = wb.add_format({"bold": True, "font_size": 10, "italic": True,
+                        "align": "left", "font_color": "#1b5e20",
+                        "border": 1, "text_case": "upper"})
     net_lbl = wb.add_format({"bold": True, "font_size": 13, "bg_color": "#1e3a8a",
-                              "font_color": "#ffffff", "align": "center", "border": 2,
-                              "valign": "vcenter"})
+                             "font_color": "#ffffff", "align": "center",
+                             "border": 2, "valign": "vcenter",
+                             "text_case": "upper"})
     net_val = wb.add_format({"bold": True, "font_size": 16, "bg_color": "#C8E6C9",
-                              "align": "center", "border": 2, "num_format": '"Rs "#,##0',
-                              "valign": "vcenter"})
+                             "align": "center", "border": 2,
+                             "num_format": '"RS "#,##0', "valign": "vcenter"})
 
     # ===== TITLE =====
     ws.merge_range("A1:J1", COMPANY_NAME, title)
 
-    # ===== BOOKER + DATE (Hamesha top pe, saaf nazar aayega) =====
-    ws.merge_range("A3:B3", "Order Booker:", info_lbl)
-    ws.merge_range("C3:E3", f"👤 {booker or '-'}", info_val)
-    ws.merge_range("F3:G3", "Date:", info_lbl)
-    ws.merge_range("H3:J3", f"📅 {date_str or '-'}", info_date)
+    # ===== BOOKER + DATE (ALL CAPS) =====
+    ws.merge_range("A3:B3", "ORDER BOOKER:", info_lbl)
+    ws.merge_range("C3:E3", f"{booker or '-'}", info_val)
+    ws.merge_range("F3:G3", "DATE:", info_lbl)
+    ws.merge_range("H3:J3", f"{date_str or '-'}", info_date)
 
-    # ===== SHOP + BILL NO =====
-    ws.merge_range("A4:B4", "Shop:", info_lbl)
-    ws.merge_range("C4:E4", shop or "-", info_val)
-    ws.merge_range("F4:G4", "Bill No:", info_lbl)
-    bill_no_display = bills[0].get("Bill No", "") if bills else ""
+    # ===== SHOP + BILL NO (ALL CAPS) =====
+    ws.merge_range("A4:B4", "SHOP:", info_lbl)
+    ws.merge_range("C4:E4", (shop or "-").upper(), info_val)
+    ws.merge_range("F4:G4", "BILL NO:", info_lbl)
+    bill_no_display = str(bills[0].get("Bill No", "")).upper() if bills else ""
     ws.merge_range("H4:J4", f"#{bill_no_display}", info_val)
 
-    # ===== DISCOUNT INFO =====
+    # ===== DISCOUNT INFO (ALL CAPS) =====
     if pkg_pct > 0:
-        ws.merge_range("A5:J5", f"🎁 Discount: {pkg_name} | {tier_label} | {pkg_pct}%", pi)
+        disc_txt = f"DISCOUNT: {pkg_name} | {tier_label} | {pkg_pct}%"
+        ws.merge_range("A5:J5", disc_txt.upper(), pi)
     else:
-        ws.merge_range("A5:J5", "💡 No discount applied", pi)
+        ws.merge_range("A5:J5", "NO DISCOUNT APPLIED", pi)
 
     # ===== TABLE HEADER =====
     hr = 6
-    headers = ["Product", "Code", "Boxes", "TP/Box", "Gross", "Disc %", "Net",
-               "Pkg Disc %", "After Disc Net", "Saved"]
-    for col, h in enumerate(headers):
+    for col, h in enumerate(headers_txt):
         ws.write(hr, col, h, hdr)
 
     row = hr + 1
@@ -2728,17 +2766,21 @@ def _build_bill_excel(shop, bills, pkg_pct, pkg_name, tier_label, booker="", dat
     for b in bills:
         bn = float(b.get("Net", 0)); bg = float(b.get("Gross", 0)); bb = int(b.get("Boxes", 0))
         an = bn - (bn * pkg_pct / 100); s = bn - an
-        ws.write(row, 0, b["Product"], cl)
-        ws.write(row, 1, str(b["Code"]), cc)
+        ws.write(row, 0, str(b["Product"]).upper(), cl)
+        ws.write(row, 1, str(b["Code"]).upper(), cc)
         ws.write(row, 2, bb, cc)
         ws.write(row, 3, float(b.get("TP/Box", 0)), cn)
         ws.write(row, 4, bg, cn)
         ws.write(row, 5, float(b.get("Discount %", 0)), cc)
         ws.write(row, 6, bn, cn)
         if pkg_pct > 0:
-            ws.write(row, 7, pkg_pct, dl); ws.write(row, 8, an, dl); ws.write(row, 9, s, dl)
+            ws.write(row, 7, pkg_pct, dl)
+            ws.write(row, 8, an, dl)
+            ws.write(row, 9, s, dl)
         else:
-            ws.write(row, 7, 0, cc); ws.write(row, 8, bn, cn); ws.write(row, 9, 0, cn)
+            ws.write(row, 7, 0, cc)
+            ws.write(row, 8, bn, cn)
+            ws.write(row, 9, 0, cn)
         gt += bg; tb += bb; nt += bn; ad += an; sv += s
         row += 1
 
@@ -2759,15 +2801,17 @@ def _build_bill_excel(shop, bills, pkg_pct, pkg_name, tier_label, booker="", dat
     ws.merge_range(row, 7, row, 9, ad, net_val)
     row += 2
 
-    # ===== FOOTER INFO — Bookers aur Date phir se neeche bhi =====
-    foot_lbl = wb.add_format({"font_size": 9, "italic": True, "align": "right",
-                               "font_color": "#555555"})
-    foot_val = wb.add_format({"font_size": 9, "italic": True, "align": "left",
-                               "font_color": "#555555", "bold": True})
-    ws.merge_range(row, 0, row, 1, "Booker:", foot_lbl)
-    ws.merge_range(row, 2, row, 4, booker or "-", foot_val)
-    ws.merge_range(row, 5, row, 6, "Date:", foot_lbl)
-    ws.merge_range(row, 7, row, 9, date_str or "-", foot_val)
+    # ===== FOOTER INFO (ALL CAPS) =====
+    foot_lbl = wb.add_format({"bold": True, "font_size": 9, "italic": True,
+                              "align": "right", "font_color": "#555555",
+                              "text_case": "upper"})
+    foot_val = wb.add_format({"bold": True, "font_size": 9, "italic": True,
+                              "align": "left", "font_color": "#555555",
+                              "text_case": "upper"})
+    ws.merge_range(row, 0, row, 1, "BOOKER:", foot_lbl)
+    ws.merge_range(row, 2, row, 4, (booker or "-").upper(), foot_val)
+    ws.merge_range(row, 5, row, 6, "DATE:", foot_lbl)
+    ws.merge_range(row, 7, row, 9, (date_str or "-").upper(), foot_val)
 
     ws.set_paper(9)
     ws.set_portrait()
@@ -2804,7 +2848,6 @@ def export_bill_callback():
         return
     tot = sum(float(b.get("Net", 0)) for b in sb)
     pct, pn, tl = get_effective_discount_pct(shop, tot)
-    # Booker aur date bills se nikaalo
     booker_val = sb[0].get("Order Booker", "") if sb else ""
     date_val = sb[0].get("Date", "") if sb else ""
     st.session_state["download_file"] = (
