@@ -5,6 +5,7 @@
 # + MISCELLANEOUS EXPENSE + PERMANENT PRODUCT DELETE + FIXED IMPORT
 # + PREMIUM FLOATING BUBBLES & HERO ANIMATION
 # + LOAD FORM EXCEL DOWNLOAD (per load form)
+# + BILL EXCEL NOW SHOWS BOOKER NAME + DATE
 # ============================================================
 
 import os
@@ -89,11 +90,10 @@ def default_discount_packages():
     ]
 
 # ============================================================
-# GLOBAL CSS (PREMIUM ANIMATIONS ADDED)
+# GLOBAL CSS
 # ============================================================
 st.markdown("""
 <style>
-    /* 1. LIVE BACKGROUND ANIMATION */
     @keyframes gradientBG {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
@@ -106,7 +106,6 @@ st.markdown("""
         overflow-x: hidden;
     }
 
-    /* 2. FLOATING COLORFUL BUBBLES */
     .bubbles {
         position: fixed; bottom: -100px; left: 0; width: 100%; height: 100%;
         z-index: 0; pointer-events: none; margin: 0; padding: 0;
@@ -130,7 +129,6 @@ st.markdown("""
         100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; border-radius: 50%; }
     }
 
-    /* 3. HERO CARD (Welcome Back) ANIMATED SHADE */
     @keyframes heroShade {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
@@ -145,7 +143,6 @@ st.markdown("""
         z-index: 2;
     }
 
-    /* 4. FLOATING LOGIN CARD ANIMATION */
     @keyframes floatCard {
         0% { transform: translateY(0px); }
         50% { transform: translateY(-10px); }
@@ -160,7 +157,6 @@ st.markdown("""
         z-index: 10 !important;
     }
 
-    /* 5. BOUNCY KPI CARDS */
     .kpi-card { 
         transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important; 
         z-index: 5 !important;
@@ -170,7 +166,6 @@ st.markdown("""
         box-shadow: 0 15px 30px rgba(37,99,235,0.25) !important; 
     }
 
-    /* 6. SIDEBAR MENU SLIDE ANIMATION */
     section[data-testid="stSidebar"] div[role="radiogroup"] > label { 
         transition: all 0.25s ease !important; 
     }
@@ -179,7 +174,6 @@ st.markdown("""
         background-color: #e8f5e9 !important; 
     }
 
-    /* 7. GLOWING BUTTONS */
     .stButton > button { 
         transition: all 0.3s ease !important; 
     }
@@ -189,7 +183,6 @@ st.markdown("""
         filter: brightness(1.1) !important;
     }
 
-    /* 8. PAGE LOAD FADE IN */
     @keyframes fadeInPage {
         0% { opacity: 0; transform: translateY(15px); }
         100% { opacity: 1; transform: translateY(0); }
@@ -202,7 +195,6 @@ st.markdown("""
         max-width: 100% !important;
     }
 
-    /* ---------- BASE STYLES (RESTORED) ---------- */
     html, body, .stApp, .stApp p, .stApp span, .stApp div,
     .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
     .stApp label, .stApp li, .stApp a, [class*="css"] *,
@@ -490,7 +482,6 @@ st.markdown("""
     .item-line { display: flex; align-items: center; justify-content: space-between; background: #ffffff; border: 1px solid #b3e5fc; border-radius: 8px; padding: 8px 12px; margin-bottom: 6px; }
 </style>
 
-<!-- HTML Structure for Floating Background Bubbles -->
 <ul class="bubbles">
     <li></li><li></li><li></li><li></li><li></li>
     <li></li><li></li><li></li><li></li>
@@ -498,7 +489,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# SIDEBAR TOGGLE JS — works on admin AND booker pages
+# SIDEBAR TOGGLE JS
 # ============================================================
 components.html("""
 <script>
@@ -886,10 +877,9 @@ def get_return_record_for_lf(lf_id):
     return None
 
 # ============================================================
-# 🆕 LOAD FORM EXCEL BUILDER (NEW ADD)
+# LOAD FORM EXCEL BUILDER
 # ============================================================
 def build_load_form_excel(lf):
-    """Load Form ki Excel file banata hai — booker, date, items + auto column width."""
     output = BytesIO()
     wb = xlsxwriter.Workbook(output, {'in_memory': True})
     ws = wb.add_worksheet("Load Form")
@@ -971,7 +961,6 @@ def build_load_form_excel(lf):
 
 
 def export_lf_excel_callback(lf_id):
-    """Button click pe Load Form ki Excel file auto-download ke liye ready karta hai."""
     lf = next((x for x in db.get("load_forms", []) if x.get("id") == lf_id), None)
     if not lf:
         st.session_state["error_msg"] = "❌ Load Form nahi mila"
@@ -981,9 +970,7 @@ def export_lf_excel_callback(lf_id):
     fname = f"LoadForm_{lf_id}_{safe_booker}_{safe_date}.xlsx"
     st.session_state["download_file"] = (fname, build_load_form_excel(lf))
     st.session_state["success_msg"] = f"✅ Load Form #{lf_id} Excel ready"
-# ============================================================
-# END NEW ADD
-# ============================================================
+
 
 def show_auto_download():
     if st.session_state.get("download_file"):
@@ -2404,7 +2391,6 @@ def render_admin_load_form():
                     <div class='lf-boxes'>{tb}<small>BOXES</small></div>
                 </div>""", unsafe_allow_html=True)
 
-                # 🆕 4-column buttons — 1 extra Download Excel
                 c1, c2, c3, c4 = st.columns(4)
                 with c1:
                     if st.button("↩️ Add Return", key=f"ret_open_{lf_id}", use_container_width=True):
@@ -2417,7 +2403,6 @@ def render_admin_load_form():
                     else:
                         st.button(f"✅ DSR #{lf.get('dsr_id','')}", key=f"trfd_{lf_id}", disabled=True, use_container_width=True)
                 with c3:
-                    # 🆕 LOAD FORM EXCEL DOWNLOAD
                     if st.button("📥 Download Excel", key=f"dl_lf_{lf_id}", use_container_width=True, type="primary"):
                         export_lf_excel_callback(lf_id)
                         st.rerun()
@@ -2644,63 +2629,191 @@ def refresh_callback():
     st.session_state["_prev_prod"] = None
     st.session_state["success_msg"] = "✅"
 
-def _build_bill_excel(shop, bills, pkg_pct, pkg_name, tier_label):
-    output = BytesIO(); wb = xlsxwriter.Workbook(output, {'in_memory': True})
+# ============================================================
+# 🆕 BILL EXCEL BUILDER — booker + date clearly visible
+# ============================================================
+def _build_bill_excel(shop, bills, pkg_pct, pkg_name, tier_label, booker="", date_str=""):
+    """
+    Bills ki Excel banata hai. Booker name aur date clearly top pe dikhte hain.
+    Agar bills list khaali ho to passed booker/date use hoti hai.
+    """
+    # Booker aur date bills se nikaalo agar pass nahi hua
+    if not booker:
+        try:
+            booker = bills[0].get("Order Booker", "") if bills else ""
+        except Exception:
+            booker = ""
+    if not date_str:
+        try:
+            date_str = bills[0].get("Date", "") if bills else ""
+        except Exception:
+            date_str = ""
+
+    output = BytesIO()
+    wb = xlsxwriter.Workbook(output, {'in_memory': True})
     ws = wb.add_worksheet("Bill")
-    ws.set_paper(9); ws.set_portrait(); ws.fit_to_pages(1, 1)
-    for col, w in [("A",42.86),("B",12.71),("C",10.71),("D",10.71),("E",11.71),("F",11.14),("G",11.14),("H",12.14),("I",13.14),("J",13.14)]:
-        ws.set_column(f"{col}:{col}", w)
-    title = wb.add_format({"bold":True, "font_size":18, "align":"center", "border":2})
-    hdr = wb.add_format({"bold":True, "font_size":11, "bg_color":"#BBDEFB", "align":"center", "border":2, "text_wrap":True})
-    cl = wb.add_format({"font_size":12, "border":1, "align":"left"})
-    cc = wb.add_format({"font_size":12, "border":1, "align":"center"})
-    tt = wb.add_format({"bold":True, "font_size":12, "bg_color":"#FFF2CC", "align":"center", "border":2})
-    dl = wb.add_format({"font_size":12, "border":1, "align":"center", "bg_color":"#E8F5E9", "bold":True})
-    pi = wb.add_format({"font_size":10, "italic":True, "align":"left", "font_color":"#1b5e20"})
+
+    # Column widths
+    ws.set_column("A:A", 40)   # Product
+    ws.set_column("B:B", 10)   # Code
+    ws.set_column("C:C", 8)    # Boxes
+    ws.set_column("D:D", 10)   # TP/Box
+    ws.set_column("E:E", 12)   # Gross
+    ws.set_column("F:F", 9)    # Disc %
+    ws.set_column("G:G", 12)   # Net
+    ws.set_column("H:H", 10)   # Pkg Disc %
+    ws.set_column("I:I", 14)   # After Disc Net
+    ws.set_column("J:J", 12)   # Saved
+
+    title = wb.add_format({"bold": True, "font_size": 18, "align": "center",
+                            "border": 2, "bg_color": "#BBDEFB"})
+    info_lbl = wb.add_format({"bold": True, "font_size": 11, "bg_color": "#E3F2FD",
+                               "align": "right", "border": 1, "valign": "vcenter"})
+    info_val = wb.add_format({"font_size": 11, "align": "left", "border": 1,
+                               "valign": "vcenter", "bold": True, "font_color": "#1976d2"})
+    info_date = wb.add_format({"font_size": 11, "align": "left", "border": 1,
+                                "valign": "vcenter", "bold": True, "font_color": "#2e7d32"})
+    hdr = wb.add_format({"bold": True, "font_size": 11, "bg_color": "#BBDEFB",
+                         "align": "center", "border": 2, "text_wrap": True,
+                         "valign": "vcenter"})
+    cl = wb.add_format({"font_size": 11, "border": 1, "align": "left", "text_wrap": True})
+    cc = wb.add_format({"font_size": 11, "border": 1, "align": "center"})
+    cn = wb.add_format({"font_size": 11, "border": 1, "align": "right", "num_format": "#,##0"})
+    tt = wb.add_format({"bold": True, "font_size": 12, "bg_color": "#FFF2CC",
+                        "align": "center", "border": 2})
+    ttn = wb.add_format({"bold": True, "font_size": 12, "bg_color": "#FFF2CC",
+                         "align": "right", "border": 2, "num_format": "#,##0"})
+    dl = wb.add_format({"font_size": 11, "border": 1, "align": "center",
+                        "bg_color": "#E8F5E9", "bold": True})
+    pi = wb.add_format({"font_size": 10, "italic": True, "align": "left",
+                        "font_color": "#1b5e20", "border": 1})
+    net_lbl = wb.add_format({"bold": True, "font_size": 13, "bg_color": "#1e3a8a",
+                              "font_color": "#ffffff", "align": "center", "border": 2,
+                              "valign": "vcenter"})
+    net_val = wb.add_format({"bold": True, "font_size": 16, "bg_color": "#C8E6C9",
+                              "align": "center", "border": 2, "num_format": '"Rs "#,##0',
+                              "valign": "vcenter"})
+
+    # ===== TITLE =====
     ws.merge_range("A1:J1", COMPANY_NAME, title)
-    ws.write("A3","Shop",hdr); ws.write("B3",shop,cc)
-    ws.write("D3","Booker",hdr); ws.write("E3", bills[0].get("Order Booker","") if bills else "", cc)
-    ws.write("G3","Bill No",hdr); ws.write("H3", bills[0].get("Bill No","") if bills else "", cc)
-    ws.write("I3","Date",hdr); ws.write("J3", bills[0].get("Date","") if bills else "", cc)
-    if pkg_pct > 0: ws.merge_range("A4:J4", f"🎁 Discount: {pkg_name} | {tier_label} | {pkg_pct}%", pi)
-    else: ws.merge_range("A4:J4", "💡 No discount", pi)
+
+    # ===== BOOKER + DATE (Hamesha top pe, saaf nazar aayega) =====
+    ws.merge_range("A3:B3", "Order Booker:", info_lbl)
+    ws.merge_range("C3:E3", f"👤 {booker or '-'}", info_val)
+    ws.merge_range("F3:G3", "Date:", info_lbl)
+    ws.merge_range("H3:J3", f"📅 {date_str or '-'}", info_date)
+
+    # ===== SHOP + BILL NO =====
+    ws.merge_range("A4:B4", "Shop:", info_lbl)
+    ws.merge_range("C4:E4", shop or "-", info_val)
+    ws.merge_range("F4:G4", "Bill No:", info_lbl)
+    bill_no_display = bills[0].get("Bill No", "") if bills else ""
+    ws.merge_range("H4:J4", f"#{bill_no_display}", info_val)
+
+    # ===== DISCOUNT INFO =====
+    if pkg_pct > 0:
+        ws.merge_range("A5:J5", f"🎁 Discount: {pkg_name} | {tier_label} | {pkg_pct}%", pi)
+    else:
+        ws.merge_range("A5:J5", "💡 No discount applied", pi)
+
+    # ===== TABLE HEADER =====
     hr = 6
-    for col, h in enumerate(["Product","Code","Boxes","TP/Box","Gross","Disc %","Net","Pkg Disc %","After Disc Net","Saved"]):
+    headers = ["Product", "Code", "Boxes", "TP/Box", "Gross", "Disc %", "Net",
+               "Pkg Disc %", "After Disc Net", "Saved"]
+    for col, h in enumerate(headers):
         ws.write(hr, col, h, hdr)
-    row = hr + 1; gt = 0; tb = 0; nt = 0; ad = 0; sv = 0
+
+    row = hr + 1
+    gt = 0; tb = 0; nt = 0; ad = 0; sv = 0
     for b in bills:
-        bn = float(b.get("Net",0)); bg = float(b.get("Gross",0)); bb = int(b.get("Boxes",0))
+        bn = float(b.get("Net", 0)); bg = float(b.get("Gross", 0)); bb = int(b.get("Boxes", 0))
         an = bn - (bn * pkg_pct / 100); s = bn - an
-        ws.write(row,0,b["Product"],cl); ws.write(row,1,b["Code"],cc); ws.write(row,2,bb,cc)
-        ws.write(row,3,b.get("TP/Box",0),cc); ws.write(row,4,bg,cc); ws.write(row,5,b.get("Discount %",0),cc); ws.write(row,6,bn,cc)
-        if pkg_pct > 0: ws.write(row,7,pkg_pct,dl); ws.write(row,8,an,dl); ws.write(row,9,s,dl)
-        else: ws.write(row,7,0,cc); ws.write(row,8,bn,cc); ws.write(row,9,0,cc)
-        gt += bg; tb += bb; nt += bn; ad += an; sv += s; row += 1
-    ws.write(row,1,"TOTAL",tt); ws.write(row,2,tb,tt); ws.write(row,4,gt,tt); ws.write(row,6,nt,tt)
-    ws.write(row,8,ad,tt); ws.write(row,9,sv,tt)
+        ws.write(row, 0, b["Product"], cl)
+        ws.write(row, 1, str(b["Code"]), cc)
+        ws.write(row, 2, bb, cc)
+        ws.write(row, 3, float(b.get("TP/Box", 0)), cn)
+        ws.write(row, 4, bg, cn)
+        ws.write(row, 5, float(b.get("Discount %", 0)), cc)
+        ws.write(row, 6, bn, cn)
+        if pkg_pct > 0:
+            ws.write(row, 7, pkg_pct, dl); ws.write(row, 8, an, dl); ws.write(row, 9, s, dl)
+        else:
+            ws.write(row, 7, 0, cc); ws.write(row, 8, bn, cn); ws.write(row, 9, 0, cn)
+        gt += bg; tb += bb; nt += bn; ad += an; sv += s
+        row += 1
+
+    # ===== TOTALS ROW =====
+    ws.merge_range(row, 0, row, 1, "TOTAL", tt)
+    ws.write(row, 2, tb, tt)
+    ws.write(row, 3, "", tt)
+    ws.write(row, 4, gt, ttn)
+    ws.write(row, 5, "", tt)
+    ws.write(row, 6, nt, ttn)
+    ws.write(row, 7, "", tt)
+    ws.write(row, 8, ad, ttn)
+    ws.write(row, 9, sv, ttn)
     row += 2
-    ws.merge_range(row,0,row,6,"NET AMOUNT",hdr); ws.merge_range(row,7,row,9,f"Rs {ad:,.0f}",tt)
-    wb.close(); output.seek(0)
+
+    # ===== NET AMOUNT BIG BAR =====
+    ws.merge_range(row, 0, row, 6, "NET AMOUNT", net_lbl)
+    ws.merge_range(row, 7, row, 9, ad, net_val)
+    row += 2
+
+    # ===== FOOTER INFO — Bookers aur Date phir se neeche bhi =====
+    foot_lbl = wb.add_format({"font_size": 9, "italic": True, "align": "right",
+                               "font_color": "#555555"})
+    foot_val = wb.add_format({"font_size": 9, "italic": True, "align": "left",
+                               "font_color": "#555555", "bold": True})
+    ws.merge_range(row, 0, row, 1, "Booker:", foot_lbl)
+    ws.merge_range(row, 2, row, 4, booker or "-", foot_val)
+    ws.merge_range(row, 5, row, 6, "Date:", foot_lbl)
+    ws.merge_range(row, 7, row, 9, date_str or "-", foot_val)
+
+    ws.set_paper(9)
+    ws.set_portrait()
+    ws.fit_to_pages(1, 1)
+
+    wb.close()
+    output.seek(0)
     return output.getvalue()
 
+
 def export_single_group_bill(shop, date_str, booker, salesman, items, bill_no):
-    tot = sum(float(it.get("Net",0)) for it in items)
+    tot = sum(float(it.get("Net", 0)) for it in items)
     pct, pn, tl = get_effective_discount_pct(shop, tot)
-    fname = f"{shop}_{date_str.replace('-','')}.xlsx".replace("/","-").replace(" ","_").replace(":","")
-    st.session_state["download_file"] = (fname, _build_bill_excel(shop, items, pct, pn, tl))
-    st.session_state["success_msg"] = f"✅ Excel ready"
+    safe_shop = shop.replace("/", "-").replace(" ", "_").replace(":", "")
+    safe_bk = (booker or "bill").replace(" ", "_").replace("/", "-")
+    safe_date = (date_str or "").replace("-", "")
+    fname = f"{safe_shop}_{safe_bk}_{safe_date}.xlsx"
+    st.session_state["download_file"] = (
+        fname,
+        _build_bill_excel(shop, items, pct, pn, tl, booker=booker, date_str=date_str)
+    )
+    st.session_state["success_msg"] = f"✅ Excel ready — {booker} | {date_str}"
 
 def export_bill_callback():
-    if not db["bills"]: st.session_state["error_msg"] = "❌ No Bills"; return
+    if not db["bills"]:
+        st.session_state["error_msg"] = "❌ No Bills"
+        return
     shop = st.session_state.get("shop_name", "").strip() or "Bill"
-    for ch in ['\\','/',':','*','?','"','<','>','|']: shop = shop.replace(ch, "")
+    for ch in ['\\', '/', ':', '*', '?', '"', '<', '>', '|']:
+        shop = shop.replace(ch, "")
     sb = [b for b in db["bills"] if b["Shop"].strip() == shop]
-    if not sb: st.session_state["error_msg"] = "❌ No bills"; return
-    tot = sum(float(b.get("Net",0)) for b in sb)
+    if not sb:
+        st.session_state["error_msg"] = "❌ No bills"
+        return
+    tot = sum(float(b.get("Net", 0)) for b in sb)
     pct, pn, tl = get_effective_discount_pct(shop, tot)
-    st.session_state["download_file"] = (f"{shop}.xlsx", _build_bill_excel(shop, sb, pct, pn, tl))
-    db["next_bill_no"] += 1; save_database(db)
-    st.session_state["success_msg"] = f"✅ Exported"
+    # Booker aur date bills se nikaalo
+    booker_val = sb[0].get("Order Booker", "") if sb else ""
+    date_val = sb[0].get("Date", "") if sb else ""
+    st.session_state["download_file"] = (
+        f"{shop}_{(booker_val or 'bill').replace(' ', '_')}.xlsx",
+        _build_bill_excel(shop, sb, pct, pn, tl, booker=booker_val, date_str=date_val)
+    )
+    db["next_bill_no"] += 1
+    save_database(db)
+    st.session_state["success_msg"] = f"✅ Exported — {booker_val}"
 
 def export_load_form_from_billing_callback():
     bk = st.session_state.get("order_booker", "").strip()
