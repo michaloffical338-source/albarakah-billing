@@ -3,6 +3,7 @@
 # Full code with Admin + Booker login, sidebar toggle working
 # + BOOKER-WISE BILLS + ITEM-WISE RETURNS in LOAD FORM
 # + MISCELLANEOUS EXPENSE + PERMANENT PRODUCT DELETE + FIXED IMPORT
+# + PREMIUM ANIMATIONS (LIVE BACKGROUND, GLASS LOGIN, BOUNCY CARDS)
 # ============================================================
 
 import os
@@ -68,7 +69,7 @@ def default_blank_db():
         "misc_expenses": [], "booker_returns": [],
         "discount_packages": default_discount_packages(),
         "custom_products": [], "dsr_forms": [], "credit_bills": [],
-        "deleted_products": [], # Kept in DB for backward compatibility but no longer used for hiding base products
+        "deleted_products": [],
         "next_credit_id": 1,
         "wholesaler_rule_enabled": True,
         "wholesaler_discount_pct": 6.0,
@@ -87,10 +88,65 @@ def default_discount_packages():
     ]
 
 # ============================================================
-# GLOBAL CSS
+# GLOBAL CSS (PREMIUM ANIMATIONS ADDED)
 # ============================================================
 st.markdown("""
 <style>
+    /* 1. LIVE BACKGROUND ANIMATION */
+    @keyframes gradientBG {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    .stApp { 
+        background: linear-gradient(-45deg, #e3f2fd, #bbdefb, #e0f7fa, #e8eaf6) !important;
+        background-size: 400% 400% !important;
+        animation: gradientBG 15s ease infinite !important;
+    }
+
+    /* 2. FLOATING LOGIN CARD ANIMATION */
+    @keyframes floatCard {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+    .auth-card { 
+        background: rgba(255, 255, 255, 0.75) !important; 
+        backdrop-filter: blur(15px) !important; 
+        border: 1px solid rgba(255, 255, 255, 0.6) !important;
+        animation: floatCard 6s ease-in-out infinite !important;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+    }
+
+    /* 3. BOUNCY KPI CARDS */
+    .kpi-card { 
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important; 
+    }
+    .kpi-card:hover { 
+        transform: translateY(-8px) scale(1.02) !important; 
+        box-shadow: 0 15px 30px rgba(37,99,235,0.25) !important; 
+    }
+
+    /* 4. SIDEBAR MENU SLIDE ANIMATION */
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label { 
+        transition: all 0.25s ease !important; 
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover { 
+        transform: translateX(6px) !important; 
+        background-color: #e8f5e9 !important; 
+    }
+
+    /* 5. GLOWING BUTTONS */
+    .stButton > button { 
+        transition: all 0.3s ease !important; 
+    }
+    .stButton > button:hover { 
+        transform: translateY(-2px) !important; 
+        box-shadow: 0 8px 20px rgba(33,150,243,0.4) !important; 
+        filter: brightness(1.1) !important;
+    }
+
+    /* ---------- BASE STYLES (RESTORED) ---------- */
     html, body, .stApp, .stApp p, .stApp span, .stApp div,
     .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
     .stApp label, .stApp li, .stApp a, [class*="css"] *,
@@ -129,7 +185,6 @@ st.markdown("""
     footer { visibility: hidden !important; }
     header[data-testid="stHeader"] { background: transparent !important; box-shadow: none !important; }
 
-    .stApp { background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important; }
     .block-container {
         padding-top: 0.5rem !important; padding-left: 1.5rem !important;
         padding-right: 1.5rem !important; padding-bottom: 0.5rem !important;
@@ -237,9 +292,8 @@ st.markdown("""
     .badge-return { background: linear-gradient(135deg, #ef4444 0%, #c62828 100%); color: #ffffff !important; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px; }
     .badge-selected { background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: #ffffff !important; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px; }
 
-    .auth-title { text-align: center; font-size: 36px; font-weight: 900; color: #1976d2; margin-bottom: 6px; margin-top: 20px; }
+    .auth-title { text-align: center; font-size: 36px; font-weight: 900; color: #1976d2; margin-bottom: 6px; margin-top: 20px; text-shadow: 0 2px 4px rgba(255,255,255,0.8); }
     .auth-subtitle { text-align: center; font-size: 14px; color: #0277bd; margin-bottom: 24px; font-weight: 600; }
-    .auth-card { background: #ffffff; border: 3px solid #90caf9; border-radius: 16px; padding: 28px 32px; box-shadow: 0 8px 24px rgba(33,150,243,0.2); margin: 0 auto; }
     .stAlert { border-radius: 10px !important; }
     hr { border-color: #90caf9 !important; opacity: 0.6 !important; }
 
@@ -249,7 +303,7 @@ st.markdown("""
         display: flex; align-items: center; justify-content: space-between;
         transition: all 0.15s ease;
     }
-    .bk-product-card:hover { border-color: #2196f3; box-shadow: 0 2px 8px rgba(33,150,243,0.15); }
+    .bk-product-card:hover { border-color: #2196f3; box-shadow: 0 2px 8px rgba(33,150,243,0.15); transform: translateY(-2px); }
     .bk-product-card .bk-name { font-size: 13.5px; font-weight: 700; color: #1976d2; }
     .bk-product-card .bk-code { font-size: 11px; color: #666; }
     .bk-product-card .bk-tp {
@@ -259,9 +313,10 @@ st.markdown("""
     }
 
     section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #f1f8e9 0%, #e8f5e9 50%, #dcedc8 100%) !important;
+        background: linear-gradient(180deg, rgba(241,248,233,0.95) 0%, rgba(232,245,233,0.95) 50%, rgba(220,237,200,0.95) 100%) !important;
         border-right: 2px solid #a5d6a7 !important;
         box-shadow: 4px 0 20px rgba(76,175,80,0.12) !important;
+        backdrop-filter: blur(10px) !important;
     }
     section[data-testid="stSidebar"] > div:first-child { padding-top: 0 !important; }
     section[data-testid="stSidebar"] .block-container { padding: 0 !important; }
@@ -283,8 +338,8 @@ st.markdown("""
     .sb-section-label { font-size: 9px; color: #558b2f !important; letter-spacing: 2.5px; font-weight: 800; padding: 0 20px 8px; text-transform: uppercase; }
 
     section[data-testid="stSidebar"] div[role="radiogroup"] { gap: 2px !important; padding: 0 10px 8px !important; display: flex !important; flex-direction: column !important; }
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label { background-color: #ffffff !important; border: 1px solid rgba(76,175,80,0.18) !important; border-radius: 10px !important; margin-bottom: 2px !important; padding: 9px 12px !important; transition: all 0.18s ease !important; cursor: pointer !important; display: flex !important; align-items: center !important; width: 100% !important; position: relative !important; }
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover { background-color: #f1f8e9 !important; border-color: #66bb6a !important; transform: translateX(2px); box-shadow: 0 2px 8px rgba(76,175,80,0.15); }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label { background-color: #ffffff !important; border: 1px solid rgba(76,175,80,0.18) !important; border-radius: 10px !important; margin-bottom: 2px !important; padding: 9px 12px !important; cursor: pointer !important; display: flex !important; align-items: center !important; width: 100% !important; position: relative !important; }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover { border-color: #66bb6a !important; box-shadow: 0 2px 8px rgba(76,175,80,0.15); }
     section[data-testid="stSidebar"] div[role="radiogroup"] > label p { color: #1b5e20 !important; font-size: 13.5px !important; font-weight: 600 !important; margin: 0 !important; letter-spacing: 0.2px !important; }
     section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover p { color: #1b5e20 !important; font-weight: 700 !important; }
     section[data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child { display: none !important; }
@@ -311,7 +366,6 @@ st.markdown("""
         color: #c62828 !important;
         font-weight: 800 !important;
         border-radius: 10px !important;
-        transition: all 0.2s ease !important;
         margin: 0 14px 16px !important;
         width: calc(100% - 28px) !important;
         box-shadow: 0 2px 6px rgba(239,68,68,0.10);
@@ -321,6 +375,7 @@ st.markdown("""
         border-color: #ef4444 !important;
         color: #ffffff !important;
         box-shadow: 0 6px 14px rgba(239,68,68,0.4) !important;
+        transform: translateY(-2px) !important;
     }
     section[data-testid="stSidebar"] .stButton > button p,
     section[data-testid="stSidebar"] .stButton > button span,
@@ -341,8 +396,7 @@ st.markdown("""
     .dash-section-title { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 800; color: #1e3a8a !important; margin: 10px 0 14px 0; letter-spacing: 0.3px; }
     .dash-section-title::before { content: ''; display: inline-block; width: 4px; height: 18px; background: linear-gradient(180deg, #2563eb 0%, #3b82f6 100%); border-radius: 3px; }
 
-    .kpi-card { background: #ffffff; border-radius: 16px; padding: 20px 22px; border: 1px solid rgba(37,99,235,0.12); box-shadow: 0 4px 16px rgba(37,99,235,0.08); display: flex; flex-direction: column; gap: 12px; transition: all 0.2s ease; position: relative; overflow: hidden; height: 100%; }
-    .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(37,99,235,0.18); border-color: rgba(37,99,235,0.30); }
+    .kpi-card { background: #ffffff; border-radius: 16px; padding: 20px 22px; border: 1px solid rgba(37,99,235,0.12); box-shadow: 0 4px 16px rgba(37,99,235,0.08); display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden; height: 100%; }
     .kpi-top { display: flex; align-items: center; justify-content: space-between; }
     .kpi-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); color: #1e40af !important; box-shadow: 0 3px 8px rgba(37,99,235,0.15); }
     .kpi-icon.green { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color: #065f46 !important; }
@@ -439,7 +493,8 @@ components.html("""
                 'background':'linear-gradient(135deg, #66bb6a 0%, #2e7d32 100%)',
                 'color':'#fff','border':'none','border-radius':'10px','padding':'8px 14px',
                 'font-size':'18px','font-weight':'bold','cursor':'pointer',
-                'box-shadow':'0 4px 14px rgba(76,175,80,0.5)'
+                'box-shadow':'0 4px 14px rgba(76,175,80,0.5)',
+                'transition': 'all 0.3s ease'
             };
             for (var k in s) btn.style.setProperty(k, s[k], 'important');
             btn.onclick = function() {
@@ -472,7 +527,7 @@ components.html("""
 COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
 
 # ============================================================
-# PRODUCT LIST (Yahan default products aayenge, ab koi bhi purana code nahi hai)
+# PRODUCT LIST
 # ============================================================
 PRODUCTS = []
 
@@ -659,7 +714,6 @@ def get_wholesaler_pct():
     except Exception: return 6.0
 
 def get_all_products():
-    # Ab `deleted_products` list filter nahi karti, kyunke hum permanently delete kar rahe hain
     custom = db.get("custom_products", [])
     merged = list(PRODUCTS)
     seen_codes = {str(p["code"]) for p in merged}
@@ -1445,14 +1499,13 @@ def render_admin_discount():
                 save_database(db); st.session_state["success_msg"] = "✅ Saved"; st.rerun()
 
 # ============================================================
-# ADMIN PRODUCTS (PERMANENT DELETE + FIXED IMPORT)
+# ADMIN PRODUCTS
 # ============================================================
 def render_admin_products():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🛒 All Products</h1>", unsafe_allow_html=True)
     st.markdown("---")
     all_products = get_all_products()
 
-    # ---------- Add Single ----------
     with st.expander("➕ Naya Product (Single)", expanded=False):
         c1, c2, c3, c4 = st.columns([1.5, 3.5, 1.5, 1])
         with c1: nc = st.text_input("Code:", key="new_prod_code")
@@ -1469,7 +1522,6 @@ def render_admin_products():
                         "added_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
                     save_database(db); st.session_state["success_msg"] = f"✅ Added"; st.rerun()
 
-    # ---------- Bulk Upload ----------
     with st.expander("📤 Bulk Upload", expanded=False):
         up = st.file_uploader("Excel/CSV:", type=["xlsx","xls","csv"], key="bulk_upload_file")
         if up:
@@ -1477,7 +1529,6 @@ def render_admin_products():
                 df_u = pd.read_csv(up) if up.name.lower().endswith(".csv") else pd.read_excel(up)
                 df_u.columns = [str(c).strip().lower() for c in df_u.columns]
                 
-                # Check karo k columns theek hain ya nahi
                 if "code" in df_u.columns and "name" in df_u.columns and "price" in df_u.columns:
                     st.dataframe(df_u.head(10), use_container_width=True)
                     
@@ -1487,7 +1538,6 @@ def render_admin_products():
                         
                         for _, r in df_u.iterrows():
                             try:
-                                # Pandas floats ko handle karna (e.g. 1.0 -> "1")
                                 c_raw = r["code"]
                                 if pd.isna(c_raw): continue
                                 c_s = str(int(float(c_raw))) if isinstance(c_raw, (int, float)) or str(c_raw).replace('.','',1).isdigit() else str(c_raw).strip()
@@ -1499,9 +1549,7 @@ def render_admin_products():
                             
                             if not c_s or not n_s or p_f < 0: continue
                             
-                            # Update if exists, add if not
                             if c_s in existing:
-                                # Update custom product price
                                 for cp in db.get("custom_products", []):
                                     if str(cp.get("code")) == c_s:
                                         cp["price"] = p_f
@@ -1509,7 +1557,6 @@ def render_admin_products():
                                         updated += 1
                                         break
                                 else:
-                                    # Base product -> add to custom as override
                                     db["custom_products"].append({"code": c_s, "name": n_s, "price": p_f,
                                         "added_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
                                     updated += 1
@@ -1526,7 +1573,6 @@ def render_admin_products():
             except Exception as e: 
                 st.error(f"❌ File padhne mein error aya: {e}")
 
-    # ================ DANGER ZONE: Delete Products ================
     st.markdown(f"""
     <div class="danger-box">
         <b>⚠️ DANGER ZONE — Product Delete Options (Permanent)</b><br>
@@ -1543,7 +1589,6 @@ def render_admin_products():
             st.session_state["prod_confirm_all"] = True
             st.rerun()
 
-    # Confirm Delete All
     if st.session_state.get("prod_confirm_all"):
         st.error("⚠️ **Pakka? Ye saare products permanently delete ho jayenge. Wapas nahi aayenge.**")
         cc1, cc2 = st.columns(2)
@@ -1562,7 +1607,6 @@ def render_admin_products():
 
     st.markdown("---")
 
-    # ---------- Product list ----------
     st.markdown(f"### 📋 Products ({len(all_products)})")
     search = st.text_input("🔍 Search:", key="prod_search")
     su = search.strip().upper()
@@ -1573,11 +1617,9 @@ def render_admin_products():
     if not shown:
         st.info("Koi product nahi mila.")
 
-    # Selected list (session-based)
     if "prod_selected_codes" not in st.session_state:
         st.session_state["prod_selected_codes"] = []
 
-    # If select mode, add a "Select All visible" / "Clear" row
     if st.session_state.get("prod_select_mode", False):
         sa1, sa2, sa3 = st.columns(3)
         with sa1:
@@ -1604,7 +1646,6 @@ def render_admin_products():
                     st.session_state["success_msg"] = f"🗑️ {sel_count} products permanently deleted"
                     st.rerun()
 
-    # Render rows
     for p in shown[:200]:
         code = str(p["code"]); base = float(p["price"]); cur = get_price(code, base)
         is_custom = code in custom_codes; is_edited = code in edited_prices
@@ -1638,7 +1679,6 @@ def render_admin_products():
                     save_database(db); st.session_state["success_msg"] = "✅ Saved"; st.rerun()
             with s2:
                 if st.button("🗑", key=f"del_{code}", use_container_width=True):
-                    # Permanent Delete Logic
                     db["custom_products"] = [cp for cp in db.get("custom_products", [])
                                              if str(cp.get("code", "")) != code]
                     db.get("product_prices", {}).pop(code, None)
