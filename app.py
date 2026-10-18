@@ -2,7 +2,7 @@
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
 # Full code with Admin + Booker login, sidebar toggle working
 # + BOOKER-WISE BILLS + ITEM-WISE RETURNS in LOAD FORM
-# + MISCELLANEOUS EXPENSE + DELETE PRODUCTS (single/multi/all)
+# + MISCELLANEOUS EXPENSE + PERMANENT PRODUCT DELETE + FIXED IMPORT
 # ============================================================
 
 import os
@@ -68,7 +68,7 @@ def default_blank_db():
         "misc_expenses": [], "booker_returns": [],
         "discount_packages": default_discount_packages(),
         "custom_products": [], "dsr_forms": [], "credit_bills": [],
-        "deleted_products": [],
+        "deleted_products": [], # Kept in DB for backward compatibility but no longer used for hiding base products
         "next_credit_id": 1,
         "wholesaler_rule_enabled": True,
         "wholesaler_discount_pct": 6.0,
@@ -472,126 +472,9 @@ components.html("""
 COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
 
 # ============================================================
-# PRODUCT LIST
+# PRODUCT LIST (Yahan default products aayenge, ab koi bhi purana code nahi hai)
 # ============================================================
-PRODUCTS = sorted([
-    {"code":"51","name":"BOOMZ LIQUID MANGO","price":135},
-    {"code":"4","name":"BADAM DELIGHT CANDY BOX","price":135},
-    {"code":"25","name":"BADAM CONE BOX","price":208},
-    {"code":"42","name":"CHOCO BITE CRUSHED PEANUT","price":210},
-    {"code":"36","name":"CHOKOZO CHOCOLATE","price":129},
-    {"code":"35","name":"CHOKOZO STRAWBERRY","price":129},
-    {"code":"38","name":"CHOCOFY CHOCOLATE","price":133},
-    {"code":"37","name":"CHOCOFY STRAWBERRY","price":133},
-    {"code":"29","name":"CHOCOLATE CONE","price":208},
-    {"code":"11","name":"CHOCOLATE CONE WITH PEANUT CHUNKS","price":207},
-    {"code":"45","name":"COCONUT WAALA","price":145},
-    {"code":"7","name":"CRISPEE WAFER ORANGE","price":137},
-    {"code":"6","name":"CRISPEE WAFER BANANA","price":137},
-    {"code":"8","name":"CRISPEE WAFER STRAWBERRY","price":137},
-    {"code":"17","name":"CUP CAKE CHOCOLATE","price":215},
-    {"code":"41","name":"DONUT CAKE","price":227},
-    {"code":"24","name":"FISHU BIG CHOCO STICK","price":180},
-    {"code":"43","name":"HEART BROWMIES","price":224},
-    {"code":"34","name":"JIM JAM","price":145},
-    {"code":"5","name":"KHATU APPLE CANDY","price":369},
-    {"code":"13","name":"KIDS JOY EGG CHOCOLATE WITH BISCUIT","price":446},
-    {"code":"12","name":"KOKO MASTI CHOCOLATE TUBE","price":227},
-    {"code":"16","name":"KOKO MASTI MILK CREAM TUBE","price":227},
-    {"code":"14","name":"KOKO MASTI STRAWBERRY TUBE","price":227},
-    {"code":"27","name":"KULFI PISTA MILKY LOLLIPOP BOX","price":137},
-    {"code":"10","name":"LUSH STAR CHOC. HAZELNUT","price":282},
-    {"code":"47","name":"MAGIC LOLLY POP","price":138},
-    {"code":"44","name":"MAKHAN WAALA","price":144},
-    {"code":"39","name":"MAKHAN BADAMI 10","price":218},
-    {"code":"40","name":"MAKHAN BADAMI TOFFEE","price":140},
-    {"code":"33","name":"MAX GUAVA 3-D JELLY","price":202},
-    {"code":"19","name":"MAX STRAWBERRY 3-D JELLY","price":202},
-    {"code":"18","name":"MELLOW JOY MANGO MARSHMALLOW","price":202},
-    {"code":"26","name":"MICKEY POP FRUITY BOX","price":138},
-    {"code":"9","name":"MINI CONE STRAWBERRY","price":245},
-    {"code":"3","name":"MINT GUM CENTER FILLED COATED BUBBLE","price":203},
-    {"code":"28","name":"NUT KHAT CHOCOLATE","price":135},
-    {"code":"23","name":"O-MILK NATURAL OAT ENERGY","price":202},
-    {"code":"1","name":"OKAY CHOCOLATE VANILLA LAYER CAKE","price":215},
-    {"code":"2","name":"OKAY STRAWBERRY VANILLA LAYER CAKE","price":215},
-    {"code":"46","name":"PANDA SPONGE CAKE","price":215},
-    {"code":"49","name":"ROLLEX WAFER CHOCOLATE","price":224},
-    {"code":"48","name":"ROLLEX WAFER STRAWBERRY","price":224},
-    {"code":"30","name":"STRAWBERRY CONE","price":208},
-    {"code":"15","name":"STRAWBERRY FLAVORED CONE BOX","price":208},
-    {"code":"20","name":"SUPREME SOFT CAKE","price":215},
-    {"code":"21","name":"SWISS ROLL CAKE STRAWBERRY","price":216},
-    {"code":"22","name":"SWISS ROLL CAKE CHOCOLATE","price":216},
-    {"code":"50","name":"YUMMY DONUT STRAWBERRY","price":224},
-    {"code":"52","name":"GALE EGG BISCUIT","price":144},
-    {"code":"53","name":"PEANUT PISTA","price":144},
-    {"code":"54","name":"MOBILE CHOCO BEANS","price":187},
-    {"code":"55","name":"KHOPRA TOFFEE","price":207},
-    {"code":"56","name":"MILK DELIGHT CHOCO","price":224},
-    {"code":"57","name":"DOUBLE DECKER CARS CHOCO","price":269},
-    {"code":"58","name":"CONEX CONE ORANGE","price":246},
-    {"code":"59","name":"CHOCO PILLOW","price":213},
-    {"code":"60","name":"SWISS ROLL CAKE BANANA","price":216},
-    {"code":"61","name":"GRAIN TREAT CEREAL","price":390},
-    {"code":"62","name":"BUTTER COOKIES","price":144},
-    {"code":"63","name":"BEN-10","price":380},
-    {"code":"64","name":"SWEET HEART STRAW","price":224},
-    {"code":"65","name":"MAX STRAWBERRY RS 2","price":140},
-    {"code":"66","name":"OAT MILK","price":208},
-    {"code":"67","name":"RINGO RS 10","price":144},
-    {"code":"68","name":"RINGO RS 5","price":142},
-    {"code":"69","name":"KIMS – DONUT CHOCO CHIP","price":224},
-    {"code":"70","name":"KIMS – SUPERB M/P","price":148},
-    {"code":"71","name":"KIMS – DANISH BUTTER COOKIES M/P","price":148},
-    {"code":"72","name":"KIMS – ROYAL CHOCOLATE M/P","price":148},
-    {"code":"73","name":"KIMS – GOLE EGG & MILK M/P","price":148},
-    {"code":"74","name":"KIMS – MILKY WAY M/P","price":148},
-    {"code":"76","name":"KIMS – CHOCODIP COOKIES M/P","price":148},
-    {"code":"77","name":"KIMS – PEANUT PISTA M/P","price":148},
-    {"code":"78","name":"KIMS – LEMON SANDWICH M/P","price":148},
-    {"code":"102","name":"KIMS – COCONUT COOKIES M/P","price":148},
-    {"code":"75","name":"KIMS – MILKY WAY T/P","price":137},
-    {"code":"79","name":"KIMS – YUMTUM STRAWBERRY","price":141},
-    {"code":"80","name":"KIMS – CHOCO BITE CONE","price":207},
-    {"code":"81","name":"KIMS – TIK TOK ORANGE WAFER","price":135},
-    {"code":"82","name":"KIMS – MAGIC STICKS WAFER ROLLIES","price":258},
-    {"code":"83","name":"KIMS – FRUITO CONE JELLY JAR","price":269},
-    {"code":"84","name":"KIMS – PANDA POP ORANGE & LIME","price":138},
-    {"code":"85","name":"KIMS – PANDA POP STRAWBERRY & VANILLA","price":138},
-    {"code":"86","name":"KIMS – ZOOLO SOUR CHEW BLUEBERRY","price":97},
-    {"code":"87","name":"KIMS – CHOKOZO STRAWBERRY","price":129},
-    {"code":"88","name":"KIMS – CHOKOZO CHOCOLATE CREAM","price":129},
-    {"code":"89","name":"KIMS – CHOKOZO MILK MAZA","price":129},
-    {"code":"90","name":"KIMS – SIP STRAWBERRY","price":328},
-    {"code":"91","name":"KIMS – CHAMPION DELICIOUS MILK CHOCOLATE JAR","price":269},
-    {"code":"92","name":"KIMS – CHOCO DELIGHT CREAMY CHOCOLATE","price":219},
-    {"code":"93","name":"KIMS – NUT KHUT CHOCOLATE","price":135},
-    {"code":"94","name":"KIMS – FIX CHOCOLATE CREAM","price":135},
-    {"code":"95","name":"KIMS – SWISS ROLL STRAWBERRY & VANILLA","price":216},
-    {"code":"96","name":"KIMS – SWISS ROLL CHOCOLATE","price":216},
-    {"code":"97","name":"KIMS – SWISS ROLL BANANA","price":216},
-    {"code":"98","name":"KIMS – KUP CAKE CHOCOLATE","price":213},
-    {"code":"99","name":"KIMS – KUP CAKE STRAWBERRY","price":213},
-    {"code":"100","name":"KIMS – DONUT STRAWBERRY","price":224},
-    {"code":"101","name":"KIMS – BIG SIX BUBBLE GUM","price":406},
-    {"code":"103","name":"KIMS – FOXI BUNTY SHEET","price":188},
-    {"code":"104","name":"KIMS – SUPERB SOFT CAKE EGG & MILK","price":214},
-    {"code":"105","name":"KIMS – SUPERB SOFT CAKE CHOCOLATE & MILK","price":214},
-    {"code":"106","name":"KIMS – TWINKLE CAKE STRAWBERRY & VANILLA","price":138},
-    {"code":"107","name":"KIMS – TWINKLE CAKE CHOCOLATE VANILLA","price":138},
-    {"code":"108","name":"KIMS – SHAKE BANANA CAKE","price":135},
-    {"code":"109","name":"KIMS – CHOCO DELIGHT CREAMY CHOCOLATE","price":219},
-    {"code":"110","name":"KIMS – GUMMY GUAVA JELLY","price":202},
-    {"code":"111","name":"KIMS – GUMMY STRAWBERRY JELLY","price":202},
-    {"code":"112","name":"KIMS – AMROOD CANDY","price":139},
-    {"code":"113","name":"KIMS – KHOPRA PLUS","price":139},
-    {"code":"114","name":"KIMS – AAM MAZA CANDY","price":139},
-    {"code":"115","name":"KIMS – FRUITO CANDY","price":139},
-    {"code":"116","name":"KIMS – PAN MASALA CANDY BOX","price":139},
-    {"code":"117","name":"KIMS – FANTO ORANGE CANDY BOX","price":139},
-    {"code":"118","name":"KIMS – CHIPS FRIES (SPICY POTATO STICKS)","price":135}
-], key=lambda x: x["name"])
+PRODUCTS = []
 
 # ============================================================
 # AUTH SCREEN
@@ -775,20 +658,15 @@ def get_wholesaler_pct():
     try: return float(db.get("wholesaler_discount_pct", 6.0))
     except Exception: return 6.0
 
-def get_all_products(include_deleted=False):
-    """Return product list; excludes deleted codes unless include_deleted=True."""
-    deleted = {str(c) for c in db.get("deleted_products", [])} if not include_deleted else set()
+def get_all_products():
+    # Ab `deleted_products` list filter nahi karti, kyunke hum permanently delete kar rahe hain
     custom = db.get("custom_products", [])
-    merged = []
-    for p in PRODUCTS:
-        if str(p["code"]) in deleted: continue
-        merged.append(dict(p))
+    merged = list(PRODUCTS)
     seen_codes = {str(p["code"]) for p in merged}
     for cp in custom:
         code = str(cp.get("code", "")).strip()
         name = str(cp.get("name", "")).strip()
         if not code or not name: continue
-        if code in deleted: continue
         if code in seen_codes: continue
         try: price = float(cp.get("price", 0))
         except Exception: price = 0.0
@@ -1567,7 +1445,7 @@ def render_admin_discount():
                 save_database(db); st.session_state["success_msg"] = "✅ Saved"; st.rerun()
 
 # ============================================================
-# ADMIN PRODUCTS (with delete selected + delete all)
+# ADMIN PRODUCTS (PERMANENT DELETE + FIXED IMPORT)
 # ============================================================
 def render_admin_products():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🛒 All Products</h1>", unsafe_allow_html=True)
@@ -1587,9 +1465,6 @@ def render_admin_products():
                 if not cs or not ns or npr <= 0: st.error("❌ Sab fields bharo")
                 elif cs in {str(p["code"]) for p in all_products}: st.error("❌ Code exists")
                 else:
-                    # if this code was in deleted list, remove from deleted
-                    if cs in db.get("deleted_products", []):
-                        db["deleted_products"].remove(cs)
                     db["custom_products"].append({"code": cs, "name": ns, "price": float(npr),
                         "added_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
                     save_database(db); st.session_state["success_msg"] = f"✅ Added"; st.rerun()
@@ -1601,63 +1476,84 @@ def render_admin_products():
             try:
                 df_u = pd.read_csv(up) if up.name.lower().endswith(".csv") else pd.read_excel(up)
                 df_u.columns = [str(c).strip().lower() for c in df_u.columns]
+                
+                # Check karo k columns theek hain ya nahi
                 if "code" in df_u.columns and "name" in df_u.columns and "price" in df_u.columns:
                     st.dataframe(df_u.head(10), use_container_width=True)
+                    
                     if st.button("📥 Import", key="btn_bulk_import", type="primary"):
                         existing = {str(p["code"]) for p in all_products}
-                        added = 0
+                        added = 0; updated = 0
+                        
                         for _, r in df_u.iterrows():
-                            try: c_s = str(r["code"]).strip(); n_s = str(r["name"]).strip(); p_f = float(r["price"])
-                            except Exception: continue
-                            if not c_s or not n_s or p_f <= 0 or c_s in existing: continue
-                            if c_s in db.get("deleted_products", []):
-                                db["deleted_products"].remove(c_s)
-                            db["custom_products"].append({"code": c_s, "name": n_s, "price": p_f,
-                                "added_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
-                            existing.add(c_s); added += 1
-                        save_database(db); st.session_state["success_msg"] = f"✅ {added} imported"; st.rerun()
-            except Exception as e: st.error(f"❌ {e}")
+                            try:
+                                # Pandas floats ko handle karna (e.g. 1.0 -> "1")
+                                c_raw = r["code"]
+                                if pd.isna(c_raw): continue
+                                c_s = str(int(float(c_raw))) if isinstance(c_raw, (int, float)) or str(c_raw).replace('.','',1).isdigit() else str(c_raw).strip()
+                                
+                                n_s = str(r["name"]).strip()
+                                p_f = float(r["price"])
+                            except Exception:
+                                continue
+                            
+                            if not c_s or not n_s or p_f < 0: continue
+                            
+                            # Update if exists, add if not
+                            if c_s in existing:
+                                # Update custom product price
+                                for cp in db.get("custom_products", []):
+                                    if str(cp.get("code")) == c_s:
+                                        cp["price"] = p_f
+                                        cp["name"] = n_s
+                                        updated += 1
+                                        break
+                                else:
+                                    # Base product -> add to custom as override
+                                    db["custom_products"].append({"code": c_s, "name": n_s, "price": p_f,
+                                        "added_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+                                    updated += 1
+                            else:
+                                db["custom_products"].append({"code": c_s, "name": n_s, "price": p_f,
+                                    "added_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+                                existing.add(c_s); added += 1
+                                
+                        save_database(db)
+                        st.session_state["success_msg"] = f"✅ {added} Naye add hue, {updated} Update hue"
+                        st.rerun()
+                else:
+                    st.error("❌ File mein 'code', 'name', aur 'price' columns hone chahiye.")
+            except Exception as e: 
+                st.error(f"❌ File padhne mein error aya: {e}")
 
     # ================ DANGER ZONE: Delete Products ================
-    deleted_count = len(db.get("deleted_products", []))
     st.markdown(f"""
     <div class="danger-box">
-        <b>⚠️ DANGER ZONE — Product Delete Options</b><br>
-        <span style="color:#666;font-size:12px;">Total active: <b>{len(all_products)}</b> · Total deleted (hidden): <b>{deleted_count}</b></span>
+        <b>⚠️ DANGER ZONE — Product Delete Options (Permanent)</b><br>
+        <span style="color:#666;font-size:12px;">Total active: <b>{len(all_products)}</b></span>
     </div>
     """, unsafe_allow_html=True)
 
-    dz1, dz2, dz3 = st.columns(3)
+    dz1, dz2 = st.columns([1, 1])
     with dz1:
         select_mode = st.toggle("☑️ Select to Delete Mode", value=st.session_state.get("prod_select_mode", False), key="prod_select_toggle")
         st.session_state["prod_select_mode"] = select_mode
     with dz2:
-        if st.button("♻️ Restore All Deleted Products", use_container_width=True):
-            restored = len(db.get("deleted_products", []))
-            db["deleted_products"] = []
-            save_database(db)
-            st.session_state["success_msg"] = f"♻️ {restored} products restored"
-            st.rerun()
-    with dz3:
         if st.button("🗑️ DELETE ALL PRODUCTS", type="primary", use_container_width=True):
             st.session_state["prod_confirm_all"] = True
             st.rerun()
 
     # Confirm Delete All
     if st.session_state.get("prod_confirm_all"):
-        st.error("⚠️ **Pakka? Ye saare products delete ho jayenge (custom bhi). Phir dobara add karne parenge.**")
+        st.error("⚠️ **Pakka? Ye saare products permanently delete ho jayenge. Wapas nahi aayenge.**")
         cc1, cc2 = st.columns(2)
         with cc1:
             if st.button("✅ HAAN, SAB DELETE KARO", type="primary", use_container_width=True):
-                all_codes = [str(p["code"]) for p in get_all_products()] + \
-                            [str(cp.get("code", "")) for cp in db.get("custom_products", [])]
-                all_codes = list({c for c in all_codes if c})
-                db["deleted_products"] = sorted(set(db.get("deleted_products", []) + all_codes))
                 db["custom_products"] = []
                 db["product_prices"] = {}
                 save_database(db)
                 st.session_state["prod_confirm_all"] = False
-                st.session_state["success_msg"] = f"🗑️ {len(all_codes)} products deleted"
+                st.session_state["success_msg"] = f"🗑️ Saare products permanently delete ho gaye"
                 st.rerun()
         with cc2:
             if st.button("❌ Cancel", use_container_width=True):
@@ -1699,16 +1595,13 @@ def render_admin_products():
                     st.session_state["error_msg"] = "❌ Kuch select karo pehle"
                 else:
                     sel_codes = list(st.session_state["prod_selected_codes"])
-                    db["deleted_products"] = sorted(set(db.get("deleted_products", []) + sel_codes))
-                    # remove any matching customs
                     db["custom_products"] = [cp for cp in db.get("custom_products", [])
                                              if str(cp.get("code", "")) not in set(sel_codes)]
-                    # remove edited prices for these
                     for c in sel_codes:
                         db.get("product_prices", {}).pop(c, None)
                     save_database(db)
                     st.session_state["prod_selected_codes"] = []
-                    st.session_state["success_msg"] = f"🗑️ {sel_count} products deleted"
+                    st.session_state["success_msg"] = f"🗑️ {sel_count} products permanently deleted"
                     st.rerun()
 
     # Render rows
@@ -1745,24 +1638,11 @@ def render_admin_products():
                     save_database(db); st.session_state["success_msg"] = "✅ Saved"; st.rerun()
             with s2:
                 if st.button("🗑", key=f"del_{code}", use_container_width=True):
-                    if code not in db.get("deleted_products", []):
-                        db.setdefault("deleted_products", []).append(code)
+                    # Permanent Delete Logic
                     db["custom_products"] = [cp for cp in db.get("custom_products", [])
                                              if str(cp.get("code", "")) != code]
                     db.get("product_prices", {}).pop(code, None)
-                    save_database(db); st.session_state["success_msg"] = f"🗑 Deleted {code}"; st.rerun()
-
-    # Show deleted list at bottom (collapsed)
-    if db.get("deleted_products"):
-        with st.expander(f"🗂️ Deleted Products ({len(db['deleted_products'])}) — click to view/restore"):
-            st.caption("Ye products ab list mein show nahi honge. Restore karke wapas la sakte ho.")
-            dc1, dc2 = st.columns([5, 1])
-            with dc1:
-                st.markdown(", ".join(f"`{c}`" for c in db["deleted_products"]))
-            with dc2:
-                if st.button("♻️ Restore All", key="restore_all_bottom", use_container_width=True):
-                    db["deleted_products"] = []
-                    save_database(db); st.session_state["success_msg"] = "♻️ Restored"; st.rerun()
+                    save_database(db); st.session_state["success_msg"] = f"🗑 Permanently deleted {code}"; st.rerun()
 
 # ============================================================
 # ADMIN BOOKERS
