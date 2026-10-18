@@ -4,6 +4,7 @@
 # + BOOKER-WISE BILLS + ITEM-WISE RETURNS in LOAD FORM
 # + MISCELLANEOUS EXPENSE + PERMANENT PRODUCT DELETE + FIXED IMPORT
 # + PREMIUM FLOATING BUBBLES & HERO ANIMATION
+# + LOAD FORM EXCEL DOWNLOAD (per load form)
 # ============================================================
 
 import os
@@ -884,6 +885,106 @@ def get_return_record_for_lf(lf_id):
             return r
     return None
 
+# ============================================================
+# 🆕 LOAD FORM EXCEL BUILDER (NEW ADD)
+# ============================================================
+def build_load_form_excel(lf):
+    """Load Form ki Excel file banata hai — booker, date, items + auto column width."""
+    output = BytesIO()
+    wb = xlsxwriter.Workbook(output, {'in_memory': True})
+    ws = wb.add_worksheet("Load Form")
+
+    title_fmt = wb.add_format({"bold": True, "font_size": 16, "align": "center",
+                               "border": 2, "bg_color": "#FFE0B2"})
+    header_fmt = wb.add_format({"bold": True, "font_size": 11, "bg_color": "#BBDEFB",
+                                "align": "center", "border": 2, "text_wrap": True,
+                                "valign": "vcenter"})
+    label_fmt = wb.add_format({"bold": True, "font_size": 11, "bg_color": "#E3F2FD",
+                               "align": "left", "border": 1})
+    val_fmt = wb.add_format({"font_size": 11, "align": "left", "border": 1})
+    cl = wb.add_format({"font_size": 11, "border": 1, "align": "left", "text_wrap": True})
+    cc = wb.add_format({"font_size": 11, "border": 1, "align": "center"})
+    tot = wb.add_format({"bold": True, "font_size": 11, "bg_color": "#FFF2CC",
+                         "align": "center", "border": 2})
+    net_fmt = wb.add_format({"bold": True, "font_size": 13, "bg_color": "#C8E6C9",
+                             "align": "center", "border": 2})
+
+    ws.merge_range("A1:C1", f"{COMPANY_NAME} — LOAD FORM", title_fmt)
+
+    ws.write("A3", "Booker:", label_fmt)
+    ws.write("B3", lf.get("booker", ""), val_fmt)
+    ws.write("C3", "", val_fmt)
+
+    ws.write("A4", "Date:", label_fmt)
+    ws.write("B4", lf.get("date", ""), val_fmt)
+    ws.write("C4", lf.get("time", ""), val_fmt)
+
+    ws.write("A5", "Load Form #:", label_fmt)
+    ws.write("B5", lf.get("id", ""), val_fmt)
+    ws.write("C5", "", val_fmt)
+
+    ws.write("A7", "Code", header_fmt)
+    ws.write("B7", "Product", header_fmt)
+    ws.write("C7", "Boxes", header_fmt)
+
+    row = 7
+    total_boxes = 0
+    for it in lf.get("items", []):
+        bx = int(it.get("Boxes", 0))
+        ws.write(row, 0, str(it.get("Code", "")), cc)
+        ws.write(row, 1, it.get("Product", ""), cl)
+        ws.write(row, 2, bx, cc)
+        total_boxes += bx
+        row += 1
+
+    ws.write(row, 0, "TOTAL", tot)
+    ws.write(row, 1, f"{len(lf.get('items', []))} Products", tot)
+    ws.write(row, 2, total_boxes, tot)
+    row += 2
+
+    ws.merge_range(row, 0, row, 1, "TOTAL BOXES", header_fmt)
+    ws.merge_range(row, 2, row, 2, total_boxes, net_fmt)
+
+    ret_map = get_lf_return_items(lf.get("id"))
+    ret_total = sum(ret_map.values()) if ret_map else 0
+    if ret_total > 0:
+        row += 2
+        ws.merge_range(row, 0, row, 1, "RETURNS", header_fmt)
+        ws.merge_range(row, 2, row, 2, ret_total, tot)
+        row += 1
+        ws.merge_range(row, 0, row, 1, "NET (Boxes - Returns)", header_fmt)
+        ws.merge_range(row, 2, row, 2, total_boxes - ret_total, net_fmt)
+
+    code_width = max([len(str(it.get("Code", ""))) for it in lf.get("items", [])] + [4]) + 4
+    prod_width = max([len(str(it.get("Product", ""))) for it in lf.get("items", [])] + [8]) + 6
+    ws.set_column("A:A", max(14, code_width))
+    ws.set_column("B:B", max(30, prod_width))
+    ws.set_column("C:C", 12)
+
+    ws.set_paper(9)
+    ws.set_portrait()
+    ws.fit_to_pages(1, 1)
+
+    wb.close()
+    output.seek(0)
+    return output.getvalue()
+
+
+def export_lf_excel_callback(lf_id):
+    """Button click pe Load Form ki Excel file auto-download ke liye ready karta hai."""
+    lf = next((x for x in db.get("load_forms", []) if x.get("id") == lf_id), None)
+    if not lf:
+        st.session_state["error_msg"] = "❌ Load Form nahi mila"
+        return
+    safe_booker = str(lf.get("booker", "booker")).replace(" ", "_").replace("/", "-")
+    safe_date = str(lf.get("date", "")).replace("-", "")
+    fname = f"LoadForm_{lf_id}_{safe_booker}_{safe_date}.xlsx"
+    st.session_state["download_file"] = (fname, build_load_form_excel(lf))
+    st.session_state["success_msg"] = f"✅ Load Form #{lf_id} Excel ready"
+# ============================================================
+# END NEW ADD
+# ============================================================
+
 def show_auto_download():
     if st.session_state.get("download_file"):
         fname, fdata = st.session_state["download_file"]
@@ -899,7 +1000,7 @@ def show_auto_download():
         (function(){ var tries=0; function attempt(){ tries++;
             var btns = window.parent.document.querySelectorAll('[data-testid="stDownloadButton"] button');
             if (btns.length > 0){ btns[btns.length - 1].click(); return; }
-            if (tries < 25) setTimeout(attempt, 200); }
+            if (tries < 25) setTimeout(attempt, 200); } 
             setTimeout(attempt, 300); })();
         </script>""", height=0)
 
@@ -2303,7 +2404,8 @@ def render_admin_load_form():
                     <div class='lf-boxes'>{tb}<small>BOXES</small></div>
                 </div>""", unsafe_allow_html=True)
 
-                c1, c2, c3 = st.columns(3)
+                # 🆕 4-column buttons — 1 extra Download Excel
+                c1, c2, c3, c4 = st.columns(4)
                 with c1:
                     if st.button("↩️ Add Return", key=f"ret_open_{lf_id}", use_container_width=True):
                         st.session_state[f"ret_show_{lf_id}"] = not st.session_state.get(f"ret_show_{lf_id}", False)
@@ -2315,6 +2417,11 @@ def render_admin_load_form():
                     else:
                         st.button(f"✅ DSR #{lf.get('dsr_id','')}", key=f"trfd_{lf_id}", disabled=True, use_container_width=True)
                 with c3:
+                    # 🆕 LOAD FORM EXCEL DOWNLOAD
+                    if st.button("📥 Download Excel", key=f"dl_lf_{lf_id}", use_container_width=True, type="primary"):
+                        export_lf_excel_callback(lf_id)
+                        st.rerun()
+                with c4:
                     if st.button("🗑 Delete", key=f"del_lf_{lf_id}", use_container_width=True):
                         db["load_forms"] = [x for x in db["load_forms"] if x.get("id") != lf_id]
                         db["booker_returns"] = [r for r in db.get("booker_returns", []) if r.get("load_form_id") != lf_id]
