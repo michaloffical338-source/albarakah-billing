@@ -88,11 +88,11 @@ def default_discount_packages():
     ]
 
 # ============================================================
-# GLOBAL CSS (PREMIUM BUBBLES & ANIMATIONS ADDED)
+# GLOBAL CSS (PREMIUM ANIMATIONS ADDED)
 # ============================================================
 st.markdown("""
 <style>
-    /* 1. BASE BACKGROUND ANIMATION */
+    /* 1. LIVE BACKGROUND ANIMATION */
     @keyframes gradientBG {
         0% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
@@ -102,31 +102,17 @@ st.markdown("""
         background: linear-gradient(-45deg, #e3f2fd, #bbdefb, #e0f7fa, #e8eaf6) !important;
         background-size: 400% 400% !important;
         animation: gradientBG 15s ease infinite !important;
-        overflow: hidden; /* Prevent scrollbars from bubbles */
+        overflow-x: hidden;
     }
 
-    /* 2. FLOATING COLORFUL BUBBLES (Neecay se upar aane wale colors) */
+    /* 2. FLOATING COLORFUL BUBBLES */
     .bubbles {
-        position: fixed;
-        bottom: -100px;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -1; /* Behind content */
-        pointer-events: none; /* Ignore clicks */
-        margin: 0;
-        padding: 0;
+        position: fixed; bottom: -100px; left: 0; width: 100%; height: 100%;
+        z-index: 0; pointer-events: none; margin: 0; padding: 0;
     }
     .bubbles li {
-        position: absolute;
-        list-style: none;
-        display: block;
-        width: 40px;
-        height: 40px;
-        background: rgba(255, 255, 255, 0.2);
-        bottom: -160px;
-        animation: square 25s infinite linear;
-        border-radius: 50%;
+        position: absolute; list-style: none; display: block; width: 40px; height: 40px;
+        bottom: -160px; animation: square 25s infinite linear; border-radius: 50%;
     }
     .bubbles li:nth-child(1) { left: 10%; width: 80px; height: 80px; animation-delay: 0s; background: rgba(33,150,243,0.15); }
     .bubbles li:nth-child(2) { left: 20%; width: 30px; height: 30px; animation-delay: 2s; animation-duration: 12s; background: rgba(76,175,80,0.15); }
@@ -155,6 +141,7 @@ st.markdown("""
         animation: heroShade 8s ease infinite !important;
         border-radius: 20px; padding: 26px 32px; margin-bottom: 22px; color: #fff; 
         position: relative; overflow: hidden; box-shadow: 0 12px 32px rgba(37, 99, 235, 0.35); 
+        z-index: 2;
     }
 
     /* 4. FLOATING LOGIN CARD ANIMATION */
@@ -201,6 +188,19 @@ st.markdown("""
         filter: brightness(1.1) !important;
     }
 
+    /* 8. PAGE LOAD FADE IN */
+    @keyframes fadeInPage {
+        0% { opacity: 0; transform: translateY(15px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    .block-container {
+        animation: fadeInPage 0.6s ease-out !important;
+        position: relative; z-index: 2;
+        padding-top: 0.5rem !important; padding-left: 1.5rem !important;
+        padding-right: 1.5rem !important; padding-bottom: 0.5rem !important;
+        max-width: 100% !important;
+    }
+
     /* ---------- BASE STYLES (RESTORED) ---------- */
     html, body, .stApp, .stApp p, .stApp span, .stApp div,
     .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
@@ -240,13 +240,6 @@ st.markdown("""
     footer { visibility: hidden !important; }
     header[data-testid="stHeader"] { background: transparent !important; box-shadow: none !important; }
 
-    .block-container {
-        padding-top: 0.5rem !important; padding-left: 1.5rem !important;
-        padding-right: 1.5rem !important; padding-bottom: 0.5rem !important;
-        max-width: 100% !important;
-        position: relative;
-        z-index: 2; /* Keep content above bubbles */
-    }
     .stApp .element-container { margin-bottom: 0.35rem !important; }
     .stApp [data-testid="stVerticalBlock"] > div { gap: 0.35rem !important; }
     .stApp label, .stApp [data-testid="stWidgetLabel"] label, .stApp [data-testid="stWidgetLabel"] p {
@@ -439,7 +432,6 @@ st.markdown("""
     section[data-testid="stSidebar"] .stButton > button span,
     section[data-testid="stSidebar"] .stButton > button div { color: inherit !important; }
 
-    /* .dash-hero is defined at the top now */
     .dash-hero::before { content: ''; position: absolute; top: -50%; right: -10%; width: 420px; height: 420px; background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%); border-radius: 50%; }
     .dash-hero-content { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
     .dash-hero-left { display: flex; flex-direction: column; gap: 6px; }
