@@ -9,6 +9,7 @@
 # + FIXED AttributeError: text_case (removed, using .upper())
 # + WS1, WS2, WS3 WHOLESALER PACKAGES (customizable from Discount page)
 # + PURANI DATES KI LOAD FORMS BHI DSR ME TRANSFER HO SAKTI HAIN
+# + FIXED NameError: get_all_products missing
 # ============================================================
 
 import os
@@ -76,7 +77,6 @@ def default_blank_db():
         "custom_products": [], "dsr_forms": [], "credit_bills": [],
         "deleted_products": [],
         "next_credit_id": 1,
-        # 🆕 WS1, WS2, WS3 Wholesaler Packages
         "wholesaler_packages": [
             {"id": "ws1", "name": "WS1", "discount_pct": 3.0},
             {"id": "ws2", "name": "WS2", "discount_pct": 5.0},
@@ -637,6 +637,27 @@ def get_wholesaler_package_from_shop(shop_name):
                 if p["id"].lower() == token:
                     return p
     return None
+
+def get_all_products():
+    custom = db.get("custom_products", [])
+    merged = list(PRODUCTS)
+    seen_codes = {str(p["code"]) for p in merged}
+    for cp in custom:
+        code = str(cp.get("code", "")).strip()
+        name = str(cp.get("name", "")).strip()
+        if not code or not name: continue
+        if code in seen_codes: continue
+        try: price = float(cp.get("price", 0))
+        except Exception: price = 0.0
+        merged.append({"code": code, "name": name, "price": price}); seen_codes.add(code)
+    return sorted(merged, key=lambda x: x["name"])
+
+def get_price(code, base_price):
+    custom = db.get("product_prices", {})
+    if str(code) in custom:
+        try: return float(custom[str(code)])
+        except Exception: return float(base_price)
+    return float(base_price)
 
 def get_all_active_packages(): return [p for p in db.get("discount_packages", []) if p.get("active")]
 
@@ -1465,7 +1486,7 @@ def render_admin_booker_bills():
     """, unsafe_allow_html=True)
 
 # ============================================================
-# ADMIN DISCOUNT (UPDATED - WS1, WS2, WS3)
+# ADMIN DISCOUNT (WS1, WS2, WS3)
 # ============================================================
 def render_admin_discount():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🎁 Discount Settings</h1>", unsafe_allow_html=True)
@@ -2178,7 +2199,7 @@ def render_admin_credit():
                 save_database(db); st.session_state["success_msg"] = "🗑"; st.rerun()
 
 # ============================================================
-# ADMIN LOAD FORM (UPDATED - PURANI DATES ALLOWED)
+# ADMIN LOAD FORM (UPDATED)
 # ============================================================
 def render_admin_load_form():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📦 Load Forms</h1>", unsafe_allow_html=True)
