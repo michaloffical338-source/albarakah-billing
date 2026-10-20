@@ -10,6 +10,9 @@
 # + WS1, WS2, WS3 WHOLESALER PACKAGES (customizable from Discount page)
 # + PURANI DATES KI LOAD FORMS BHI DSR ME TRANSFER HO SAKTI HAIN
 # + FIXED NameError: get_all_products missing
+# + BOOKER DRAFT AUTO SAVE (App band ho to bhi wapis aye)
+# + BOOKER BILLS LIST WITH DATE FILTER (Delete / Resend)
+# + BOOKER DAILY LOAD FORM (1 date = 1 load form)
 # ============================================================
 
 import os
@@ -66,6 +69,9 @@ def sanitize_username(u):
 
 def user_data_file(username):
     return f"billing_database_{username}.json"
+
+def get_booker_draft_file(booker_name):
+    return f"booker_draft_{sanitize_username(booker_name)}.json"
 
 def default_blank_db():
     return {
@@ -490,6 +496,15 @@ def render_auth_page():
                         st.session_state["bk_load_draft"] = []
                         st.session_state["bk_current_shop"] = ""
                         st.session_state["bk_bills_created"] = 0
+                        # 🆕 Draft load karo
+                        draft_file = get_booker_draft_file(st.session_state["booker_name"])
+                        if os.path.exists(draft_file):
+                            try:
+                                with open(draft_file, "r", encoding="utf-8") as f:
+                                    draft_data = json.load(f)
+                                    st.session_state["bk_current_shop"] = draft_data.get("shop", "")
+                                    st.session_state["bk_bill_draft"] = draft_data.get("items", [])
+                            except Exception: pass
                         st.rerun()
 
         with tab3:
@@ -901,8 +916,9 @@ def render_booker_sidebar():
         """, unsafe_allow_html=True)
         st.markdown('<div class="sb-section-label">Menu</div>', unsafe_allow_html=True)
 
+        # 🆕 Added: My Bills History
         bk_page = st.radio("BK MENU",
-            ["🧾 New Bill", "🛒 All Products", "📦 Load Form Status"],
+            ["🧾 New Bill", "📋 My Bills History", "🛒 All Products", "📦 Load Form Status"],
             key="bk_page_selector", label_visibility="collapsed")
         st.session_state["bk_page"] = bk_page
 
@@ -931,6 +947,21 @@ def render_booker_sidebar():
             st.session_state["bk_bills_created"] = 0
             st.rerun()
 
+def save_booker_draft(shop, items):
+    if not st.session_state.get("booker_name"): return
+    draft_file = get_booker_draft_file(st.session_state["booker_name"])
+    try:
+        with open(draft_file, "w", encoding="utf-8") as f:
+            json.dump({"shop": shop, "items": items}, f, indent=4, ensure_ascii=False)
+    except Exception: pass
+
+def clear_booker_draft():
+    if not st.session_state.get("booker_name"): return
+    draft_file = get_booker_draft_file(st.session_state["booker_name"])
+    if os.path.exists(draft_file):
+        try: os.remove(draft_file)
+        except Exception: pass
+
 def render_booker_new_bill():
     bk_name = st.session_state.get("booker_name", "")
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🧾 New Bill — <small style='color:#2e7d32;'>👤 {bk_name}</small></h1>", unsafe_allow_html=True)
@@ -956,6 +987,8 @@ def render_booker_new_bill():
         if new_shop != st.session_state.get("bk_current_shop", ""):
             st.session_state["bk_current_shop"] = new_shop
             st.session_state["bk_bill_draft"] = []
+            # 🆕 Save Draft on Shop Change
+            save_booker_draft(new_shop, st.session_state["bk_bill_draft"])
             st.rerun()
 
     if not shop.strip():
@@ -1008,6 +1041,8 @@ def render_booker_new_bill():
                 "Boxes": int(boxes), "TP/Box": float(tp),
                 "Gross": float(boxes * tp), "Discount %": 0.0, "Net": float(boxes * tp),
             })
+            # 🆕 Save Draft on Add
+            save_booker_draft(shop, st.session_state["bk_bill_draft"])
             st.session_state["bk_reset_item_form"] = True
             st.rerun()
 
@@ -1030,6 +1065,8 @@ def render_booker_new_bill():
                 if remove_idx != "--":
                     idx = int(remove_idx.split(".")[0]) - 1
                     st.session_state["bk_bill_draft"].pop(idx)
+                    # 🆕 Save Draft on Remove
+                    save_booker_draft(shop, st.session_state["bk_bill_draft"])
                     st.rerun()
 
         gross_total = sum(float(it["Gross"]) for it in draft)
@@ -1042,6 +1079,7 @@ def render_booker_new_bill():
         with c2:
             if st.button("🗑 Clear Draft", key="bk_clear_draft", use_container_width=True):
                 st.session_state["bk_bill_draft"] = []
+                clear_booker_draft()
                 st.rerun()
 
     st.markdown("---")
@@ -1088,6 +1126,7 @@ def finalize_booker_bill(shop, draft):
     after_disc_total = bill_total_net - (bill_total_net * pkg_pct / 100)
 
     st.session_state["bk_bill_draft"] = []
+    clear_booker_draft() # 🆕 Clear draft after admin send
     st.session_state["bk_bills_created"] = st.session_state.get("bk_bills_created", 0) + 1
     st.session_state["success_msg"] = f"✅ Bill #{bill_no} saved to Admin | {shop} | Net: Rs {after_disc_total:,.0f}"
     st.rerun()
@@ -1098,22 +1137,42 @@ def finalize_booker_load_form():
     if not load_draft:
         st.session_state["error_msg"] = "❌ Load form empty"; return
     bk_name = st.session_state.get("booker_name", "")
+    today_str = datetime.now().strftime("%d-%m-%Y")
     total_boxes = sum(int(it["Boxes"]) for it in load_draft)
-    next_id = 1
-    if db.get("load_forms"): next_id = max(lf.get("id", 0) for lf in db["load_forms"]) + 1
-    lf_record = {
-        "id": next_id, "date": datetime.now().strftime("%d-%m-%Y"),
-        "time": datetime.now().strftime("%H:%M"),
-        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "booker": bk_name, "items": load_draft,
-        "total_boxes": total_boxes, "total_products": len(load_draft),
-        "transferred_to_dsr": False, "refreshed": False,
-        "source": "booker",
-    }
-    db["load_forms"].append(lf_record)
+    
+    # 🆕 Daily Load Form Logic (Check if today's LF exists for this booker)
+    existing_lf = None
+    for lf in db.get("load_forms", []):
+        if lf.get("booker") == bk_name and lf.get("date") == today_str and not lf.get("transferred_to_dsr"):
+            existing_lf = lf; break
+
+    if existing_lf:
+        # Update existing
+        existing_lf["items"] = load_draft
+        existing_lf["total_boxes"] = total_boxes
+        existing_lf["total_products"] = len(load_draft)
+        existing_lf["time"] = datetime.now().strftime("%H:%M")
+        existing_lf["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        msg = f"🔄 Load Form #{existing_lf['id']} updated (Same Day)"
+    else:
+        # Create new
+        next_id = 1
+        if db.get("load_forms"): next_id = max(lf.get("id", 0) for lf in db["load_forms"]) + 1
+        lf_record = {
+            "id": next_id, "date": today_str,
+            "time": datetime.now().strftime("%H:%M"),
+            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "booker": bk_name, "items": load_draft,
+            "total_boxes": total_boxes, "total_products": len(load_draft),
+            "transferred_to_dsr": False, "refreshed": False,
+            "source": "booker",
+        }
+        db["load_forms"].append(lf_record)
+        msg = f"✅ Load Form #{next_id} saved to Admin | {len(load_draft)} products, {total_boxes} boxes"
+
     save_database(db)
     st.session_state["bk_load_draft"] = []
-    st.session_state["success_msg"] = f"✅ Load Form #{next_id} saved to Admin | {len(load_draft)} products, {total_boxes} boxes"
+    st.session_state["success_msg"] = msg
     st.rerun()
 
 def render_booker_all_products():
@@ -1156,6 +1215,78 @@ def render_booker_load_status():
         finalize_booker_load_form()
 
 # ============================================================
+# 🆕 BOOKER BILLS LIST (HISTORY)
+# ============================================================
+def render_booker_bills_history():
+    bk_name = st.session_state.get("booker_name", "")
+    st.markdown(f"<h1 style='color:#1976d2 !important;'>📋 My Bills History</h1>", unsafe_allow_html=True)
+    st.caption("Aapke banaye hue saare bills. Agar galti ho gayi ho to yahan se delete karein.")
+    st.markdown("---")
+
+    today = date.today()
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        filter_mode = st.selectbox("Filter:", ["📅 Aaj (Today)", "📆 Custom Range", "🗓️ Specific", "📋 All Bills"], key="bk_history_filter")
+    with c2:
+        from_date = st.date_input("From:", value=today - timedelta(days=7), key="bk_history_from")
+    with c3:
+        to_date = st.date_input("To:", value=today, key="bk_history_to")
+
+    groups = {}
+    for b in db["bills"]:
+        if str(b.get("Order Booker", "")).strip() != bk_name: continue
+        bdate = parse_date(b.get("Date", ""))
+        if filter_mode == "📅 Aaj (Today)":
+            if bdate != today: continue
+        elif filter_mode == "🗓️ Specific":
+            if bdate != from_date: continue
+        elif filter_mode == "📆 Custom Range":
+            if bdate is None or not (from_date <= bdate <= to_date): continue
+
+        key = (b.get("Shop",""), b.get("Date",""), b.get("Bill No",""))
+        if key not in groups:
+            groups[key] = {"shop": b.get("Shop",""), "date": b.get("Date",""), "bill_no": b.get("Bill No",""), "items": [], "idx": []}
+        groups[key]["items"].append(b)
+        groups[key]["idx"].append(db["bills"].index(b))
+
+    if not groups:
+        st.info("Is filter mein aapka koi bill nahi mila.")
+        return
+
+    for key, g in sorted(groups.items(), key=lambda kv: kv[0][1], reverse=True):
+        shop = g["shop"]; dt = g["date"]; bn = g["bill_no"]
+        tb = sum(int(it.get("Boxes",0)) for it in g["items"])
+        t_net = sum(float(it.get("Net",0)) for it in g["items"])
+
+        st.markdown(f"""<div class='lf-simple-card'>
+            <div class='lf-info'>
+                <div class='lf-line1'>🏪 {shop}</div>
+                <div class='lf-line2'>📅 {dt} · 🧾 #{bn} · 💰 Rs {t_net:,.0f}</div>
+            </div>
+            <div class='lf-boxes'>{tb}<small>BOXES</small></div>
+        </div>""", unsafe_allow_html=True)
+        
+        with st.expander("View Items"):
+            st.dataframe(pd.DataFrame([{"Code": i["Code"], "Product": i["Product"], "Boxes": i["Boxes"], "Net": i["Net"]} for i in g["items"]]), use_container_width=True, hide_index=True)
+
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button("🗑 Delete Bill", key=f"bk_del_{key}_{dt}", type="primary", use_container_width=True):
+                idxs = set(g["idx"])
+                # Remove from Admin's DB
+                db["bills"] = [b for i, b in enumerate(db["bills"]) if i not in idxs]
+                save_database(db)
+                st.session_state["success_msg"] = f"🗑 Bill #{bn} deleted"
+                st.rerun()
+        with c2:
+            if st.button("📤 Resend to Admin", key=f"bk_resend_{key}_{dt}", use_container_width=True):
+                # Just re-save DB to trigger admin update
+                save_database(db)
+                st.session_state["success_msg"] = f"✅ Bill #{bn} resent to Admin"
+                st.rerun()
+        st.markdown("---")
+
+# ============================================================
 # ROUTER
 # ============================================================
 if ROLE == "booker":
@@ -1163,6 +1294,8 @@ if ROLE == "booker":
     bk_page = st.session_state.get("bk_page", "🧾 New Bill")
     if bk_page == "🧾 New Bill":
         render_booker_new_bill()
+    elif bk_page == "📋 My Bills History":
+        render_booker_bills_history()
     elif bk_page == "🛒 All Products":
         render_booker_all_products()
     elif bk_page == "📦 Load Form Status":
@@ -1486,7 +1619,7 @@ def render_admin_booker_bills():
     """, unsafe_allow_html=True)
 
 # ============================================================
-# ADMIN DISCOUNT (WS1, WS2, WS3)
+# ADMIN DISCOUNT
 # ============================================================
 def render_admin_discount():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🎁 Discount Settings</h1>", unsafe_allow_html=True)
@@ -2199,7 +2332,7 @@ def render_admin_credit():
                 save_database(db); st.session_state["success_msg"] = "🗑"; st.rerun()
 
 # ============================================================
-# ADMIN LOAD FORM (UPDATED)
+# ADMIN LOAD FORM
 # ============================================================
 def render_admin_load_form():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📦 Load Forms</h1>", unsafe_allow_html=True)
