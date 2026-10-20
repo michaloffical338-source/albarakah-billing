@@ -7,6 +7,8 @@
 # + LOAD FORM EXCEL DOWNLOAD (per load form)
 # + BILL EXCEL NOW SHOWS BOOKER NAME + DATE (ALL CAPS + BOLD + AUTO WIDTH)
 # + FIXED AttributeError: text_case (removed, using .upper())
+# + WS1, WS2, WS3 WHOLESALER PACKAGES (customizable from Discount page)
+# + PURANI DATES KI LOAD FORMS BHI DSR ME TRANSFER HO SAKTI HAIN
 # ============================================================
 
 import os
@@ -74,8 +76,12 @@ def default_blank_db():
         "custom_products": [], "dsr_forms": [], "credit_bills": [],
         "deleted_products": [],
         "next_credit_id": 1,
-        "wholesaler_rule_enabled": True,
-        "wholesaler_discount_pct": 6.0,
+        # 🆕 WS1, WS2, WS3 Wholesaler Packages
+        "wholesaler_packages": [
+            {"id": "ws1", "name": "WS1", "discount_pct": 3.0},
+            {"id": "ws2", "name": "WS2", "discount_pct": 5.0},
+            {"id": "ws3", "name": "WS3", "discount_pct": 7.0},
+        ],
     }
 
 def default_discount_packages():
@@ -95,26 +101,11 @@ def default_discount_packages():
 # ============================================================
 st.markdown("""
 <style>
-    @keyframes gradientBG {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-    .stApp { 
-        background: linear-gradient(-45deg, #e3f2fd, #bbdefb, #e0f7fa, #e8eaf6) !important;
-        background-size: 400% 400% !important;
-        animation: gradientBG 15s ease infinite !important;
-        overflow-x: hidden;
-    }
+    @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    .stApp { background: linear-gradient(-45deg, #e3f2fd, #bbdefb, #e0f7fa, #e8eaf6) !important; background-size: 400% 400% !important; animation: gradientBG 15s ease infinite !important; overflow-x: hidden; }
 
-    .bubbles {
-        position: fixed; bottom: -100px; left: 0; width: 100%; height: 100%;
-        z-index: 0; pointer-events: none; margin: 0; padding: 0;
-    }
-    .bubbles li {
-        position: absolute; list-style: none; display: block; width: 40px; height: 40px;
-        bottom: -160px; animation: square 25s infinite linear; border-radius: 50%;
-    }
+    .bubbles { position: fixed; bottom: -100px; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; margin: 0; padding: 0; }
+    .bubbles li { position: absolute; list-style: none; display: block; width: 40px; height: 40px; bottom: -160px; animation: square 25s infinite linear; border-radius: 50%; }
     .bubbles li:nth-child(1) { left: 10%; width: 80px; height: 80px; animation-delay: 0s; background: rgba(33,150,243,0.15); }
     .bubbles li:nth-child(2) { left: 20%; width: 30px; height: 30px; animation-delay: 2s; animation-duration: 12s; background: rgba(76,175,80,0.15); }
     .bubbles li:nth-child(3) { left: 35%; width: 100px; height: 100px; animation-delay: 4s; background: rgba(255,152,0,0.15); }
@@ -124,108 +115,32 @@ st.markdown("""
     .bubbles li:nth-child(7) { left: 90%; width: 50px; height: 50px; animation-delay: 5s; animation-duration: 14s; background: rgba(255,193,7,0.15); }
     .bubbles li:nth-child(8) { left: 25%; width: 90px; height: 90px; animation-delay: 7s; background: rgba(76,175,80,0.15); }
     .bubbles li:nth-child(9) { left: 75%; width: 70px; height: 70px; animation-delay: 2s; animation-duration: 22s; background: rgba(33,150,243,0.15); }
+    @keyframes square { 0% { transform: translateY(0) rotate(0deg); opacity: 1; border-radius: 50%; } 100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; border-radius: 50%; } }
 
-    @keyframes square {
-        0% { transform: translateY(0) rotate(0deg); opacity: 1; border-radius: 50%; }
-        100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; border-radius: 50%; }
-    }
+    @keyframes heroShade { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    .dash-hero { background: linear-gradient(-45deg, #1e3a8a, #2563eb, #3b82f6, #8b5cf6, #2563eb) !important; background-size: 300% 300% !important; animation: heroShade 8s ease infinite !important; border-radius: 20px; padding: 26px 32px; margin-bottom: 22px; color: #fff; position: relative; overflow: hidden; box-shadow: 0 12px 32px rgba(37, 99, 235, 0.35); z-index: 2; }
 
-    @keyframes heroShade {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-    .dash-hero { 
-        background: linear-gradient(-45deg, #1e3a8a, #2563eb, #3b82f6, #8b5cf6, #2563eb) !important; 
-        background-size: 300% 300% !important;
-        animation: heroShade 8s ease infinite !important;
-        border-radius: 20px; padding: 26px 32px; margin-bottom: 22px; color: #fff; 
-        position: relative; overflow: hidden; box-shadow: 0 12px 32px rgba(37, 99, 235, 0.35); 
-        z-index: 2;
-    }
+    @keyframes floatCard { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+    .auth-card { background: rgba(255, 255, 255, 0.75) !important; backdrop-filter: blur(15px) !important; border: 1px solid rgba(255, 255, 255, 0.6) !important; animation: floatCard 6s ease-in-out infinite !important; box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important; z-index: 10 !important; }
 
-    @keyframes floatCard {
-        0% { transform: translateY(0px); }
-        50% { transform: translateY(-10px); }
-        100% { transform: translateY(0px); }
-    }
-    .auth-card { 
-        background: rgba(255, 255, 255, 0.75) !important; 
-        backdrop-filter: blur(15px) !important; 
-        border: 1px solid rgba(255, 255, 255, 0.6) !important;
-        animation: floatCard 6s ease-in-out infinite !important;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
-        z-index: 10 !important;
-    }
+    .kpi-card { transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important; z-index: 5 !important; }
+    .kpi-card:hover { transform: translateY(-8px) scale(1.02) !important; box-shadow: 0 15px 30px rgba(37,99,235,0.25) !important; }
 
-    .kpi-card { 
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important; 
-        z-index: 5 !important;
-    }
-    .kpi-card:hover { 
-        transform: translateY(-8px) scale(1.02) !important; 
-        box-shadow: 0 15px 30px rgba(37,99,235,0.25) !important; 
-    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label { transition: all 0.25s ease !important; }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover { transform: translateX(6px) !important; background-color: #e8f5e9 !important; }
+    .stButton > button { transition: all 0.3s ease !important; }
+    .stButton > button:hover { transform: translateY(-2px) !important; box-shadow: 0 8px 20px rgba(33,150,243,0.4) !important; filter: brightness(1.1) !important; }
 
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label { 
-        transition: all 0.25s ease !important; 
-    }
-    section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover { 
-        transform: translateX(6px) !important; 
-        background-color: #e8f5e9 !important; 
-    }
+    @keyframes fadeInPage { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
+    .block-container { animation: fadeInPage 0.6s ease-out !important; position: relative; z-index: 2; padding-top: 0.5rem !important; padding-left: 1.5rem !important; padding-right: 1.5rem !important; padding-bottom: 0.5rem !important; max-width: 100% !important; }
 
-    .stButton > button { 
-        transition: all 0.3s ease !important; 
-    }
-    .stButton > button:hover { 
-        transform: translateY(-2px) !important; 
-        box-shadow: 0 8px 20px rgba(33,150,243,0.4) !important; 
-        filter: brightness(1.1) !important;
-    }
+    html, body, .stApp, .stApp p, .stApp span, .stApp div, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6, .stApp label, .stApp li, .stApp a, [class*="css"] *, [data-testid="stMarkdownContainer"] *, [data-testid="stText"], [data-testid="stCaptionContainer"] *, [data-testid="stWidgetLabel"] *, [data-testid="stSelectbox"] *, [data-testid="stTextInput"] *, [data-testid="stNumberInput"] * { color: #000000; }
 
-    @keyframes fadeInPage {
-        0% { opacity: 0; transform: translateY(15px); }
-        100% { opacity: 1; transform: translateY(0); }
-    }
-    .block-container {
-        animation: fadeInPage 0.6s ease-out !important;
-        position: relative; z-index: 2;
-        padding-top: 0.5rem !important; padding-left: 1.5rem !important;
-        padding-right: 1.5rem !important; padding-bottom: 0.5rem !important;
-        max-width: 100% !important;
-    }
-
-    html, body, .stApp, .stApp p, .stApp span, .stApp div,
-    .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
-    .stApp label, .stApp li, .stApp a, [class*="css"] *,
-    [data-testid="stMarkdownContainer"] *,
-    [data-testid="stText"], [data-testid="stCaptionContainer"] *,
-    [data-testid="stWidgetLabel"] *, [data-testid="stSelectbox"] *,
-    [data-testid="stTextInput"] *, [data-testid="stNumberInput"] * { color: #000000; }
-
-    .stDateInput, .stDateInput > div, .stDateInput > div > div,
-    .stDateInput > div > div > input,
-    [data-testid="stDateInput"], [data-testid="stDateInput"] > div,
-    [data-testid="stDateInput"] > div > div, [data-testid="stDateInput"] input,
-    [data-testid="stDateInput"] div[data-baseweb="input"],
-    [data-testid="stDateInput"] div[data-baseweb="input"] > div,
-    [data-testid="stDateInput"] div[data-baseweb="base-input"],
-    [data-baseweb="datepicker"] input, div[data-baseweb="input"] > div,
-    div[data-baseweb="base-input"], div[data-baseweb="base-input"] input {
-        background-color: #ffffff !important; color: #000000 !important;
-        -webkit-text-fill-color: #000000 !important; border-color: #90caf9 !important;
-    }
-    div[data-baseweb="calendar"], div[data-baseweb="calendar"] *,
-    div[data-baseweb="datepicker"] *, div[data-baseweb="popover"] *,
-    div[role="dialog"] *, div[role="dialog"] {
-        background-color: #ffffff !important; color: #000000 !important;
-        -webkit-text-fill-color: #000000 !important;
-    }
+    .stDateInput, .stDateInput > div, .stDateInput > div > div, .stDateInput > div > div > input, [data-testid="stDateInput"], [data-testid="stDateInput"] > div, [data-testid="stDateInput"] > div > div, [data-testid="stDateInput"] input, [data-testid="stDateInput"] div[data-baseweb="input"], [data-testid="stDateInput"] div[data-baseweb="input"] > div, [data-testid="stDateInput"] div[data-baseweb="base-input"], [data-baseweb="datepicker"] input, div[data-baseweb="input"] > div, div[data-baseweb="base-input"], div[data-baseweb="base-input"] input { background-color: #ffffff !important; color: #000000 !important; -webkit-text-fill-color: #000000 !important; border-color: #90caf9 !important; }
+    div[data-baseweb="calendar"], div[data-baseweb="calendar"] *, div[data-baseweb="datepicker"] *, div[data-baseweb="popover"] *, div[role="dialog"] *, div[role="dialog"] { background-color: #ffffff !important; color: #000000 !important; -webkit-text-fill-color: #000000 !important; }
     [data-testid="stDateInput"] svg, div[data-baseweb="datepicker"] svg { fill: #1976d2 !important; color: #1976d2 !important; }
-    .stButton > button, .stButton > button p, .stButton > button span, .stButton > button div,
-    .stDownloadButton > button, .stDownloadButton > button p,
-    .stDownloadButton > button span, .stDownloadButton > button div { color: #ffffff !important; }
+
+    .stButton > button, .stButton > button p, .stButton > button span, .stButton > button div, .stDownloadButton > button, .stDownloadButton > button p, .stDownloadButton > button span, .stDownloadButton > button div { color: #ffffff !important; }
 
     [data-testid="stToolbar"] { display: none !important; }
     [data-testid="stDecoration"] { display: none !important; }
@@ -236,36 +151,19 @@ st.markdown("""
 
     .stApp .element-container { margin-bottom: 0.35rem !important; }
     .stApp [data-testid="stVerticalBlock"] > div { gap: 0.35rem !important; }
-    .stApp label, .stApp [data-testid="stWidgetLabel"] label, .stApp [data-testid="stWidgetLabel"] p {
-        font-size: 13px !important; font-weight: 600 !important; margin-bottom: 2px !important;
-    }
-    .stTextInput > div > div > input, .stNumberInput > div > div > input,
-    .stDateInput > div > div > input, .stSelectbox > div > div > div,
-    div[data-baseweb="input"] input, div[data-baseweb="select"] > div {
-        padding: 4px 8px !important; min-height: 34px !important; font-size: 14px !important;
-    }
+    .stApp label, .stApp [data-testid="stWidgetLabel"] label, .stApp [data-testid="stWidgetLabel"] p { font-size: 13px !important; font-weight: 600 !important; margin-bottom: 2px !important; }
+    .stTextInput > div > div > input, .stNumberInput > div > div > input, .stDateInput > div > div > input, .stSelectbox > div > div > div, div[data-baseweb="input"] input, div[data-baseweb="select"] > div { padding: 4px 8px !important; min-height: 34px !important; font-size: 14px !important; }
     .stButton > button { padding: 4px 10px !important; min-height: 36px !important; font-size: 14px !important; }
     .stApp hr { margin: 6px 0 !important; }
     .stApp h3 { margin-top: 6px !important; margin-bottom: 4px !important; font-size: 18px !important; }
-    .stTextInput > div > div > input, .stNumberInput > div > div > input,
-    .stSelectbox > div > div > div, .stSelectbox > div > div,
-    div[data-baseweb="select"] > div, div[data-baseweb="input"] input {
-        background-color: #ffffff !important; color: #000000 !important;
-        -webkit-text-fill-color: #000000 !important;
-        border: 2px solid #90caf9 !important; border-radius: 8px !important;
-    }
+
+    .stTextInput > div > div > input, .stNumberInput > div > div > input, .stSelectbox > div > div > div, .stSelectbox > div > div, div[data-baseweb="select"] > div, div[data-baseweb="input"] input { background-color: #ffffff !important; color: #000000 !important; -webkit-text-fill-color: #000000 !important; border: 2px solid #90caf9 !important; border-radius: 8px !important; }
     div[data-baseweb="select"] * { color: #000000 !important; }
     ul[role="listbox"] li, div[role="option"] { color: #000000 !important; background-color: #ffffff !important; }
     input[type="password"] { background-color: #ffffff !important; color: #000000 !important; -webkit-text-fill-color: #000000 !important; }
 
-    .stButton > button {
-        background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%) !important;
-        border: none !important; font-weight: bold !important; border-radius: 8px !important;
-    }
-    .stDownloadButton > button {
-        background: linear-gradient(135deg, #0288d1 0%, #0277bd 100%) !important;
-        color: #ffffff !important; font-weight: bold !important; border-radius: 8px !important;
-    }
+    .stButton > button { background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%) !important; border: none !important; font-weight: bold !important; border-radius: 8px !important; }
+    .stDownloadButton > button { background: linear-gradient(135deg, #0288d1 0%, #0277bd 100%) !important; color: #ffffff !important; font-weight: bold !important; border-radius: 8px !important; }
     .stDataFrame, .stDataFrame * { color: #000000 !important; }
     .stDataFrame { background-color: #ffffff !important; border-radius: 10px !important; }
     label[data-baseweb="checkbox"] * { color: #000000 !important; }
@@ -277,10 +175,7 @@ st.markdown("""
     .stInfo, .stInfo * { color: #0d47a1 !important; }
     [data-testid="stCaptionContainer"] * { color: #555555 !important; }
 
-    .auto-dl-hidden div[data-testid="stDownloadButton"] {
-        position: absolute !important; left: -9999px !important; top: -9999px !important;
-        opacity: 0 !important; height: 0 !important;
-    }
+    .auto-dl-hidden div[data-testid="stDownloadButton"] { position: absolute !important; left: -9999px !important; top: -9999px !important; opacity: 0 !important; height: 0 !important; }
     .metric-card { background: #ffffff; border: 2px solid #90caf9; border-radius: 14px; padding: 22px; text-align: center; box-shadow: 0 3px 10px rgba(33,150,243,0.15); }
     .metric-card h3 { font-size: 13px !important; margin: 0 !important; font-weight: 700 !important; text-transform: uppercase; color: #0277bd !important; }
     .metric-card h1 { font-size: 30px !important; margin: 10px 0 0 0 !important; font-weight: 800 !important; color: #1976d2 !important; }
@@ -288,20 +183,11 @@ st.markdown("""
     .empty-box { background: #ffffff; border: 2px dashed #90caf9; border-radius: 12px; padding: 20px; text-align: center; font-size: 14px; color: #0277bd !important; }
     .hint-box { background: #e3f2fd; border-left: 4px solid #2196f3; padding: 6px 10px; border-radius: 6px; font-size: 12px; margin-top: 2px; color: #1976d2 !important; }
     .summary-box { background: #ffffff; border: 2px solid #2196f3; border-radius: 12px; padding: 12px 18px; margin-bottom: 12px; color: #000000 !important; }
-    .lf-simple-card {
-        background: #ffffff; border-left: 6px solid #2196f3; border-radius: 12px;
-        padding: 16px 22px; margin-bottom: 12px;
-        box-shadow: 0 3px 10px rgba(33,150,243,0.15);
-        display: flex; align-items: center; justify-content: space-between;
-    }
+    .lf-simple-card { background: #ffffff; border-left: 6px solid #2196f3; border-radius: 12px; padding: 16px 22px; margin-bottom: 12px; box-shadow: 0 3px 10px rgba(33,150,243,0.15); display: flex; align-items: center; justify-content: space-between; }
     .lf-simple-card .lf-info { display: flex; flex-direction: column; gap: 4px; }
     .lf-simple-card .lf-line1 { font-size: 17px; font-weight: 700; color: #1976d2 !important; }
     .lf-simple-card .lf-line2 { font-size: 13px; color: #0277bd !important; }
-    .lf-simple-card .lf-boxes {
-        background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
-        font-weight: 800; font-size: 20px; padding: 10px 18px; border-radius: 10px;
-        text-align: center; min-width: 90px; color: #ffffff !important;
-    }
+    .lf-simple-card .lf-boxes { background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); font-weight: 800; font-size: 20px; padding: 10px 18px; border-radius: 10px; text-align: center; min-width: 90px; color: #ffffff !important; }
     .lf-simple-card .lf-boxes small { display: block; font-size: 10px; font-weight: 500; opacity: 0.9; }
     .lf-simple-card.dsr { border-left-color: #e65100; }
     .lf-simple-card.dsr .lf-boxes { background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); }
@@ -341,28 +227,13 @@ st.markdown("""
     .stAlert { border-radius: 10px !important; }
     hr { border-color: #90caf9 !important; opacity: 0.6 !important; }
 
-    .bk-product-card {
-        background: #ffffff; border: 1.5px solid #90caf9; border-radius: 10px;
-        padding: 8px 12px; margin-bottom: 6px;
-        display: flex; align-items: center; justify-content: space-between;
-        transition: all 0.15s ease;
-    }
+    .bk-product-card { background: #ffffff; border: 1.5px solid #90caf9; border-radius: 10px; padding: 8px 12px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; transition: all 0.15s ease; }
     .bk-product-card:hover { border-color: #2196f3; box-shadow: 0 2px 8px rgba(33,150,243,0.15); transform: translateY(-2px); }
     .bk-product-card .bk-name { font-size: 13.5px; font-weight: 700; color: #1976d2; }
     .bk-product-card .bk-code { font-size: 11px; color: #666; }
-    .bk-product-card .bk-tp {
-        background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
-        color: #fff !important; font-weight: 800; font-size: 13px;
-        padding: 4px 12px; border-radius: 6px;
-    }
+    .bk-product-card .bk-tp { background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%); color: #fff !important; font-weight: 800; font-size: 13px; padding: 4px 12px; border-radius: 6px; }
 
-    section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, rgba(241,248,233,0.95) 0%, rgba(232,245,233,0.95) 50%, rgba(220,237,200,0.95) 100%) !important;
-        border-right: 2px solid #a5d6a7 !important;
-        box-shadow: 4px 0 20px rgba(76,175,80,0.12) !important;
-        backdrop-filter: blur(10px) !important;
-        z-index: 10 !important;
-    }
+    section[data-testid="stSidebar"] { background: linear-gradient(180deg, rgba(241,248,233,0.95) 0%, rgba(232,245,233,0.95) 50%, rgba(220,237,200,0.95) 100%) !important; border-right: 2px solid #a5d6a7 !important; box-shadow: 4px 0 20px rgba(76,175,80,0.12) !important; backdrop-filter: blur(10px) !important; z-index: 10 !important; }
     section[data-testid="stSidebar"] > div:first-child { padding-top: 0 !important; }
     section[data-testid="stSidebar"] .block-container { padding: 0 !important; }
     section[data-testid="stSidebar"] ::-webkit-scrollbar { width: 6px; }
@@ -405,26 +276,9 @@ st.markdown("""
     .sb-stat-card.blue .sb-stat-value { color: #1976d2 !important; }
     .sb-date { text-align: center; padding: 10px 14px 6px; font-size: 10px; color: #558b2f !important; letter-spacing: 1px; font-weight: 800; text-transform: uppercase; }
 
-    section[data-testid="stSidebar"] .stButton > button {
-        background: linear-gradient(135deg, #ffffff 0%, #f1f8e9 100%) !important;
-        border: 1.5px solid rgba(239,68,68,0.35) !important;
-        color: #c62828 !important;
-        font-weight: 800 !important;
-        border-radius: 10px !important;
-        margin: 0 14px 16px !important;
-        width: calc(100% - 28px) !important;
-        box-shadow: 0 2px 6px rgba(239,68,68,0.10);
-    }
-    section[data-testid="stSidebar"] .stButton > button:hover {
-        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
-        border-color: #ef4444 !important;
-        color: #ffffff !important;
-        box-shadow: 0 6px 14px rgba(239,68,68,0.4) !important;
-        transform: translateY(-2px) !important;
-    }
-    section[data-testid="stSidebar"] .stButton > button p,
-    section[data-testid="stSidebar"] .stButton > button span,
-    section[data-testid="stSidebar"] .stButton > button div { color: inherit !important; }
+    section[data-testid="stSidebar"] .stButton > button { background: linear-gradient(135deg, #ffffff 0%, #f1f8e9 100%) !important; border: 1.5px solid rgba(239,68,68,0.35) !important; color: #c62828 !important; font-weight: 800 !important; border-radius: 10px !important; margin: 0 14px 16px !important; width: calc(100% - 28px) !important; box-shadow: 0 2px 6px rgba(239,68,68,0.10); }
+    section[data-testid="stSidebar"] .stButton > button:hover { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; border-color: #ef4444 !important; color: #ffffff !important; box-shadow: 0 6px 14px rgba(239,68,68,0.4) !important; transform: translateY(-2px) !important; }
+    section[data-testid="stSidebar"] .stButton > button p, section[data-testid="stSidebar"] .stButton > button span, section[data-testid="stSidebar"] .stButton > button div { color: inherit !important; }
 
     .dash-hero::before { content: ''; position: absolute; top: -50%; right: -10%; width: 420px; height: 420px; background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%); border-radius: 50%; }
     .dash-hero-content { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
@@ -686,8 +540,13 @@ def load_database_for(username):
                 if "next_bill_no" not in data: data["next_bill_no"] = 1
                 if "next_credit_id" not in data:
                     data["next_credit_id"] = max([c.get("id", 0) for c in data.get("credit_bills", [])] + [0]) + 1
-                if "wholesaler_rule_enabled" not in data: data["wholesaler_rule_enabled"] = True
-                if "wholesaler_discount_pct" not in data: data["wholesaler_discount_pct"] = 6.0
+                # 🆕 WS1, WS2, WS3 Wholesaler Packages
+                if "wholesaler_packages" not in data or not data["wholesaler_packages"]:
+                    data["wholesaler_packages"] = [
+                        {"id": "ws1", "name": "WS1", "discount_pct": 3.0},
+                        {"id": "ws2", "name": "WS2", "discount_pct": 5.0},
+                        {"id": "ws3", "name": "WS3", "discount_pct": 7.0},
+                    ]
                 return data
         except Exception: pass
     return default_blank_db()
@@ -742,46 +601,42 @@ for p in db["discount_packages"]:
     if "tier3_pct" not in p: p["tier3_pct"] = 0.0
 if "next_credit_id" not in db:
     db["next_credit_id"] = max([c.get("id", 0) for c in db.get("credit_bills", [])] + [0]) + 1
-if "wholesaler_rule_enabled" not in db: db["wholesaler_rule_enabled"] = True
-if "wholesaler_discount_pct" not in db: db["wholesaler_discount_pct"] = 6.0
+# 🆕 WS Packages
+if "wholesaler_packages" not in db or not db["wholesaler_packages"]:
+    db["wholesaler_packages"] = [
+        {"id": "ws1", "name": "WS1", "discount_pct": 3.0},
+        {"id": "ws2", "name": "WS2", "discount_pct": 5.0},
+        {"id": "ws3", "name": "WS3", "discount_pct": 7.0},
+    ]
 
 # ============================================================
 # HELPERS
 # ============================================================
 def is_wholesaler(shop_name):
     if not shop_name: return False
-    s = str(shop_name).lower()
+    s = str(shop_name).lower().strip()
+    # Check WS1, WS2, WS3 at the end or anywhere
+    for token in ["ws1", "ws2", "ws3"]:
+        if s.endswith(token) or f" {token}" in s:
+            return True
+    # Check whole/wholesaler keywords
     s_compact = "".join(ch for ch in s if ch.isalnum())
     for token in ["wholeseller", "wholesaler", "wholseller", "wholsaler",
                   "whole seller", "whole saler", "holeseller", "holesaler"]:
         if token.replace(" ", "") in s_compact: return True
     return False
 
-def wholesaler_rule_active(): return bool(db.get("wholesaler_rule_enabled", True))
-def get_wholesaler_pct():
-    try: return float(db.get("wholesaler_discount_pct", 6.0))
-    except Exception: return 6.0
-
-def get_all_products():
-    custom = db.get("custom_products", [])
-    merged = list(PRODUCTS)
-    seen_codes = {str(p["code"]) for p in merged}
-    for cp in custom:
-        code = str(cp.get("code", "")).strip()
-        name = str(cp.get("name", "")).strip()
-        if not code or not name: continue
-        if code in seen_codes: continue
-        try: price = float(cp.get("price", 0))
-        except Exception: price = 0.0
-        merged.append({"code": code, "name": name, "price": price}); seen_codes.add(code)
-    return sorted(merged, key=lambda x: x["name"])
-
-def get_price(code, base_price):
-    custom = db.get("product_prices", {})
-    if str(code) in custom:
-        try: return float(custom[str(code)])
-        except Exception: return float(base_price)
-    return float(base_price)
+def get_wholesaler_package_from_shop(shop_name):
+    """Nikalta hai ke shop name me WS1, WS2 ya WS3 kis package ka hai."""
+    if not shop_name: return None
+    s = str(shop_name).lower().strip()
+    packages = db.get("wholesaler_packages", [])
+    for token in ["ws1", "ws2", "ws3"]:
+        if s.endswith(token) or f" {token}" in s:
+            for p in packages:
+                if p["id"].lower() == token:
+                    return p
+    return None
 
 def get_all_active_packages(): return [p for p in db.get("discount_packages", []) if p.get("active")]
 
@@ -805,9 +660,16 @@ def get_package_discount_pct(bill_total):
     return 0.0, (active_pkgs[0].get("name") if active_pkgs else None), None
 
 def get_effective_discount_pct(shop_name, bill_total):
-    if wholesaler_rule_active() and is_wholesaler(shop_name):
-        pct = get_wholesaler_pct()
-        return pct, f"Wholesaler ({pct}%)", "Wholesaler Rule"
+    # Pehle check karo ke WS1, WS2 ya WS3 package hai
+    ws_pkg = get_wholesaler_package_from_shop(shop_name)
+    if ws_pkg:
+        pct = float(ws_pkg.get("discount_pct", 0))
+        return pct, f"{ws_pkg['name']} ({pct}%)", "WS Package"
+    
+    # Agar normal wholesaler keyword hai
+    if is_wholesaler(shop_name):
+        return 0.0, "Wholesaler Keyword", "No Package Matched"
+        
     return get_package_discount_pct(bill_total)
 
 def get_dsr_credit_info(dsr):
@@ -1058,8 +920,8 @@ def render_booker_new_bill():
         st.session_state["bk_qty"] = 0
         st.session_state["bk_reset_item_form"] = False
 
-    if wholesaler_rule_active():
-        st.markdown(f"<div class='hint-box' style='background:#f3e5f5;border-left-color:#8e24aa;color:#6a1b9a !important;'>🏢 Wholesaler rule ON — 'whole seller' naam wali shop pe {get_wholesaler_pct()}% milega</div>", unsafe_allow_html=True)
+    if is_wholesaler(st.session_state.get("bk_current_shop", "")):
+        st.markdown(f"<div class='hint-box' style='background:#f3e5f5;border-left-color:#8e24aa;color:#6a1b9a !important;'>🏢 Wholesaler detected! WS1, WS2, WS3 discount lagega.</div>", unsafe_allow_html=True)
 
     col_a, col_b = st.columns([3, 1])
     with col_a:
@@ -1079,8 +941,12 @@ def render_booker_new_bill():
         st.warning("⚠️ Pehle shop ka naam likho, phir item add karo")
         return
 
-    if wholesaler_rule_active() and is_wholesaler(shop):
-        st.markdown(f"<div class='hint-box' style='background:#f3e5f5;border-left-color:#8e24aa;color:#6a1b9a !important;font-weight:700;'>🏢 Wholesaler shop detected — {get_wholesaler_pct()}% discount lagega</div>", unsafe_allow_html=True)
+    if is_wholesaler(shop):
+        ws_pkg = get_wholesaler_package_from_shop(shop)
+        if ws_pkg:
+            st.markdown(f"<div class='hint-box' style='background:#f3e5f5;border-left-color:#8e24aa;color:#6a1b9a !important;font-weight:700;'>🏢 Wholesaler package detected: {ws_pkg['name']} — {ws_pkg['discount_pct']}% discount lagega</div>", unsafe_allow_html=True)
+        else:
+            st.markdown(f"<div class='hint-box' style='background:#f3e5f5;border-left-color:#8e24aa;color:#6a1b9a !important;font-weight:700;'>🏢 Wholesaler detected, lekin koi WS1, WS2, WS3 package match nahi hua.</div>", unsafe_allow_html=True)
 
     st.markdown("---")
     st.markdown("### ➕ Add Item")
@@ -1599,23 +1465,31 @@ def render_admin_booker_bills():
     """, unsafe_allow_html=True)
 
 # ============================================================
-# ADMIN DISCOUNT
+# ADMIN DISCOUNT (UPDATED - WS1, WS2, WS3)
 # ============================================================
 def render_admin_discount():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>🎁 Discount Settings</h1>", unsafe_allow_html=True)
     st.markdown("---")
-    wh_on = bool(db.get("wholesaler_rule_enabled", True))
-    wh_pct = get_wholesaler_pct()
-    st.markdown("### 🏢 Wholesaler Special Rule")
-    wc1, wc2 = st.columns([1, 1])
-    with wc1:
-        new_on = st.checkbox("🏢 Rule Enable Karo", value=wh_on, key="wholesaler_toggle")
-        if new_on != wh_on: db["wholesaler_rule_enabled"] = bool(new_on); save_database(db); st.rerun()
-    with wc2:
-        new_pct = st.number_input("Discount %:", value=float(wh_pct), min_value=0.0, max_value=100.0, step=0.5, key="wholesaler_pct_input")
-        if abs(float(new_pct) - float(wh_pct)) > 0.001: db["wholesaler_discount_pct"] = float(new_pct); save_database(db); st.rerun()
-
+    
+    st.markdown("### 🏢 Wholesaler Packages (WS1, WS2, WS3)")
+    st.caption("Shop name ke aage WS1, WS2 ya WS3 likhne se us package ka discount automatically apply ho jayega.")
+    
+    for pkg in db.get("wholesaler_packages", []):
+        with st.expander(f"🏢 {pkg['name']} — Current: {pkg['discount_pct']}%"):
+            c1, c2 = st.columns([3, 1])
+            with c1:
+                np = st.number_input(f"{pkg['name']} Discount %:", value=float(pkg['discount_pct']), min_value=0.0, max_value=100.0, step=0.5, key=f"ws_pct_{pkg['id']}")
+            with c2:
+                st.markdown("<br>", unsafe_allow_html=True)
+                if st.button("💾 Save", key=f"ws_save_{pkg['id']}", type="primary"):
+                    for pp in db["wholesaler_packages"]:
+                        if pp["id"] == pkg["id"]:
+                            pp["discount_pct"] = float(np)
+                            break
+                    save_database(db); st.session_state["success_msg"] = f"✅ {pkg['name']} saved"; st.rerun()
+    
     st.markdown("---")
+    st.markdown("### 🎁 Regular Discount Packages")
     pkgs = db.get("discount_packages", [])
     for i, pkg in enumerate(pkgs):
         pid = pkg.get("id", i+1)
@@ -2304,7 +2178,7 @@ def render_admin_credit():
                 save_database(db); st.session_state["success_msg"] = "🗑"; st.rerun()
 
 # ============================================================
-# ADMIN LOAD FORM
+# ADMIN LOAD FORM (UPDATED - PURANI DATES ALLOWED)
 # ============================================================
 def render_admin_load_form():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📦 Load Forms</h1>", unsafe_allow_html=True)
@@ -2318,6 +2192,11 @@ def render_admin_load_form():
 
     today = date.today()
 
+    # 🆕 CHECKBOX: Purani dates ki ijazat
+    allow_old = st.checkbox("☑️ Purani dates ki Load Form bhi dikhao (Transfer allowed)", 
+                            value=False, key="lf_allow_old_dates")
+    
+    st.markdown("---")
     c1, c2, c3 = st.columns(3)
     with c1:
         filter_mode = st.selectbox("Filter Mode:",
@@ -2331,6 +2210,12 @@ def render_admin_load_form():
     def in_range(dstr):
         d = parse_date(dstr)
         if d is None: return False
+        
+        # Agar checkbox tick hai to koi restriction nahi (All)
+        if allow_old:
+            return True
+            
+        # Agar tick nahi hai to pehle jaisa hi kaam kare
         if filter_mode == "📅 Aaj":             return d == today
         elif filter_mode == "🗓️ Specific":       return d == from_date
         elif filter_mode == "📆 Custom Range":   return from_date <= d <= to_date
@@ -2373,7 +2258,7 @@ def render_admin_load_form():
             """, unsafe_allow_html=True)
 
             if not bk_lfs:
-                st.info("Is date filter mein is booker ka koi load form nahi.")
+                st.info("Is filter mein is booker ka koi load form nahi.")
 
             for lf in sorted(bk_lfs, key=lambda x: x.get("created_at", ""), reverse=True):
                 lf_id = lf.get("id")
@@ -2503,7 +2388,7 @@ def render_admin_load_form():
 
     st.markdown(f"""
     <div class='bb-summary'>
-        <div class='bb-stat'><div class='bb-stat-label'>Filter</div><div class='bb-stat-val' style='font-size:14px;'>{filter_mode.replace('📅 ','').replace('📆 ','').replace('🗓️ ','').replace('📋 ','')}</div></div>
+        <div class='bb-stat'><div class='bb-stat-label'>Filter</div><div class='bb-stat-val' style='font-size:14px;'>{"ALL DATES" if allow_old else filter_mode.replace('📅 ','').replace('📆 ','').replace('🗓️ ','').replace('📋 ','')}</div></div>
         <div class='bb-stat'><div class='bb-stat-label'>Load Forms</div><div class='bb-stat-val'>{grand_lf}</div></div>
         <div class='bb-stat'><div class='bb-stat-label'>Total Boxes</div><div class='bb-stat-val'>{grand_boxes}</div></div>
         <div class='bb-stat'><div class='bb-stat-label'>Returns</div><div class='bb-stat-val red'>-{grand_ret}</div></div>
@@ -2634,11 +2519,6 @@ def refresh_callback():
 # 🆕 BILL EXCEL BUILDER — ALL CAPS + BOLD + AUTO WIDTH
 # ============================================================
 def _build_bill_excel(shop, bills, pkg_pct, pkg_name, tier_label, booker="", date_str=""):
-    """
-    Bills ki Excel banata hai.
-    - Saari cheezein CAPITAL LETTERS me + BOLD (using .upper() and bold format)
-    - Column width auto — Product naam bara ho ya chota, aadha nahi katega
-    """
     if not booker:
         try:
             booker = bills[0].get("Order Booker", "") if bills else ""
