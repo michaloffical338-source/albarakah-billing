@@ -13,6 +13,7 @@
 # + BOOKER DRAFT AUTO SAVE (App band ho to bhi wapis aye)
 # + BOOKER BILLS LIST WITH DATE FILTER (Delete / Resend)
 # + BOOKER DAILY LOAD FORM (1 date = 1 load form)
+# + SALESMAN SELECTION ON LOAD FORM & DSR
 # ============================================================
 
 import os
@@ -2332,11 +2333,11 @@ def render_admin_credit():
                 save_database(db); st.session_state["success_msg"] = "🗑"; st.rerun()
 
 # ============================================================
-# ADMIN LOAD FORM
+# ADMIN LOAD FORM (UPDATED - SALESMAN DROPDOWN & PURANI DATES)
 # ============================================================
 def render_admin_load_form():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📦 Load Forms</h1>", unsafe_allow_html=True)
-    st.caption("Booker-wise load forms · Item-wise Return add karo · Phir Transfer to DSR karo")
+    st.caption("Booker-wise load forms · Salesman assign karo · Item-wise Return add karo · Phir Transfer to DSR karo")
     st.markdown("---")
 
     lfs = db.get("load_forms", [])
@@ -2430,6 +2431,27 @@ def render_admin_load_form():
                     <div class='lf-line2'>📅 {dt} · 🕐 {lf.get('time','')} · 📦 {len(items)} products · ↩️ Returns: {lf_ret_total} · 🟢 Net: {net_lf}</div></div>
                     <div class='lf-boxes'>{tb}<small>BOXES</small></div>
                 </div>""", unsafe_allow_html=True)
+
+                # 🆕 SALESMAN DROPDOWN (Added here)
+                salesmen_list = db.get("salesmen", [])
+                if salesmen_list:
+                    # Load existing salesman or default
+                    current_salesman = lf.get("salesman", "")
+                    default_idx = 0
+                    if current_salesman in salesmen_list:
+                        default_idx = salesmen_list.index(current_salesman) + 1
+                    
+                    sel_salesman = st.selectbox(
+                        "👨‍💼 Assign Salesman to this Load Form:", 
+                        ["-- Select --"] + salesmen_list, 
+                        index=default_idx,
+                        key=f"sm_select_{lf_id}"
+                    )
+                    if sel_salesman != "-- Select --" and sel_salesman != current_salesman:
+                        lf["salesman"] = sel_salesman
+                        save_database(db)
+                        st.session_state["success_msg"] = f"✅ Salesman {sel_salesman} assigned to LF #{lf_id}"
+                        st.rerun()
 
                 c1, c2, c3, c4 = st.columns(4)
                 with c1:
@@ -2551,7 +2573,7 @@ def render_admin_load_form():
     """, unsafe_allow_html=True)
 
 # ============================================================
-# ADMIN DSR
+# ADMIN DSR (UPDATED - SALESMAN NAME SHOW)
 # ============================================================
 def render_admin_dsr():
     st.markdown(f"<h1 style='color:#1976d2 !important;'>📋 DSR</h1>", unsafe_allow_html=True)
@@ -2588,13 +2610,18 @@ def render_admin_dsr():
 
     for i, d in enumerate(sorted(filtered_dsrs, key=lambda x: x.get("created_at",""), reverse=True)):
         did = d.get("id", i); bk = d.get("booker", "?"); dt = d.get("date", "")
+        sm = d.get("salesman", "")
         tb = d.get("total_boxes", 0); tot = float(d.get("total_amount", 0))
         rtb = int(d.get("total_return_boxes", 0))
         ct, _, _ = get_dsr_credit_info(d)
         fin = float(d.get("amount_to_collect", 0)) - ct
+        
+        # 🆕 Added Salesman Name in DSR view
+        sm_txt = f" · 👨‍💼 {sm}" if sm else ""
+        
         st.markdown(f"""<div class='lf-simple-card dsr'>
             <div class='lf-info'><div class='lf-line1'>📋 DSR #{did} — {bk}</div>
-            <div class='lf-line2'>📅 {dt} · 💰 Rs {tot:,.0f} · ↩️ {rtb} ret · 💳 Rs {ct:,.0f} · <b style="color:#c62828;">FINAL: Rs {fin:,.0f}</b></div></div>
+            <div class='lf-line2'>📅 {dt}{sm_txt} · 💰 Rs {tot:,.0f} · ↩️ {rtb} ret · 💳 Rs {ct:,.0f} · <b style="color:#c62828;">FINAL: Rs {fin:,.0f}</b></div></div>
             <div class='lf-boxes'>{tb}<small>BOXES</small></div>
         </div>""", unsafe_allow_html=True)
         c1, c2 = st.columns(2)
@@ -2944,6 +2971,7 @@ def transfer_load_form_to_dsr(lf_id):
     lf = next((x for x in db.get("load_forms", []) if x.get("id") == lf_id), None)
     if not lf or lf.get("transferred_to_dsr"): st.session_state["error_msg"] = "❌"; return
     bk = lf.get("booker",""); items = lf.get("items", []); allp = get_all_products()
+    sm = lf.get("salesman", "") # 🆕 Get Salesman
     returns_map = get_lf_return_items(lf_id)
 
     dsr_items = []; tb = 0; ta = 0.0; ret_tb = 0; ret_ta = 0.0
@@ -2979,7 +3007,9 @@ def transfer_load_form_to_dsr(lf_id):
         td += std
     net_amount = ta - ret_ta
     nid = max([x.get("id",0) for x in db.get("dsr_forms", [])] + [0]) + 1
-    db.setdefault("dsr_forms", []).append({"id": nid, "source_load_form_id": lf_id, "booker": bk,
+    
+    # 🆕 Add salesman to DSR Record
+    db.setdefault("dsr_forms", []).append({"id": nid, "source_load_form_id": lf_id, "booker": bk, "salesman": sm,
         "date": lf.get("date",""), "time": lf.get("time",""),
         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "items": dsr_items, "total_boxes": tb, "total_amount": ta,
@@ -3004,12 +3034,17 @@ def export_dsr_excel(dsr):
     hi = wb.add_format({"bold":True, "font_size":12, "bg_color":"#E8F5E9", "align":"center", "border":2})
     for col, w in [("A",10),("B",40),("C",10),("D",12),("E",14),("F",10),("G",14)]: ws.set_column(f"{col}:{col}", w)
     ws.merge_range("A1:G1", f"{COMPANY_NAME} — DSR #{dsr['id']}", title)
+    
+    # 🆕 Added Salesman to Excel
     ws.write("A3","Booker",header); ws.write("B3", dsr.get("booker",""), cl)
-    ws.write("C3","Date",header); ws.write("D3", dsr.get("date",""), cc)
-    ws.write("E3","Time",header); ws.write("F3", dsr.get("time",""), cc)
-    ws.write("A5","Code",header); ws.write("B5","Product",header); ws.write("C5","Boxes",header)
-    ws.write("D5","TP/Box",header); ws.write("E5","Total",header); ws.write("F5","Ret Bx",header); ws.write("G5","Ret Amt",header)
+    ws.write("C3","Salesman",header); ws.write("D3", dsr.get("salesman","") or "-", cl)
+    ws.write("E3","Date",header); ws.write("F3", dsr.get("date",""), cc)
+    ws.write("G3","Time",header); 
+    
     row = 5
+    ws.write(row,0,"Code",header); ws.write(row,1,"Product",header); ws.write(row,2,"Boxes",header)
+    ws.write(row,3,"TP/Box",header); ws.write(row,4,"Total",header); ws.write(row,5,"Ret Bx",header); ws.write(row,6,"Ret Amt",header)
+    row += 1
     for it in dsr.get("items", []):
         ws.write(row,0,str(it.get("Code","")),cc); ws.write(row,1,it.get("Product",""),cl)
         ws.write(row,2,int(it.get("Boxes",0)),cc); ws.write(row,3,float(it.get("TP/Box",0)),cn)
