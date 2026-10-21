@@ -111,110 +111,153 @@ st.markdown("""
         animation: waveMotion 15s ease infinite;
         z-index: -1;
     }
-    
-    /* PROFESSIONAL LIGHT GOLDEN ANIMATED CARD */
-    @keyframes goldenGlow {
-        0% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.2), inset 0 0 15px rgba(255, 255, 255, 0.5); }
-        50% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.5), inset 0 0 25px rgba(255, 255, 255, 0.8); }
-        100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.2), inset 0 0 15px rgba(255, 255, 255, 0.5); }
-    }
+
+    /* ========================================================
+       PROPER LOGIN CARD (middle column itself becomes the card)
+       - ::before  = light golden glow coming from behind
+       - ::after   = the card surface (cream / light golden)
+       ======================================================== */
     @keyframes floatCard { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
-    @keyframes shimmer {
-        0% { background-position: -1000px 0; }
-        100% { background-position: 1000px 0; }
+    @keyframes goldPulse {
+        0%   { opacity: 0.70; transform: scale(1); }
+        50%  { opacity: 1;    transform: scale(1.07); }
+        100% { opacity: 0.70; transform: scale(1); }
+    }
+    @keyframes cardShine {
+        0%   { background-position: -300% 0; }
+        100% { background-position: 300% 0; }
     }
 
-    .glass-login-card {
-        background: rgba(255, 252, 240, 0.85); /* Light golden/cream tint */
-        backdrop-filter: blur(25px);
-        -webkit-backdrop-filter: blur(25px);
-        border: 1px solid rgba(255, 215, 0, 0.4);
-        border-radius: 24px;
-        padding: 40px 30px; width: 100%; max-width: 480px;
-        animation: floatCard 6s ease-in-out infinite, goldenGlow 4s ease-in-out infinite;
-        z-index: 10;
-        margin: 0 auto;
-        position: relative;
-        overflow: hidden;
+    div[data-testid="stColumn"]:has(.login-card-marker),
+    div[data-testid="column"]:has(.login-card-marker) {
+        position: relative !important;
+        padding: 38px 34px 26px 34px !important;
+        margin-top: 4vh !important;
+        background: transparent !important;
+        overflow: visible !important;
+        animation: floatCard 6s ease-in-out infinite;
+        isolation: isolate;
     }
-    /* Shimmer effect on card */
-    .glass-login-card::before {
+    /* soft golden light behind the card */
+    div[data-testid="stColumn"]:has(.login-card-marker)::before,
+    div[data-testid="column"]:has(.login-card-marker)::before {
         content: '';
         position: absolute;
-        top: 0; left: -100%;
-        width: 50%; height: 100%;
-        background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
-        transform: skewX(-25deg);
-        animation: shimmer 6s infinite;
-        z-index: 1;
+        inset: -55px;
+        border-radius: 60px;
+        background:
+            radial-gradient(circle at 50% 45%, rgba(255, 223, 100, 0.85) 0%, rgba(255, 200, 60, 0.55) 35%, rgba(255, 190, 40, 0.0) 70%);
+        filter: blur(38px);
+        z-index: -2;
+        animation: goldPulse 4s ease-in-out infinite;
+        pointer-events: none;
     }
-    
-    /* UPDATED TEXT STYLING */
-    .login-title { 
-        text-align: center; 
-        font-size: 34px; 
-        font-weight: 800; 
-        background: linear-gradient(135deg, #b8860b 0%, #daa520 50%, #ffd700 100%);
+    /* the actual card surface */
+    div[data-testid="stColumn"]:has(.login-card-marker)::after,
+    div[data-testid="column"]:has(.login-card-marker)::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 26px;
+        background:
+            linear-gradient(115deg, rgba(255,255,255,0) 35%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0) 65%),
+            linear-gradient(160deg, #fffdf3 0%, #fff7d6 55%, #ffefb0 100%);
+        background-size: 300% 100%, 100% 100%;
+        animation: cardShine 7s linear infinite;
+        border: 1.5px solid rgba(218, 165, 32, 0.55);
+        box-shadow:
+            0 25px 60px rgba(0, 0, 0, 0.35),
+            0 0 0 5px rgba(255, 215, 0, 0.12),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9),
+            inset 0 -12px 30px rgba(218, 165, 32, 0.12);
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    .login-title {
+        text-align: center;
+        font-size: 36px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #a8740a 0%, #daa520 50%, #f5c518 100%);
         -webkit-background-clip: text;
+        background-clip: text;
         -webkit-text-fill-color: transparent;
-        letter-spacing: 2px; 
-        margin-bottom: 5px;
-        text-shadow: 0px 2px 4px rgba(218, 165, 32, 0.3);
-        position: relative; z-index: 2;
+        letter-spacing: 2px;
+        margin: 0 0 4px 0;
+        line-height: 1.15;
     }
-    .login-subtitle { 
-        text-align: center; 
-        font-size: 12px; 
-        color: #8b6508; 
-        letter-spacing: 4px; 
-        font-weight: 700; 
-        margin-bottom: 30px; 
+    .login-subtitle {
+        text-align: center;
+        font-size: 12px;
+        color: #8b6508;
+        letter-spacing: 4px;
+        font-weight: 700;
+        margin-bottom: 22px;
         text-transform: uppercase;
-        position: relative; z-index: 2;
+    }
+    .login-divider {
+        height: 2px; border-radius: 2px; margin: 0 auto 18px auto; width: 70px;
+        background: linear-gradient(90deg, transparent, #daa520, transparent);
     }
 
-    /* STYLING STREAMLIT TABS FOR LOGIN (GOLDEN THEME) */
-    .stTabs [data-baseweb="tab-list"] { 
-        gap: 8px; 
-        background-color: rgba(255, 255, 255, 0.5); 
-        padding: 6px; 
-        border-radius: 12px; 
-        margin-bottom: 20px; 
-        position: relative; 
-        z-index: 2; 
-        border: 1px solid rgba(218, 165, 32, 0.2); 
+    /* TABS INSIDE LOGIN CARD (GOLDEN THEME) */
+    div[data-testid="stColumn"]:has(.login-card-marker) .stTabs [data-baseweb="tab-list"],
+    div[data-testid="column"]:has(.login-card-marker) .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        background-color: rgba(255, 255, 255, 0.65);
+        padding: 6px;
+        border-radius: 12px;
+        margin-bottom: 18px;
+        border: 1px solid rgba(218, 165, 32, 0.3);
     }
-    .stTabs [data-baseweb="tab"] { 
-        border-radius: 8px; 
-        padding: 10px 15px; 
-        background-color: transparent; 
-        color: #8b6508 !important; 
-        font-weight: 700 !important; 
-        border: none; 
-        transition: all 0.3s ease; 
+    div[data-testid="stColumn"]:has(.login-card-marker) .stTabs [data-baseweb="tab"],
+    div[data-testid="column"]:has(.login-card-marker) .stTabs [data-baseweb="tab"] {
+        border-radius: 8px;
+        padding: 10px 15px;
+        background-color: transparent;
+        color: #8b6508 !important;
+        font-weight: 700 !important;
+        border: none;
+        transition: all 0.3s ease;
     }
-    .stTabs [aria-selected="true"] { 
-        background-color: #ffffff !important; 
-        color: #b8860b !important; 
-        box-shadow: 0 2px 8px rgba(218, 165, 32, 0.2) !important; 
+    div[data-testid="stColumn"]:has(.login-card-marker) .stTabs [aria-selected="true"],
+    div[data-testid="column"]:has(.login-card-marker) .stTabs [aria-selected="true"] {
+        background-color: #ffffff !important;
+        color: #b8860b !important;
+        box-shadow: 0 2px 8px rgba(218, 165, 32, 0.25) !important;
+    }
+    div[data-testid="stColumn"]:has(.login-card-marker) .stTabs [data-baseweb="tab-highlight"],
+    div[data-testid="column"]:has(.login-card-marker) .stTabs [data-baseweb="tab-highlight"] {
+        background-color: #daa520 !important;
     }
 
-    /* INPUT FIELDS INSIDE LOGIN CARD */
-    .stTextInput > div > div > input {
-        background-color: rgba(255, 255, 255, 0.9) !important;
-        border: 1.5px solid rgba(218, 165, 32, 0.4) !important;
+    /* INPUT FIELDS INSIDE LOGIN CARD (golden border) */
+    div[data-testid="stColumn"]:has(.login-card-marker) .stTextInput > div > div > input,
+    div[data-testid="column"]:has(.login-card-marker) .stTextInput > div > div > input,
+    div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="input"] input,
+    div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="input"] input {
+        background-color: rgba(255, 255, 255, 0.95) !important;
+        border: 1.5px solid rgba(218, 165, 32, 0.55) !important;
         border-radius: 10px !important;
         color: #333 !important;
         transition: all 0.3s ease !important;
-        position: relative; z-index: 2;
     }
-    .stTextInput > div > div > input:focus {
+    div[data-testid="stColumn"]:has(.login-card-marker) .stTextInput > div > div > input:focus,
+    div[data-testid="column"]:has(.login-card-marker) .stTextInput > div > div > input:focus {
         border-color: #daa520 !important;
-        box-shadow: 0 0 10px rgba(218, 165, 32, 0.3) !important;
+        box-shadow: 0 0 12px rgba(218, 165, 32, 0.45) !important;
     }
-    
+    div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="input"],
+    div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="input"],
+    div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="base-input"],
+    div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="base-input"] {
+        background-color: transparent !important;
+        border-color: transparent !important;
+    }
+
     /* LOGIN BUTTON INSIDE CARD */
-    .stButton > button {
+    div[data-testid="stColumn"]:has(.login-card-marker) .stButton > button,
+    div[data-testid="column"]:has(.login-card-marker) .stButton > button {
         background: linear-gradient(135deg, #daa520 0%, #b8860b 100%) !important;
         border: none !important;
         color: #ffffff !important;
@@ -222,9 +265,9 @@ st.markdown("""
         border-radius: 10px !important;
         transition: all 0.3s ease !important;
         box-shadow: 0 4px 15px rgba(218, 165, 32, 0.4) !important;
-        position: relative; z-index: 2;
     }
-    .stButton > button:hover {
+    div[data-testid="stColumn"]:has(.login-card-marker) .stButton > button:hover,
+    div[data-testid="column"]:has(.login-card-marker) .stButton > button:hover {
         transform: translateY(-2px) !important;
         box-shadow: 0 8px 25px rgba(218, 165, 32, 0.6) !important;
         background: linear-gradient(135deg, #ffd700 0%, #daa520 100%) !important;
@@ -283,6 +326,29 @@ st.markdown("""
     div[data-baseweb="select"] * { color: #000000 !important; }
     ul[role="listbox"] li, div[role="option"] { color: #000000 !important; background-color: #ffffff !important; }
     input[type="password"] { background-color: #ffffff !important; color: #000000 !important; -webkit-text-fill-color: #000000 !important; }
+
+    /* Re-apply golden input border inside the login card (must come AFTER the global input rule above) */
+    div[data-testid="stColumn"]:has(.login-card-marker) .stTextInput > div > div > input,
+    div[data-testid="column"]:has(.login-card-marker) .stTextInput > div > div > input,
+    div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="input"] input,
+    div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="input"] input {
+        border: 1.5px solid rgba(218, 165, 32, 0.6) !important;
+        border-radius: 10px !important;
+    }
+    div[data-testid="stColumn"]:has(.login-card-marker) .stTextInput > div > div > input:focus,
+    div[data-testid="column"]:has(.login-card-marker) .stTextInput > div > div > input:focus,
+    div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="input"] input:focus,
+    div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="input"] input:focus {
+        border-color: #daa520 !important;
+        box-shadow: 0 0 12px rgba(218, 165, 32, 0.45) !important;
+    }
+    div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="input"] > div,
+    div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="input"] > div,
+    div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="base-input"],
+    div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="base-input"] {
+        border-color: transparent !important;
+        background-color: transparent !important;
+    }
 
     .stDownloadButton > button { background: linear-gradient(135deg, #0288d1 0%, #0277bd 100%) !important; color: #ffffff !important; font-weight: bold !important; border-radius: 8px !important; }
     .stDataFrame, .stDataFrame * { color: #000000 !important; }
@@ -502,19 +568,20 @@ COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
 PRODUCTS = []
 
 # ============================================================
-# AUTH SCREEN (PREMIUM ANIMATED WAVES + GLASS)
+# AUTH SCREEN (PREMIUM ANIMATED WAVES + GOLDEN CARD)
 # ============================================================
 def render_auth_page():
     st.markdown('<div class="login-bg"></div>', unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 1.2, 1])
     with col2:
+        # The marker lets CSS turn this whole column into the login card
         st.markdown("""
-        <div class="glass-login-card">
-            <div class="login-title">AL-BARAKAH</div>
-            <div class="login-subtitle">ENTERPRISES 2026</div>
-        </div>
+        <div class="login-card-marker"></div>
+        <div class="login-title">AL-BARAKAH</div>
+        <div class="login-subtitle">ENTERPRISES 2026</div>
+        <div class="login-divider"></div>
         """, unsafe_allow_html=True)
-        
+
         tab1, tab2, tab3 = st.tabs(["🔐 Admin", "👤 Booker", "📝 Signup"])
 
         with tab1:
@@ -816,14 +883,14 @@ def render_booker_sidebar():
         st.markdown(f"""<div class="sb-brand"><div class="sb-brand-logo">👤</div><div class="sb-brand-name">BOOKER PANEL</div><div class="sb-brand-sub">AL-BARAKAH</div></div>""", unsafe_allow_html=True)
         st.markdown(f"""<div class="sb-user"><div class="sb-user-avatar">{avatar_letter}</div><div class="sb-user-info"><div class="sb-user-label">Booker</div><div class="sb-user-name">{bk_name}</div></div></div>""", unsafe_allow_html=True)
         st.markdown('<div class="sb-section-label">Menu</div>', unsafe_allow_html=True)
-        
+
         bk_page = st.radio("BK MENU", ["🧾 New Bill", "📋 My Bills History", "🛒 All Products", "📦 Load Form Status"], key="bk_page_selector", label_visibility="collapsed")
         st.session_state["bk_page"] = bk_page
         st.markdown(f'<div class="sb-date" style="text-align:center;padding:16px;font-size:11px;color:#94a3b8;font-weight:600;">📅 {datetime.now().strftime("%A, %d %b %Y")}</div>', unsafe_allow_html=True)
-        
+
         bill_count = st.session_state.get("bk_bills_created", 0); load_count = len(st.session_state.get("bk_load_draft", [])); total_boxes = sum(int(it.get("Boxes", 0)) for it in st.session_state.get("bk_load_draft", []))
         st.markdown(f"""<div class="sb-stats"><div class="sb-section-label" style="padding: 0 4px 8px;">Session</div><div class="sb-stats-grid"><div class="sb-stat-card"><div class="sb-stat-icon">🧾</div><div class="sb-stat-value">{bill_count}</div><div class="sb-stat-label">Bills</div></div><div class="sb-stat-card"><div class="sb-stat-icon">📦</div><div class="sb-stat-value">{total_boxes}</div><div class="sb-stat-label">Boxes</div></div><div class="sb-stat-card"><div class="sb-stat-icon">🎯</div><div class="sb-stat-value">{load_count}</div><div class="sb-stat-label">Products</div></div></div></div>""", unsafe_allow_html=True)
-        
+
         if st.button("🚪 Logout", key="btn_bk_logout", use_container_width=True):
             for k in ["logged_in_user", "display_name", "role", "booker_name", "booker_admin", "bk_bill_draft", "bk_load_draft", "bk_current_shop", "bk_bill_items", "bk_page", "database", "_db_user", "bk_reset_item_form", "bk_reset_shop_form"]:
                 st.session_state[k] = None if k not in ["bk_bill_draft", "bk_load_draft", "bk_bill_items"] else []
@@ -1335,7 +1402,7 @@ def render_admin_salaries(role_type):
                 c1, c2, c3 = st.columns([4, 1, 1])
                 with c1: st.markdown(f"📅 {t.get('date','')} · {t.get('type','')} · **Rs {t['amount']:,.0f}** · {t.get('status','').upper()}")
                 with c2:
-                    if t.get("status") == "pending" and st.button("✅ Paid", key=f"pd_{role_type}_{p_name}_{t['id']}"): 
+                    if t.get("status") == "pending" and st.button("✅ Paid", key=f"pd_{role_type}_{p_name}_{t['id']}"):
                         for tx in db[sal_key][p_name]["transactions"]:
                             if tx.get("id") == t["id"]: tx["status"] = "paid"; break
                         save_database(db); st.session_state["success_msg"] = "✅"; st.rerun()
@@ -1514,12 +1581,12 @@ def render_admin_credit():
         c1, c2 = st.columns(2)
         with c1:
             if not is_paid:
-                if st.button("✅ Mark Paid", key=f"pay_{cid}", type="primary"): 
+                if st.button("✅ Mark Paid", key=f"pay_{cid}", type="primary"):
                     for cc in db["credit_bills"]:
                         if cc.get("id") == cid: cc["status"]="paid"; cc["paid_at"]=datetime.now().strftime("%Y-%m-%d %H:%M:%S"); break
                     save_database(db); st.session_state["success_msg"] = "✅ Paid"; st.rerun()
             else:
-                if st.button("↩️ Pending", key=f"unpay_{cid}"): 
+                if st.button("↩️ Pending", key=f"unpay_{cid}"):
                     for cc in db["credit_bills"]:
                         if cc.get("id") == cid: cc["status"]="pending"; cc["paid_at"]=None; break
                     save_database(db); st.session_state["success_msg"] = "↩️"; st.rerun()
@@ -1648,7 +1715,7 @@ def render_admin_dsr():
         with c1:
             if st.button("📤 Excel", key=f"ex_dsr_{did}", type="primary"): export_dsr_excel(d); st.rerun()
         with c2:
-            if st.button("🗑 Delete", key=f"del_dsr_{did}"): 
+            if st.button("🗑 Delete", key=f"del_dsr_{did}"):
                 db["dsr_forms"] = [x for x in db["dsr_forms"] if x.get("id") != did]
                 for x in db.get("load_forms", []):
                     if x.get("dsr_id") == did: x["transferred_to_dsr"] = False; x.pop("dsr_id", None)
