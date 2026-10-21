@@ -173,10 +173,31 @@ st.markdown("""
         position: relative; z-index: 2;
     }
 
-    /* STYLING STREAMLIT TABS FOR LOGIN */
-    .stTabs [data-baseweb="tab-list"] { gap: 8px; background-color: rgba(255, 255, 255, 0.5); padding: 6px; border-radius: 12px; margin-bottom: 20px; position: relative; z-index: 2; border: 1px solid rgba(218, 165, 32, 0.2); }
-    .stTabs [data-baseweb="tab"] { border-radius: 8px; padding: 10px 15px; background-color: transparent; color: #8b6508; font-weight: 600; border: none; transition: all 0.3s ease; }
-    .stTabs [aria-selected="true"] { background-color: #ffffff !important; color: #b8860b !important; box-shadow: 0 2px 8px rgba(218, 165, 32, 0.2); }
+    /* STYLING STREAMLIT TABS FOR LOGIN (GOLDEN THEME) */
+    .stTabs [data-baseweb="tab-list"] { 
+        gap: 8px; 
+        background-color: rgba(255, 255, 255, 0.5); 
+        padding: 6px; 
+        border-radius: 12px; 
+        margin-bottom: 20px; 
+        position: relative; 
+        z-index: 2; 
+        border: 1px solid rgba(218, 165, 32, 0.2); 
+    }
+    .stTabs [data-baseweb="tab"] { 
+        border-radius: 8px; 
+        padding: 10px 15px; 
+        background-color: transparent; 
+        color: #8b6508 !important; 
+        font-weight: 700 !important; 
+        border: none; 
+        transition: all 0.3s ease; 
+    }
+    .stTabs [aria-selected="true"] { 
+        background-color: #ffffff !important; 
+        color: #b8860b !important; 
+        box-shadow: 0 2px 8px rgba(218, 165, 32, 0.2) !important; 
+    }
 
     /* INPUT FIELDS INSIDE LOGIN CARD */
     .stTextInput > div > div > input {
