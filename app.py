@@ -112,50 +112,102 @@ st.markdown("""
         z-index: -1;
     }
     
-    /* UPDATED GLASS LOGIN CARD */
+    /* PROFESSIONAL LIGHT GOLDEN ANIMATED CARD */
+    @keyframes goldenGlow {
+        0% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.2), inset 0 0 15px rgba(255, 255, 255, 0.5); }
+        50% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.5), inset 0 0 25px rgba(255, 255, 255, 0.8); }
+        100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.2), inset 0 0 15px rgba(255, 255, 255, 0.5); }
+    }
+    @keyframes floatCard { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
+    @keyframes shimmer {
+        0% { background-position: -1000px 0; }
+        100% { background-position: 1000px 0; }
+    }
+
     .glass-login-card {
-        background: rgba(255, 255, 255, 0.85);
+        background: rgba(255, 252, 240, 0.85); /* Light golden/cream tint */
         backdrop-filter: blur(25px);
         -webkit-backdrop-filter: blur(25px);
-        border: 1px solid rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(255, 215, 0, 0.4);
         border-radius: 24px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.8);
-        padding: 40px 30px; width: 100%; max-width: 450px;
-        animation: floatCard 6s ease-in-out infinite;
+        padding: 40px 30px; width: 100%; max-width: 480px;
+        animation: floatCard 6s ease-in-out infinite, goldenGlow 4s ease-in-out infinite;
         z-index: 10;
         margin: 0 auto;
+        position: relative;
+        overflow: hidden;
     }
-    @keyframes floatCard { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+    /* Shimmer effect on card */
+    .glass-login-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -100%;
+        width: 50%; height: 100%;
+        background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+        transform: skewX(-25deg);
+        animation: shimmer 6s infinite;
+        z-index: 1;
+    }
     
     /* UPDATED TEXT STYLING */
     .login-title { 
         text-align: center; 
-        font-size: 32px; 
+        font-size: 34px; 
         font-weight: 800; 
-        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #7c3aed 100%);
+        background: linear-gradient(135deg, #b8860b 0%, #daa520 50%, #ffd700 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         letter-spacing: 2px; 
         margin-bottom: 5px;
-        text-shadow: 0px 4px 10px rgba(37, 99, 235, 0.2);
+        text-shadow: 0px 2px 4px rgba(218, 165, 32, 0.3);
+        position: relative; z-index: 2;
     }
     .login-subtitle { 
         text-align: center; 
         font-size: 12px; 
-        color: #64748b; 
+        color: #8b6508; 
         letter-spacing: 4px; 
         font-weight: 700; 
         margin-bottom: 30px; 
         text-transform: uppercase;
-        background: linear-gradient(90deg, #64748b, #94a3b8, #64748b);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        position: relative; z-index: 2;
     }
 
-    /* TABS */
-    .stTabs [data-baseweb="tab-list"] { gap: 8px; background-color: #f1f5f9; padding: 6px; border-radius: 12px; margin-bottom: 20px; }
-    .stTabs [data-baseweb="tab"] { border-radius: 8px; padding: 10px 15px; background-color: transparent; color: #64748b; font-weight: 600; border: none; }
-    .stTabs [aria-selected="true"] { background-color: #ffffff !important; color: #2563eb !important; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    /* STYLING STREAMLIT TABS FOR LOGIN */
+    .stTabs [data-baseweb="tab-list"] { gap: 8px; background-color: rgba(255, 255, 255, 0.5); padding: 6px; border-radius: 12px; margin-bottom: 20px; position: relative; z-index: 2; border: 1px solid rgba(218, 165, 32, 0.2); }
+    .stTabs [data-baseweb="tab"] { border-radius: 8px; padding: 10px 15px; background-color: transparent; color: #8b6508; font-weight: 600; border: none; transition: all 0.3s ease; }
+    .stTabs [aria-selected="true"] { background-color: #ffffff !important; color: #b8860b !important; box-shadow: 0 2px 8px rgba(218, 165, 32, 0.2); }
+
+    /* INPUT FIELDS INSIDE LOGIN CARD */
+    .stTextInput > div > div > input {
+        background-color: rgba(255, 255, 255, 0.9) !important;
+        border: 1.5px solid rgba(218, 165, 32, 0.4) !important;
+        border-radius: 10px !important;
+        color: #333 !important;
+        transition: all 0.3s ease !important;
+        position: relative; z-index: 2;
+    }
+    .stTextInput > div > div > input:focus {
+        border-color: #daa520 !important;
+        box-shadow: 0 0 10px rgba(218, 165, 32, 0.3) !important;
+    }
+    
+    /* LOGIN BUTTON INSIDE CARD */
+    .stButton > button {
+        background: linear-gradient(135deg, #daa520 0%, #b8860b 100%) !important;
+        border: none !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        border-radius: 10px !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 15px rgba(218, 165, 32, 0.4) !important;
+        position: relative; z-index: 2;
+    }
+    .stButton > button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 25px rgba(218, 165, 32, 0.6) !important;
+        background: linear-gradient(135deg, #ffd700 0%, #daa520 100%) !important;
+    }
 
     /* BUBBLES (For dashboard) */
     .bubbles { position: fixed; bottom: -100px; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; margin: 0; padding: 0; }
@@ -179,8 +231,6 @@ st.markdown("""
 
     section[data-testid="stSidebar"] div[role="radiogroup"] > label { transition: all 0.25s ease !important; }
     section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover { transform: translateX(6px) !important; background-color: #e8f5e9 !important; }
-    .stButton > button { transition: all 0.3s ease !important; }
-    .stButton > button:hover { transform: translateY(-2px) !important; box-shadow: 0 8px 20px rgba(33,150,243,0.4) !important; filter: brightness(1.1) !important; }
 
     @keyframes fadeInPage { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
     .block-container { animation: fadeInPage 0.6s ease-out !important; position: relative; z-index: 2; padding-top: 0.5rem !important; padding-left: 1.5rem !important; padding-right: 1.5rem !important; padding-bottom: 0.5rem !important; max-width: 100% !important; }
@@ -213,7 +263,6 @@ st.markdown("""
     ul[role="listbox"] li, div[role="option"] { color: #000000 !important; background-color: #ffffff !important; }
     input[type="password"] { background-color: #ffffff !important; color: #000000 !important; -webkit-text-fill-color: #000000 !important; }
 
-    .stButton > button { background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%) !important; border: none !important; font-weight: bold !important; border-radius: 8px !important; }
     .stDownloadButton > button { background: linear-gradient(135deg, #0288d1 0%, #0277bd 100%) !important; color: #ffffff !important; font-weight: bold !important; border-radius: 8px !important; }
     .stDataFrame, .stDataFrame * { color: #000000 !important; }
     .stDataFrame { background-color: #ffffff !important; border-radius: 10px !important; }
