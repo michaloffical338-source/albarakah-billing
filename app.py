@@ -111,19 +111,46 @@ st.markdown("""
         animation: waveMotion 15s ease infinite;
         z-index: -1;
     }
+    
+    /* UPDATED GLASS LOGIN CARD */
     .glass-login-card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.4);
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
         border-radius: 24px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        padding: 40px; width: 100%; max-width: 450px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.8);
+        padding: 40px 30px; width: 100%; max-width: 450px;
         animation: floatCard 6s ease-in-out infinite;
         z-index: 10;
+        margin: 0 auto;
     }
-    @keyframes floatCard { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
-    .login-title { text-align: center; font-size: 28px; font-weight: 800; color: #0f172a; letter-spacing: 1.5px; margin-bottom: 5px; }
-    .login-subtitle { text-align: center; font-size: 11px; color: #64748b; letter-spacing: 3px; font-weight: 600; margin-bottom: 30px; text-transform: uppercase; }
+    @keyframes floatCard { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+    
+    /* UPDATED TEXT STYLING */
+    .login-title { 
+        text-align: center; 
+        font-size: 32px; 
+        font-weight: 800; 
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #7c3aed 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 2px; 
+        margin-bottom: 5px;
+        text-shadow: 0px 4px 10px rgba(37, 99, 235, 0.2);
+    }
+    .login-subtitle { 
+        text-align: center; 
+        font-size: 12px; 
+        color: #64748b; 
+        letter-spacing: 4px; 
+        font-weight: 700; 
+        margin-bottom: 30px; 
+        text-transform: uppercase;
+        background: linear-gradient(90deg, #64748b, #94a3b8, #64748b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
 
     /* TABS */
     .stTabs [data-baseweb="tab-list"] { gap: 8px; background-color: #f1f5f9; padding: 6px; border-radius: 12px; margin-bottom: 20px; }
