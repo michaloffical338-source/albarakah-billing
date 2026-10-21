@@ -571,7 +571,24 @@ PRODUCTS = []
 # AUTH SCREEN (PREMIUM ANIMATED WAVES + GOLDEN CARD)
 # ============================================================
 def render_auth_page():
-    st.markdown('<div class="login-bg"></div>', unsafe_allow_html=True)
+    st.markdown("""
+    <style>
+    @keyframes waveMove {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    .login-bg {
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: linear-gradient(270deg, #0f172a, #1e3a8a, #2563eb, #3b82f6, #8b5cf6, #2563eb, #1e3a8a, #0f172a);
+        background-size: 400% 400%;
+        animation: waveMove 15s ease infinite;
+        z-index: -1;
+    }
+    </style>
+    <div class="login-bg"></div>
+    """, unsafe_allow_html=True)
+
     col1, col2, col3 = st.columns([1, 1.2, 1])
     with col2:
         # The marker lets CSS turn this whole column into the login card
