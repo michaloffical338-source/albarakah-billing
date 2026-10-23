@@ -927,9 +927,17 @@ def render_booker_new_bill():
     if st.session_state.get("bk_reset_item_form"):
         st.session_state["bk_product_sel"] = "-- Select --"; st.session_state["bk_qty"] = 0; st.session_state["bk_reset_item_form"] = False
     if is_wholesaler(st.session_state.get("bk_current_shop", "")): st.markdown(f"<div class='hint-box'>🏢 Wholesaler detected! WS1, WS2, WS3 discount applies.</div>", unsafe_allow_html=True)
-    col_a, col_b = st.columns([3, 1])
+    col_a, col_b, col_c = st.columns([2, 2, 1])
     with col_a: shop = st.text_input("🏪 Shop Name", value=st.session_state.get("bk_current_shop", ""), key="bk_shop_input", placeholder="Enter shop name")
-    with col_b: st.markdown("<br>", unsafe_allow_html=True)
+    with col_b:
+        sms = db.get("salesmen", [])
+        if sms:
+            selected_sm = st.selectbox("🧑‍💼 Select Salesman", ["-- Select --"] + sms, key="bk_salesman_select")
+            current_sm = "" if selected_sm == "-- Select --" else selected_sm
+        else:
+            current_sm = st.text_input("🧑‍💼 Salesman (Admin not added)", key="bk_salesman_manual")
+    with col_c: st.markdown("<br>", unsafe_allow_html=True)
+    
     if shop:
         new_shop = shop.strip()
         if new_shop != st.session_state.get("bk_current_shop", ""):
@@ -977,7 +985,7 @@ def render_booker_new_bill():
         gross_total = sum(float(it["Gross"]) for it in draft); st.markdown(f"<div class='summary-box'><b>Gross Total:</b> <span style='color:#2563eb;font-weight:700;font-size:20px;'>Rs {gross_total:,.0f}</span></div>", unsafe_allow_html=True)
         c1, c2 = st.columns(2)
         with c1:
-            if st.button("✅ Done Bill (Save to Admin)", key="bk_done_bill", use_container_width=True, type="primary"): finalize_booker_bill(shop, draft)
+            if st.button("✅ Done Bill (Save to Admin)", key="bk_done_bill", use_container_width=True, type="primary"): finalize_booker_bill(shop, current_sm, draft)
         with c2:
             if st.button("🗑 Clear Draft", key="bk_clear_draft", use_container_width=True): st.session_state["bk_bill_draft"] = []; clear_booker_draft(); st.rerun()
     st.markdown("---"); load_draft = st.session_state.get("bk_load_draft", []); total_load_boxes = sum(int(it.get("Boxes", 0)) for it in load_draft)
@@ -988,10 +996,10 @@ def render_booker_new_bill():
         st.markdown(f"<div class='summary-box'><b>Total Products:</b> {len(load_draft)} | <b>Total Boxes:</b> <span style='color:#2563eb;font-weight:700;font-size:20px;'>{total_load_boxes}</span></div>", unsafe_allow_html=True)
         if st.button("📦 Done Load Form (Save to Admin)", key="bk_done_load", use_container_width=True, type="primary"): finalize_booker_load_form()
 
-def finalize_booker_bill(shop, draft):
+def finalize_booker_bill(shop, salesman, draft):
     global db
     bill_no = db["next_bill_no"]; date_str = datetime.now().strftime("%d-%m-%Y"); bk_name = st.session_state.get("booker_name", "")
-    for it in draft: db["bills"].append({"Bill No": bill_no, "Date": date_str, "Shop": shop, "Order Booker": bk_name, "Salesman": "", "Delivery Man": "", "Code": it["Code"], "Product": it["Product"], "Boxes": it["Boxes"], "TP/Box": it["TP/Box"], "Discount %": it["Discount %"], "Gross": it["Gross"], "Net": it["Net"]})
+    for it in draft: db["bills"].append({"Bill No": bill_no, "Date": date_str, "Shop": shop, "Order Booker": bk_name, "Salesman": salesman, "Delivery Man": "", "Code": it["Code"], "Product": it["Product"], "Boxes": it["Boxes"], "TP/Box": it["TP/Box"], "Discount %": it["Discount %"], "Gross": it["Gross"], "Net": it["Net"]})
     db["next_bill_no"] += 1; save_database(db)
     for it in draft:
         found = False
@@ -1000,7 +1008,7 @@ def finalize_booker_bill(shop, draft):
         if not found: st.session_state["bk_load_draft"].append({"Code": it["Code"], "Product": it["Product"], "Boxes": int(it["Boxes"])})
     bill_total_net = sum(float(it["Net"]) for it in draft); pkg_pct, _, _ = get_effective_discount_pct(shop, bill_total_net); after_disc_total = bill_total_net - (bill_total_net * pkg_pct / 100)
     st.session_state["bk_bill_draft"] = []; clear_booker_draft(); st.session_state["bk_bills_created"] = st.session_state.get("bk_bills_created", 0) + 1
-    st.session_state["success_msg"] = f"✅ Bill #{bill_no} saved | {shop} | Net: Rs {after_disc_total:,.0f}"; st.rerun()
+    st.session_state["success_msg"] = f"✅ Bill #{bill_no} saved | {shop} | Salesman: {salesman} | Net: Rs {after_disc_total:,.0f}"; st.rerun()
 
 def finalize_booker_load_form():
     global db
