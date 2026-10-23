@@ -667,7 +667,10 @@ def build_load_form_excel(lf):
     ws.write("A3", "Booker:", label_fmt); ws.write("B3", lf.get("booker", ""), val_fmt)
     ws.write("A4", "Date:", label_fmt); ws.write("B4", lf.get("date", ""), val_fmt); ws.write("C4", lf.get("time", ""), val_fmt)
     ws.write("A5", "Load Form #:", label_fmt); ws.write("B5", lf.get("id", ""), val_fmt)
-    ws.write("A6", "Salesman:", label_fmt); ws.write("B6", lf.get("salesman", "-"), val_fmt)
+    sm_name = lf.get("salesman", "-")
+    if sm_name == "-" and lf.get("items"):
+        sm_name = lf["items"][0].get("Salesman", "-")
+    ws.write("A6", "Salesman:", label_fmt); ws.write("B6", sm_name, val_fmt)
     ws.write("A8", "Code", header_fmt); ws.write("B8", "Product", header_fmt); ws.write("C8", "Boxes", header_fmt)
     row = 8; total_boxes = 0
     for it in lf.get("items", []):
@@ -836,16 +839,22 @@ def finalize_booker_load_form():
     load_draft = st.session_state.get("bk_load_draft", [])
     if not load_draft: st.session_state["error_msg"] = "❌ Load form empty"; return
     bk_name = st.session_state.get("booker_name", ""); today_str = datetime.now().strftime("%d-%m-%Y"); total_boxes = sum(int(it["Boxes"]) for it in load_draft)
+    sm_name = load_draft[0].get("Salesman", "Unknown")
+    
     existing_lf = None
     for lf in db.get("load_forms", []):
-        if lf.get("booker") == bk_name and lf.get("date") == today_str and not lf.get("transferred_to_dsr"): existing_lf = lf; break
+        lf_sm = lf.get("salesman", "")
+        if not lf_sm and lf.get("items"): lf_sm = lf["items"][0].get("Salesman", "Unknown")
+        if lf.get("booker") == bk_name and lf.get("date") == today_str and not lf.get("transferred_to_dsr") and lf_sm == sm_name:
+            existing_lf = lf; break
+            
     if existing_lf:
-        existing_lf["items"] = load_draft; existing_lf["total_boxes"] = total_boxes; existing_lf["total_products"] = len(load_draft); existing_lf["time"] = datetime.now().strftime("%H:%M"); existing_lf["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        msg = f"🔄 Load Form #{existing_lf['id']} updated"
+        existing_lf["items"] = load_draft; existing_lf["total_boxes"] = total_boxes; existing_lf["total_products"] = len(load_draft); existing_lf["time"] = datetime.now().strftime("%H:%M"); existing_lf["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S"); existing_lf["salesman"] = sm_name
+        msg = f"🔄 Load Form #{existing_lf['id']} updated for {sm_name}"
     else:
         next_id = max([lf.get("id", 0) for lf in db["load_forms"]] + [0]) + 1
-        db["load_forms"].append({"id": next_id, "date": today_str, "time": datetime.now().strftime("%H:%M"), "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "booker": bk_name, "items": load_draft, "total_boxes": total_boxes, "total_products": len(load_draft), "transferred_to_dsr": False, "refreshed": False, "source": "booker"})
-        msg = f"✅ Load Form #{next_id} saved"
+        db["load_forms"].append({"id": next_id, "date": today_str, "time": datetime.now().strftime("%H:%M"), "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "booker": bk_name, "salesman": sm_name, "items": load_draft, "total_boxes": total_boxes, "total_products": len(load_draft), "transferred_to_dsr": False, "refreshed": False, "source": "booker"})
+        msg = f"✅ New Load Form #{next_id} saved for {sm_name}"
     save_database(db); st.session_state["bk_load_draft"] = []; st.session_state["success_msg"] = msg; st.rerun()
 
 def render_booker_all_products():
