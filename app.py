@@ -682,23 +682,35 @@ def load_database_for(username):
         try:
             with open(fpath, "r", encoding="utf-8") as f:
                 data = json.load(f)
+                # ULTRA SAFE: Ab koi bhi missing key crash nahi karwaye gi
                 for k in ["bookers", "salesmen", "load_forms", "petrol_expenses", "lunch_expenses", "misc_expenses", "booker_returns", "custom_products", "dsr_forms", "credit_bills", "deleted_products"]:
-                    if k not in data: data[k] = []
+                    if k not in data or data[k] is None: data[k] = []
                 for k in ["bookers_salaries", "salesmen_salaries", "product_prices"]:
-                    if k not in data: data[k] = {}
-                if "discount_packages" not in data or not data["discount_packages"]:
+                    if k not in data or data[k] is None: data[k] = {}
+                if "discount_packages" not in data or not isinstance(data.get("discount_packages"), list) or not data["discount_packages"]:
                     data["discount_packages"] = default_discount_packages()
                 else:
                     for p in data["discount_packages"]:
                         if "tier3_amount" not in p: p["tier3_amount"] = 0.0
                         if "tier3_pct" not in p: p["tier3_pct"] = 0.0
-                if "bills" not in data: data["bills"] = []
+                if "bills" not in data or data["bills"] is None: data["bills"] = []
                 if "next_bill_no" not in data: data["next_bill_no"] = 1
                 if "next_credit_id" not in data: data["next_credit_id"] = max([c.get("id", 0) for c in data.get("credit_bills", [])] + [0]) + 1
                 if "wholesaler_packages" not in data or not data["wholesaler_packages"]:
                     data["wholesaler_packages"] = [{"id": "ws1", "name": "WS1", "discount_pct": 3.0}, {"id": "ws2", "name": "WS2", "discount_pct": 5.0}, {"id": "ws3", "name": "WS3", "discount_pct": 7.0}]
+                
+                # BOOKERS KI SALARY AGAR MISSING HAI TOH INITIALIZE KARO
+                for b in data.get("bookers", []):
+                    if b not in data["bookers_salaries"]:
+                        data["bookers_salaries"][b] = {"base_salary": 0, "transactions": []}
+                for s in data.get("salesmen", []):
+                    if s not in data["salesmen_salaries"]:
+                        data["salesmen_salaries"][s] = {"base_salary": 0, "transactions": []}
+
                 return data
-        except Exception: pass
+        except Exception as e: 
+            st.error(f"⚠️ Data read error: {e}")
+            pass
     return default_blank_db()
 
 if "logged_in_user" not in st.session_state or not st.session_state["logged_in_user"]:
