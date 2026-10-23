@@ -85,30 +85,16 @@ def default_discount_packages():
     ]
 
 # ============================================================
-# GLOBAL CSS (ANIMATED WAVES + GLASS LOGIN + OLD THEME)
+# GLOBAL CSS
 # ============================================================
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
-
-    /* MAIN APP BACKGROUND */
     @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
     .stApp { background: linear-gradient(-45deg, #e3f2fd, #bbdefb, #e0f7fa, #e8eaf6) !important; background-size: 400% 400% !important; animation: gradientBG 15s ease infinite !important; overflow-x: hidden; }
-
-    /* LOGIN SPECIFIC CSS */
     @keyframes waveMotion { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-    .login-bg {
-        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-        background: linear-gradient(270deg, #0f172a, #1e3a8a, #2563eb, #1e3a8a);
-        background-size: 400% 400%;
-        animation: waveMotion 15s ease infinite;
-        z-index: -1;
-    }
-
-    /* ========================================================
-       PROPER LOGIN CARD (middle column itself becomes the card)
-       ======================================================== */
+    .login-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(270deg, #0f172a, #1e3a8a, #2563eb, #1e3a8a); background-size: 400% 400%; animation: waveMotion 15s ease infinite; z-index: -1; }
     @keyframes floatCard { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
     @keyframes goldPulse { 0% { opacity: 0.70; transform: scale(1); } 50% { opacity: 1; transform: scale(1.07); } 100% { opacity: 0.70; transform: scale(1); } }
     @keyframes cardShine { 0% { background-position: -300% 0; } 100% { background-position: 300% 0; } }
@@ -681,8 +667,9 @@ def build_load_form_excel(lf):
     ws.write("A3", "Booker:", label_fmt); ws.write("B3", lf.get("booker", ""), val_fmt)
     ws.write("A4", "Date:", label_fmt); ws.write("B4", lf.get("date", ""), val_fmt); ws.write("C4", lf.get("time", ""), val_fmt)
     ws.write("A5", "Load Form #:", label_fmt); ws.write("B5", lf.get("id", ""), val_fmt)
-    ws.write("A7", "Code", header_fmt); ws.write("B7", "Product", header_fmt); ws.write("C7", "Boxes", header_fmt)
-    row = 7; total_boxes = 0
+    ws.write("A6", "Salesman:", label_fmt); ws.write("B6", lf.get("salesman", "-"), val_fmt)
+    ws.write("A8", "Code", header_fmt); ws.write("B8", "Product", header_fmt); ws.write("C8", "Boxes", header_fmt)
+    row = 8; total_boxes = 0
     for it in lf.get("items", []):
         bx = int(it.get("Boxes", 0)); ws.write(row, 0, str(it.get("Code", "")), cc); ws.write(row, 1, it.get("Product", ""), cl); ws.write(row, 2, bx, cc); total_boxes += bx; row += 1
     ws.write(row, 0, "TOTAL", tot); ws.write(row, 1, f"{len(lf.get('items', []))} Products", tot); ws.write(row, 2, total_boxes, tot); row += 2
