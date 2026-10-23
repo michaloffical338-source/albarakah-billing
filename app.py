@@ -1495,6 +1495,7 @@ def render_admin_load_form():
             if not bk_lfs: st.info("No load forms in this filter.")
             for lf in sorted(bk_lfs, key=lambda x: x.get("created_at", ""), reverse=True):
                 lf_id = lf.get("id"); dt = lf.get("date", ""); tb = lf.get("total_boxes", 0); items = lf.get("items", []); trf = lf.get("transferred_to_dsr", False); lf_ret_map = get_lf_return_items(lf_id); lf_ret_total = sum(lf_ret_map.values()); net_lf = tb - lf_ret_total; badge = f'✅ DSR #{lf.get("dsr_id")}' if trf else '🟢 Active'
+                sm_names = set(it.get("Salesman", "N/A") for it in items); sm_str = ", ".join(sm_names) if sm_names else "-"
                 st.markdown(f"""<div class='lf-simple-card'><div class='lf-info'><div class='lf-line1'>📦 Load Form #{lf_id} <span class='badge-pending'>{badge}</span></div><div class='lf-line2'>📅 {dt} · 🧑‍💼 {sm_str} · 🕐 {lf.get('time','')} · 📦 {len(items)} products · ↩️ Returns: {lf_ret_total} · 🟢 Net: {net_lf}</div></div><div class='lf-boxes'>{tb}<small>BOXES</small></div></div>""", unsafe_allow_html=True)
                 salesmen_list = db.get("salesmen", [])
                 if salesmen_list:
