@@ -85,16 +85,30 @@ def default_discount_packages():
     ]
 
 # ============================================================
-# GLOBAL CSS
+# GLOBAL CSS (ANIMATED WAVES + GLASS LOGIN + OLD THEME)
 # ============================================================
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
+
+    /* MAIN APP BACKGROUND */
     @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
     .stApp { background: linear-gradient(-45deg, #e3f2fd, #bbdefb, #e0f7fa, #e8eaf6) !important; background-size: 400% 400% !important; animation: gradientBG 15s ease infinite !important; overflow-x: hidden; }
+
+    /* LOGIN SPECIFIC CSS */
     @keyframes waveMotion { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-    .login-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(270deg, #0f172a, #1e3a8a, #2563eb, #1e3a8a); background-size: 400% 400%; animation: waveMotion 15s ease infinite; z-index: -1; }
+    .login-bg {
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: linear-gradient(270deg, #0f172a, #1e3a8a, #2563eb, #1e3a8a);
+        background-size: 400% 400%;
+        animation: waveMotion 15s ease infinite;
+        z-index: -1;
+    }
+
+    /* ========================================================
+       PROPER LOGIN CARD (middle column itself becomes the card)
+       ======================================================== */
     @keyframes floatCard { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
     @keyframes goldPulse { 0% { opacity: 0.70; transform: scale(1); } 50% { opacity: 1; transform: scale(1.07); } 100% { opacity: 0.70; transform: scale(1); } }
     @keyframes cardShine { 0% { background-position: -300% 0; } 100% { background-position: 300% 0; } }
@@ -1481,7 +1495,6 @@ def render_admin_load_form():
             if not bk_lfs: st.info("No load forms in this filter.")
             for lf in sorted(bk_lfs, key=lambda x: x.get("created_at", ""), reverse=True):
                 lf_id = lf.get("id"); dt = lf.get("date", ""); tb = lf.get("total_boxes", 0); items = lf.get("items", []); trf = lf.get("transferred_to_dsr", False); lf_ret_map = get_lf_return_items(lf_id); lf_ret_total = sum(lf_ret_map.values()); net_lf = tb - lf_ret_total; badge = f'✅ DSR #{lf.get("dsr_id")}' if trf else '🟢 Active'
-                sm_names = set(it.get("Salesman", "N/A") for it in items); sm_str = ", ".join(sm_names) if sm_names else "-"
                 st.markdown(f"""<div class='lf-simple-card'><div class='lf-info'><div class='lf-line1'>📦 Load Form #{lf_id} <span class='badge-pending'>{badge}</span></div><div class='lf-line2'>📅 {dt} · 🧑‍💼 {sm_str} · 🕐 {lf.get('time','')} · 📦 {len(items)} products · ↩️ Returns: {lf_ret_total} · 🟢 Net: {net_lf}</div></div><div class='lf-boxes'>{tb}<small>BOXES</small></div></div>""", unsafe_allow_html=True)
                 salesmen_list = db.get("salesmen", [])
                 if salesmen_list:
