@@ -1,6 +1,5 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# Full code with Premium Login, DSR Date Fix & Data Backup
 # ============================================================
 
 import os
@@ -86,171 +85,34 @@ def default_discount_packages():
     ]
 
 # ============================================================
-# GLOBAL CSS (ANIMATED WAVES + GLASS LOGIN + OLD THEME)
+# GLOBAL CSS
 # ============================================================
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
-
-    /* MAIN APP BACKGROUND */
     @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
     .stApp { background: linear-gradient(-45deg, #e3f2fd, #bbdefb, #e0f7fa, #e8eaf6) !important; background-size: 400% 400% !important; animation: gradientBG 15s ease infinite !important; overflow-x: hidden; }
-
-    /* LOGIN SPECIFIC CSS */
     @keyframes waveMotion { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-    .login-bg {
-        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-        background: linear-gradient(270deg, #0f172a, #1e3a8a, #2563eb, #1e3a8a);
-        background-size: 400% 400%;
-        animation: waveMotion 15s ease infinite;
-        z-index: -1;
-    }
-
-    /* ========================================================
-       PROPER LOGIN CARD (middle column itself becomes the card)
-       ======================================================== */
+    .login-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(270deg, #0f172a, #1e3a8a, #2563eb, #1e3a8a); background-size: 400% 400%; animation: waveMotion 15s ease infinite; z-index: -1; }
     @keyframes floatCard { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
     @keyframes goldPulse { 0% { opacity: 0.70; transform: scale(1); } 50% { opacity: 1; transform: scale(1.07); } 100% { opacity: 0.70; transform: scale(1); } }
     @keyframes cardShine { 0% { background-position: -300% 0; } 100% { background-position: 300% 0; } }
-
-    div[data-testid="stColumn"]:has(.login-card-marker),
-    div[data-testid="column"]:has(.login-card-marker) {
-        position: relative !important;
-        padding: 38px 34px 26px 34px !important;
-        margin-top: 4vh !important;
-        background: transparent !important;
-        overflow: visible !important;
-        animation: floatCard 6s ease-in-out infinite;
-        isolation: isolate;
-    }
-    div[data-testid="stColumn"]:has(.login-card-marker)::before,
-    div[data-testid="column"]:has(.login-card-marker)::before {
-        content: '';
-        position: absolute;
-        inset: -55px;
-        border-radius: 60px;
-        background: radial-gradient(circle at 50% 45%, rgba(255, 223, 100, 0.85) 0%, rgba(255, 200, 60, 0.55) 35%, rgba(255, 190, 40, 0.0) 70%);
-        filter: blur(38px);
-        z-index: -2;
-        animation: goldPulse 4s ease-in-out infinite;
-        pointer-events: none;
-    }
-    div[data-testid="stColumn"]:has(.login-card-marker)::after,
-    div[data-testid="column"]:has(.login-card-marker)::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        border-radius: 26px;
-        background: linear-gradient(115deg, rgba(255,255,255,0) 35%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0) 65%), linear-gradient(160deg, #fffdf3 0%, #fff7d6 55%, #ffefb0 100%);
-        background-size: 300% 100%, 100% 100%;
-        animation: cardShine 7s linear infinite;
-        border: 1.5px solid rgba(218, 165, 32, 0.55);
-        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35), 0 0 0 5px rgba(255, 215, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -12px 30px rgba(218, 165, 32, 0.12);
-        z-index: -1;
-        pointer-events: none;
-    }
-
-    .login-title {
-        text-align: center;
-        font-size: 36px;
-        font-weight: 800;
-        background: linear-gradient(135deg, #a8740a 0%, #daa520 50%, #f5c518 100%);
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-        letter-spacing: 2px;
-        margin: 0 0 4px 0;
-        line-height: 1.15;
-    }
-    .login-subtitle {
-        text-align: center;
-        font-size: 12px;
-        color: #8b6508;
-        letter-spacing: 4px;
-        font-weight: 700;
-        margin-bottom: 22px;
-        text-transform: uppercase;
-    }
-    .login-divider {
-        height: 2px; border-radius: 2px; margin: 0 auto 18px auto; width: 70px;
-        background: linear-gradient(90deg, transparent, #daa520, transparent);
-    }
-
-    /* TABS INSIDE LOGIN CARD (GOLDEN THEME) */
-    div[data-testid="stColumn"]:has(.login-card-marker) .stTabs [data-baseweb="tab-list"],
-    div[data-testid="column"]:has(.login-card-marker) .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-        background-color: rgba(255, 255, 255, 0.65);
-        padding: 6px;
-        border-radius: 12px;
-        margin-bottom: 18px;
-        border: 1px solid rgba(218, 165, 32, 0.3);
-    }
-    div[data-testid="stColumn"]:has(.login-card-marker) .stTabs [data-baseweb="tab"],
-    div[data-testid="column"]:has(.login-card-marker) .stTabs [data-baseweb="tab"] {
-        border-radius: 8px;
-        padding: 10px 15px;
-        background-color: transparent;
-        color: #8b6508 !important;
-        font-weight: 700 !important;
-        border: none;
-        transition: all 0.3s ease;
-    }
-    div[data-testid="stColumn"]:has(.login-card-marker) .stTabs [aria-selected="true"],
-    div[data-testid="column"]:has(.login-card-marker) .stTabs [aria-selected="true"] {
-        background-color: #ffffff !important;
-        color: #b8860b !important;
-        box-shadow: 0 2px 8px rgba(218, 165, 32, 0.25) !important;
-    }
-    div[data-testid="stColumn"]:has(.login-card-marker) .stTabs [data-baseweb="tab-highlight"],
-    div[data-testid="column"]:has(.login-card-marker) .stTabs [data-baseweb="tab-highlight"] {
-        background-color: #daa520 !important;
-    }
-
-    /* INPUT FIELDS INSIDE LOGIN CARD (golden border) */
-    div[data-testid="stColumn"]:has(.login-card-marker) .stTextInput > div > div > input,
-    div[data-testid="column"]:has(.login-card-marker) .stTextInput > div > div > input,
-    div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="input"] input,
-    div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="input"] input {
-        background-color: rgba(255, 255, 255, 0.95) !important;
-        border: 1.5px solid rgba(218, 165, 32, 0.55) !important;
-        border-radius: 10px !important;
-        color: #333 !important;
-        transition: all 0.3s ease !important;
-    }
-    div[data-testid="stColumn"]:has(.login-card-marker) .stTextInput > div > div > input:focus,
-    div[data-testid="column"]:has(.login-card-marker) .stTextInput > div > div > input:focus {
-        border-color: #daa520 !important;
-        box-shadow: 0 0 12px rgba(218, 165, 32, 0.45) !important;
-    }
-    div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="input"],
-    div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="input"],
-    div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="base-input"],
-    div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="base-input"] {
-        background-color: transparent !important;
-        border-color: transparent !important;
-    }
-
-    /* LOGIN BUTTON INSIDE CARD */
-    div[data-testid="stColumn"]:has(.login-card-marker) .stButton > button,
-    div[data-testid="column"]:has(.login-card-marker) .stButton > button {
-        background: linear-gradient(135deg, #daa520 0%, #b8860b 100%) !important;
-        border: none !important;
-        color: #ffffff !important;
-        font-weight: 700 !important;
-        border-radius: 10px !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 4px 15px rgba(218, 165, 32, 0.4) !important;
-    }
-    div[data-testid="stColumn"]:has(.login-card-marker) .stButton > button:hover,
-    div[data-testid="column"]:has(.login-card-marker) .stButton > button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 25px rgba(218, 165, 32, 0.6) !important;
-        background: linear-gradient(135deg, #ffd700 0%, #daa520 100%) !important;
-    }
-
-    /* BUBBLES (For dashboard) */
+    div[data-testid="stColumn"]:has(.login-card-marker), div[data-testid="column"]:has(.login-card-marker) { position: relative !important; padding: 38px 34px 26px 34px !important; margin-top: 4vh !important; background: transparent !important; overflow: visible !important; animation: floatCard 6s ease-in-out infinite; isolation: isolate; }
+    div[data-testid="stColumn"]:has(.login-card-marker)::before, div[data-testid="column"]:has(.login-card-marker)::before { content: ''; position: absolute; inset: -55px; border-radius: 60px; background: radial-gradient(circle at 50% 45%, rgba(255, 223, 100, 0.85) 0%, rgba(255, 200, 60, 0.55) 35%, rgba(255, 190, 40, 0.0) 70%); filter: blur(38px); z-index: -2; animation: goldPulse 4s ease-in-out infinite; pointer-events: none; }
+    div[data-testid="stColumn"]:has(.login-card-marker)::after, div[data-testid="column"]:has(.login-card-marker)::after { content: ''; position: absolute; inset: 0; border-radius: 26px; background: linear-gradient(115deg, rgba(255,255,255,0) 35%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0) 65%), linear-gradient(160deg, #fffdf3 0%, #fff7d6 55%, #ffefb0 100%); background-size: 300% 100%, 100% 100%; animation: cardShine 7s linear infinite; border: 1.5px solid rgba(218, 165, 32, 0.55); box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35), 0 0 0 5px rgba(255, 215, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -12px 30px rgba(218, 165, 32, 0.12); z-index: -1; pointer-events: none; }
+    .login-title { text-align: center; font-size: 36px; font-weight: 800; background: linear-gradient(135deg, #a8740a 0%, #daa520 50%, #f5c518 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 2px; margin: 0 0 4px 0; line-height: 1.15; }
+    .login-subtitle { text-align: center; font-size: 12px; color: #8b6508; letter-spacing: 4px; font-weight: 700; margin-bottom: 22px; text-transform: uppercase; }
+    .login-divider { height: 2px; border-radius: 2px; margin: 0 auto 18px auto; width: 70px; background: linear-gradient(90deg, transparent, #daa520, transparent); }
+    div[data-testid="stColumn"]:has(.login-card-marker) .stTabs [data-baseweb="tab-list"], div[data-testid="column"]:has(.login-card-marker) .stTabs [data-baseweb="tab-list"] { gap: 8px; background-color: rgba(255, 255, 255, 0.65); padding: 6px; border-radius: 12px; margin-bottom: 18px; border: 1px solid rgba(218, 165, 32, 0.3); }
+    div[data-testid="stColumn"]:has(.login-card-marker) .stTabs [data-baseweb="tab"], div[data-testid="column"]:has(.login-card-marker) .stTabs [data-baseweb="tab"] { border-radius: 8px; padding: 10px 15px; background-color: transparent; color: #8b6508 !important; font-weight: 700 !important; border: none; transition: all 0.3s ease; }
+    div[data-testid="stColumn"]:has(.login-card-marker) .stTabs [aria-selected="true"], div[data-testid="column"]:has(.login-card-marker) .stTabs [aria-selected="true"] { background-color: #ffffff !important; color: #b8860b !important; box-shadow: 0 2px 8px rgba(218, 165, 32, 0.25) !important; }
+    div[data-testid="stColumn"]:has(.login-card-marker) .stTabs [data-baseweb="tab-highlight"], div[data-testid="column"]:has(.login-card-marker) .stTabs [data-baseweb="tab-highlight"] { background-color: #daa520 !important; }
+    div[data-testid="stColumn"]:has(.login-card-marker) .stTextInput > div > div > input, div[data-testid="column"]:has(.login-card-marker) .stTextInput > div > div > input, div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="input"] input, div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="input"] input { background-color: rgba(255, 255, 255, 0.95) !important; border: 1.5px solid rgba(218, 165, 32, 0.55) !important; border-radius: 10px !important; color: #333 !important; transition: all 0.3s ease !important; }
+    div[data-testid="stColumn"]:has(.login-card-marker) .stTextInput > div > div > input:focus, div[data-testid="column"]:has(.login-card-marker) .stTextInput > div > div > input:focus { border-color: #daa520 !important; box-shadow: 0 0 12px rgba(218, 165, 32, 0.45) !important; }
+    div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="input"], div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="input"], div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="base-input"], div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="base-input"] { background-color: transparent !important; border-color: transparent !important; }
+    div[data-testid="stColumn"]:has(.login-card-marker) .stButton > button, div[data-testid="column"]:has(.login-card-marker) .stButton > button { background: linear-gradient(135deg, #daa520 0%, #b8860b 100%) !important; border: none !important; color: #ffffff !important; font-weight: 700 !important; border-radius: 10px !important; transition: all 0.3s ease !important; box-shadow: 0 4px 15px rgba(218, 165, 32, 0.4) !important; }
+    div[data-testid="stColumn"]:has(.login-card-marker) .stButton > button:hover, div[data-testid="column"]:has(.login-card-marker) .stButton > button:hover { transform: translateY(-2px) !important; box-shadow: 0 8px 25px rgba(218, 165, 32, 0.6) !important; background: linear-gradient(135deg, #ffd700 0%, #daa520 100%) !important; }
     .bubbles { position: fixed; bottom: -100px; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; margin: 0; padding: 0; }
     .bubbles li { position: absolute; list-style: none; display: block; width: 40px; height: 40px; bottom: -160px; animation: square 25s infinite linear; border-radius: 50%; }
     .bubbles li:nth-child(1) { left: 10%; width: 80px; height: 80px; animation-delay: 0s; background: rgba(33,150,243,0.15); }
@@ -263,34 +125,25 @@ st.markdown("""
     .bubbles li:nth-child(8) { left: 25%; width: 90px; height: 90px; animation-delay: 7s; background: rgba(76,175,80,0.15); }
     .bubbles li:nth-child(9) { left: 75%; width: 70px; height: 70px; animation-delay: 2s; animation-duration: 22s; background: rgba(33,150,243,0.15); }
     @keyframes square { 0% { transform: translateY(0) rotate(0deg); opacity: 1; border-radius: 50%; } 100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; border-radius: 50%; } }
-
     @keyframes heroShade { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
     .dash-hero { background: linear-gradient(-45deg, #1e3a8a, #2563eb, #3b82f6, #8b5cf6, #2563eb) !important; background-size: 300% 300% !important; animation: heroShade 8s ease infinite !important; border-radius: 20px; padding: 26px 32px; margin-bottom: 22px; color: #fff; position: relative; overflow: hidden; box-shadow: 0 12px 32px rgba(37, 99, 235, 0.35); z-index: 2; }
-
     .kpi-card { transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important; z-index: 5 !important; }
     .kpi-card:hover { transform: translateY(-8px) scale(1.02) !important; box-shadow: 0 15px 30px rgba(37,99,235,0.25) !important; }
-
     section[data-testid="stSidebar"] div[role="radiogroup"] > label { transition: all 0.25s ease !important; }
     section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover { transform: translateX(6px) !important; background-color: #e8f5e9 !important; }
-
     @keyframes fadeInPage { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
     .block-container { animation: fadeInPage 0.6s ease-out !important; position: relative; z-index: 2; padding-top: 0.5rem !important; padding-left: 1.5rem !important; padding-right: 1.5rem !important; padding-bottom: 0.5rem !important; max-width: 100% !important; }
-
     html, body, .stApp, .stApp p, .stApp span, .stApp div, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6, .stApp label, .stApp li, .stApp a, [class*="css"] *, [data-testid="stMarkdownContainer"] *, [data-testid="stText"], [data-testid="stCaptionContainer"] *, [data-testid="stWidgetLabel"] *, [data-testid="stSelectbox"] *, [data-testid="stTextInput"] *, [data-testid="stNumberInput"] * { color: #000000; }
-
     .stDateInput, .stDateInput > div, .stDateInput > div > div, .stDateInput > div > div > input, [data-testid="stDateInput"], [data-testid="stDateInput"] > div, [data-testid="stDateInput"] > div > div, [data-testid="stDateInput"] input, [data-testid="stDateInput"] div[data-baseweb="input"], [data-testid="stDateInput"] div[data-baseweb="input"] > div, [data-testid="stDateInput"] div[data-baseweb="base-input"], [data-baseweb="datepicker"] input, div[data-baseweb="input"] > div, div[data-baseweb="base-input"], div[data-baseweb="base-input"] input { background-color: #ffffff !important; color: #000000 !important; -webkit-text-fill-color: #000000 !important; border-color: #90caf9 !important; }
     div[data-baseweb="calendar"], div[data-baseweb="calendar"] *, div[data-baseweb="datepicker"] *, div[data-baseweb="popover"] *, div[role="dialog"] *, div[role="dialog"] { background-color: #ffffff !important; color: #000000 !important; -webkit-text-fill-color: #000000 !important; }
     [data-testid="stDateInput"] svg, div[data-baseweb="datepicker"] svg { fill: #1976d2 !important; color: #1976d2 !important; }
-
     .stButton > button, .stButton > button p, .stButton > button span, .stButton > button div, .stDownloadButton > button, .stDownloadButton > button p, .stDownloadButton > button span, .stDownloadButton > button div { color: #ffffff !important; }
-
     [data-testid="stToolbar"] { display: none !important; }
     [data-testid="stDecoration"] { display: none !important; }
     [data-testid="stStatusWidget"] { display: none !important; }
     #MainMenu { visibility: hidden !important; }
     footer { visibility: hidden !important; }
     header[data-testid="stHeader"] { background: transparent !important; box-shadow: none !important; }
-
     .stApp .element-container { margin-bottom: 0.35rem !important; }
     .stApp [data-testid="stVerticalBlock"] > div { gap: 0.35rem !important; }
     .stApp label, .stApp [data-testid="stWidgetLabel"] label, .stApp [data-testid="stWidgetLabel"] p { font-size: 13px !important; font-weight: 600 !important; margin-bottom: 2px !important; }
@@ -298,35 +151,13 @@ st.markdown("""
     .stButton > button { padding: 4px 10px !important; min-height: 36px !important; font-size: 14px !important; }
     .stApp hr { margin: 6px 0 !important; }
     .stApp h3 { margin-top: 6px !important; margin-bottom: 4px !important; font-size: 18px !important; }
-
     .stTextInput > div > div > input, .stNumberInput > div > div > input, .stSelectbox > div > div > div, .stSelectbox > div > div, div[data-baseweb="select"] > div, div[data-baseweb="input"] input { background-color: #ffffff !important; color: #000000 !important; -webkit-text-fill-color: #000000 !important; border: 2px solid #90caf9 !important; border-radius: 8px !important; }
     div[data-baseweb="select"] * { color: #000000 !important; }
     ul[role="listbox"] li, div[role="option"] { color: #000000 !important; background-color: #ffffff !important; }
     input[type="password"] { background-color: #ffffff !important; color: #000000 !important; -webkit-text-fill-color: #000000 !important; }
-
-    /* Re-apply golden input border inside the login card (must come AFTER the global input rule above) */
-    div[data-testid="stColumn"]:has(.login-card-marker) .stTextInput > div > div > input,
-    div[data-testid="column"]:has(.login-card-marker) .stTextInput > div > div > input,
-    div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="input"] input,
-    div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="input"] input {
-        border: 1.5px solid rgba(218, 165, 32, 0.6) !important;
-        border-radius: 10px !important;
-    }
-    div[data-testid="stColumn"]:has(.login-card-marker) .stTextInput > div > div > input:focus,
-    div[data-testid="column"]:has(.login-card-marker) .stTextInput > div > div > input:focus,
-    div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="input"] input:focus,
-    div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="input"] input:focus {
-        border-color: #daa520 !important;
-        box-shadow: 0 0 12px rgba(218, 165, 32, 0.45) !important;
-    }
-    div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="input"] > div,
-    div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="input"] > div,
-    div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="base-input"],
-    div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="base-input"] {
-        border-color: transparent !important;
-        background-color: transparent !important;
-    }
-
+    div[data-testid="stColumn"]:has(.login-card-marker) .stTextInput > div > div > input, div[data-testid="column"]:has(.login-card-marker) .stTextInput > div > div > input, div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="input"] input, div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="input"] input { border: 1.5px solid rgba(218, 165, 32, 0.6) !important; border-radius: 10px !important; }
+    div[data-testid="stColumn"]:has(.login-card-marker) .stTextInput > div > div > input:focus, div[data-testid="column"]:has(.login-card-marker) .stTextInput > div > div > input:focus, div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="input"] input:focus, div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="input"] input:focus { border-color: #daa520 !important; box-shadow: 0 0 12px rgba(218, 165, 32, 0.45) !important; }
+    div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="input"] > div, div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="input"] > div, div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="base-input"], div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="base-input"] { border-color: transparent !important; background-color: transparent !important; }
     .stDownloadButton > button { background: linear-gradient(135deg, #0288d1 0%, #0277bd 100%) !important; color: #ffffff !important; font-weight: bold !important; border-radius: 8px !important; }
     .stDataFrame, .stDataFrame * { color: #000000 !important; }
     .stDataFrame { background-color: #ffffff !important; border-radius: 10px !important; }
@@ -338,7 +169,6 @@ st.markdown("""
     .stWarning, .stWarning * { color: #e65100 !important; }
     .stInfo, .stInfo * { color: #0d47a1 !important; }
     [data-testid="stCaptionContainer"] * { color: #555555 !important; }
-
     .auto-dl-hidden div[data-testid="stDownloadButton"] { position: absolute !important; left: -9999px !important; top: -9999px !important; opacity: 0 !important; height: 0 !important; }
     .metric-card { background: #ffffff; border: 2px solid #90caf9; border-radius: 14px; padding: 22px; text-align: center; box-shadow: 0 3px 10px rgba(33,150,243,0.15); }
     .metric-card h3 { font-size: 13px !important; margin: 0 !important; font-weight: 700 !important; text-transform: uppercase; color: #0277bd !important; }
@@ -361,22 +191,18 @@ st.markdown("""
     .lf-simple-card.credit-paid .lf-boxes { background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%); }
     .lf-simple-card.ret { border-left-color: #c62828; background: #ffebee; }
     .lf-simple-card.ret .lf-boxes { background: linear-gradient(135deg, #ef4444 0%, #c62828 100%); }
-
     .ret-item-row { background: #fff8e1; border: 1px solid #ffcc80; border-radius: 8px; padding: 6px 10px; margin-bottom: 5px; }
     .ret-item-row .ri-code { display: inline-block; background: #1976d2; color: #fff !important; font-weight: 800; font-size: 11px; padding: 2px 8px; border-radius: 5px; margin-right: 8px; }
     .ret-item-row .ri-name { font-weight: 600; color: #1976d2 !important; }
     .ret-item-row .ri-loaded { color: #2e7d32 !important; font-weight: 700; }
-
     .danger-box { background: #ffebee; border: 2px solid #c62828; border-radius: 12px; padding: 14px 18px; margin-bottom: 12px; }
     .danger-box b { color: #b71c1c !important; }
-
     .sal-metric { display: inline-block; padding: 8px 14px; margin-right: 8px; margin-bottom: 6px; border-radius: 8px; font-size: 13px; font-weight: 600; }
     .sal-metric.base { background: #e3f2fd; color: #0d47a1 !important; }
     .sal-metric.adv { background: #fff3e0; color: #e65100 !important; }
     .sal-metric.short { background: #ffebee; color: #c62828 !important; }
     .sal-metric.remain { background: #e8f5e9; color: #1b5e20 !important; }
     .sal-metric.paid { background: #c8e6c9; color: #2e7d32 !important; }
-
     .status-pending { background: #fff3e0; color: #e65100 !important; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; }
     .status-paid { background: #c8e6c9; color: #1b5e20 !important; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; }
     .badge-pending { background: #ffe0b2; color: #e65100 !important; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px; }
@@ -385,19 +211,16 @@ st.markdown("""
     .badge-credit-tag { background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: #ffffff !important; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px; }
     .badge-return { background: linear-gradient(135deg, #ef4444 0%, #c62828 100%); color: #ffffff !important; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px; }
     .badge-selected { background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: #ffffff !important; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-left: 8px; }
-
     .bk-product-card { background: #ffffff; border: 1.5px solid #90caf9; border-radius: 10px; padding: 8px 12px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; transition: all 0.15s ease; }
     .bk-product-card:hover { border-color: #2196f3; box-shadow: 0 2px 8px rgba(33,150,243,0.15); transform: translateY(-2px); }
     .bk-product-card .bk-name { font-size: 13.5px; font-weight: 700; color: #1976d2; }
     .bk-product-card .bk-code { font-size: 11px; color: #666; }
     .bk-product-card .bk-tp { background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%); color: #fff !important; font-weight: 800; font-size: 13px; padding: 4px 12px; border-radius: 6px; }
-
     section[data-testid="stSidebar"] { background: linear-gradient(180deg, rgba(241,248,233,0.95) 0%, rgba(232,245,233,0.95) 50%, rgba(220,237,200,0.95) 100%) !important; border-right: 2px solid #a5d6a7 !important; box-shadow: 4px 0 20px rgba(76,175,80,0.12) !important; backdrop-filter: blur(10px) !important; z-index: 10 !important; }
     section[data-testid="stSidebar"] > div:first-child { padding-top: 0 !important; }
     section[data-testid="stSidebar"] .block-container { padding: 0 !important; }
     section[data-testid="stSidebar"] ::-webkit-scrollbar { width: 6px; }
     section[data-testid="stSidebar"] ::-webkit-scrollbar-thumb { background: rgba(76,175,80,0.4); border-radius: 3px; }
-
     .sb-brand { text-align: center; padding: 22px 16px 18px; border-bottom: 1px solid rgba(76,175,80,0.20); position: relative; background: radial-gradient(circle at 50% 0%, rgba(76,175,80,0.15) 0%, transparent 70%); }
     .sb-brand-logo { display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #66bb6a 0%, #2e7d32 100%); font-size: 28px; margin-bottom: 10px; box-shadow: 0 8px 20px rgba(76,175,80,0.35), inset 0 1px 0 rgba(255,255,255,0.35); }
     .sb-brand-name { font-size: 17px; font-weight: 800; color: #1b5e20 !important; letter-spacing: 2px; margin: 0; text-shadow: 0 1px 2px rgba(255,255,255,0.8); }
@@ -411,7 +234,6 @@ st.markdown("""
     .sb-user-label { font-size: 9px; color: #689f38 !important; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 800; margin-bottom: 2px; }
     .sb-user-name { font-size: 13px; font-weight: 800; color: #1b5e20 !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .sb-section-label { font-size: 9px; color: #558b2f !important; letter-spacing: 2.5px; font-weight: 800; padding: 0 20px 8px; text-transform: uppercase; }
-
     section[data-testid="stSidebar"] div[role="radiogroup"] { gap: 2px !important; padding: 0 10px 8px !important; display: flex !important; flex-direction: column !important; }
     section[data-testid="stSidebar"] div[role="radiogroup"] > label { background-color: #ffffff !important; border: 1px solid rgba(76,175,80,0.18) !important; border-radius: 10px !important; margin-bottom: 2px !important; padding: 9px 12px !important; cursor: pointer !important; display: flex !important; align-items: center !important; width: 100% !important; position: relative !important; }
     section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover { border-color: #66bb6a !important; box-shadow: 0 2px 8px rgba(76,175,80,0.15); }
@@ -422,7 +244,6 @@ st.markdown("""
     section[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) { background: linear-gradient(135deg, #66bb6a 0%, #2e7d32 100%) !important; border-color: #2e7d32 !important; box-shadow: 0 6px 16px rgba(76,175,80,0.4), inset 0 1px 0 rgba(255,255,255,0.25) !important; transform: translateX(0) !important; }
     section[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) p { color: #ffffff !important; font-weight: 700 !important; }
     section[data-testid="stSidebar"] hr { border-color: rgba(76,175,80,0.25) !important; margin: 10px 14px !important; opacity: 1 !important; }
-
     .sb-stats { padding: 4px 14px 12px; }
     .sb-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
     .sb-stat-card { background: #ffffff; border: 1px solid rgba(76,175,80,0.18); border-radius: 10px; padding: 10px 10px; text-align: center; transition: all 0.2s ease; box-shadow: 0 1px 4px rgba(76,175,80,0.08); }
@@ -434,11 +255,9 @@ st.markdown("""
     .sb-stat-card.good .sb-stat-value { color: #2e7d32 !important; }
     .sb-stat-card.blue .sb-stat-value { color: #1976d2 !important; }
     .sb-date { text-align: center; padding: 10px 14px 6px; font-size: 10px; color: #558b2f !important; letter-spacing: 1px; font-weight: 800; text-transform: uppercase; }
-
     section[data-testid="stSidebar"] .stButton > button { background: linear-gradient(135deg, #ffffff 0%, #f1f8e9 100%) !important; border: 1.5px solid rgba(239,68,68,0.35) !important; color: #c62828 !important; font-weight: 800 !important; border-radius: 10px !important; margin: 0 14px 16px !important; width: calc(100% - 28px) !important; box-shadow: 0 2px 6px rgba(239,68,68,0.10); }
     section[data-testid="stSidebar"] .stButton > button:hover { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important; border-color: #ef4444 !important; color: #ffffff !important; box-shadow: 0 6px 14px rgba(239,68,68,0.4) !important; transform: translateY(-2px) !important; }
     section[data-testid="stSidebar"] .stButton > button p, section[data-testid="stSidebar"] .stButton > button span, section[data-testid="stSidebar"] .stButton > button div { color: inherit !important; }
-
     .dash-hero::before { content: ''; position: absolute; top: -50%; right: -10%; width: 420px; height: 420px; background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%); border-radius: 50%; }
     .dash-hero-content { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
     .dash-hero-left { display: flex; flex-direction: column; gap: 6px; }
@@ -449,10 +268,8 @@ st.markdown("""
     .dash-hero-stat { text-align: right; }
     .dash-hero-stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.6px; color: rgba(255,255,255,0.7) !important; font-weight: 700; }
     .dash-hero-stat-val { font-size: 24px; font-weight: 800; color: #fff !important; line-height: 1.1; }
-
     .dash-section-title { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 800; color: #1e3a8a !important; margin: 10px 0 14px 0; letter-spacing: 0.3px; }
     .dash-section-title::before { content: ''; display: inline-block; width: 4px; height: 18px; background: linear-gradient(180deg, #2563eb 0%, #3b82f6 100%); border-radius: 3px; }
-
     .kpi-card { background: #ffffff; border-radius: 16px; padding: 20px 22px; border: 1px solid rgba(37,99,235,0.12); box-shadow: 0 4px 16px rgba(37,99,235,0.08); display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden; height: 100%; }
     .kpi-top { display: flex; align-items: center; justify-content: space-between; }
     .kpi-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); color: #1e40af !important; box-shadow: 0 3px 8px rgba(37,99,235,0.15); }
@@ -470,7 +287,6 @@ st.markdown("""
     .kpi-sub.red { color: #dc2626 !important; }
     .kpi-value-group { display: flex; align-items: baseline; gap: 6px; }
     .kpi-value-unit { font-size: 12px; color: #94a3b8 !important; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-
     .team-card { background: #ffffff; border-radius: 14px; padding: 14px 18px; border: 1px solid rgba(37,99,235,0.10); box-shadow: 0 2px 10px rgba(37,99,235,0.06); display: flex; align-items: center; gap: 14px; margin-bottom: 10px; transition: all 0.18s ease; }
     .team-card:hover { transform: translateX(3px); box-shadow: 0 8px 22px rgba(37,99,235,0.15); border-color: rgba(37,99,235,0.28); }
     .team-avatar { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; color: #fff !important; flex-shrink: 0; text-transform: uppercase; box-shadow: 0 4px 10px rgba(37,99,235,0.3); background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
@@ -485,14 +301,12 @@ st.markdown("""
     .team-badge { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); color: #1e40af !important; font-size: 10px; font-weight: 800; padding: 5px 10px; border-radius: 8px; letter-spacing: 0.8px; border: 1px solid rgba(37,99,235,0.15); flex-shrink: 0; }
     .team-badge.orange { background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); color: #9a3412 !important; border-color: rgba(234,88,12,0.2); }
     .empty-team { background: #ffffff; border: 2px dashed rgba(37,99,235,0.25); border-radius: 14px; padding: 28px; text-align: center; color: #64748b !important; font-size: 13px; font-weight: 600; }
-
     .bb-summary { background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%); border: 2px solid #2563eb; border-radius: 14px; padding: 16px 22px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
     .bb-stat { text-align: center; }
     .bb-stat-label { font-size: 10px; color: #64748b !important; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 800; }
     .bb-stat-val { font-size: 26px; font-weight: 800; color: #1976d2 !important; line-height: 1.1; }
     .bb-stat-val.green { color: #2e7d32 !important; }
     .bb-stat-val.red { color: #c62828 !important; }
-
     .item-line { display: flex; align-items: center; justify-content: space-between; background: #ffffff; border: 1px solid #b3e5fc; border-radius: 8px; padding: 8px 12px; margin-bottom: 6px; }
 </style>
 
@@ -545,7 +359,7 @@ COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
 PRODUCTS = []
 
 # ============================================================
-# AUTH SCREEN (PREMIUM ANIMATED WAVES + GOLDEN CARD)
+# AUTH SCREEN
 # ============================================================
 def render_auth_page():
     st.markdown("""
@@ -568,7 +382,6 @@ def render_auth_page():
 
     col1, col2, col3 = st.columns([1, 1.2, 1])
     with col2:
-        # The marker lets CSS turn this whole column into the login card
         st.markdown("""
         <div class="login-card-marker"></div>
         <div class="login-title">AL-BARAKAH</div>
@@ -659,7 +472,6 @@ def load_database_for(username):
         try:
             with open(fpath, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                # ULTRA SAFE: Ab koi bhi missing key crash nahi karwaye gi
                 for k in ["bookers", "salesmen", "load_forms", "petrol_expenses", "lunch_expenses", "misc_expenses", "booker_returns", "custom_products", "dsr_forms", "credit_bills", "deleted_products"]:
                     if k not in data or data[k] is None: data[k] = []
                 for k in ["bookers_salaries", "salesmen_salaries", "product_prices"]:
@@ -676,7 +488,6 @@ def load_database_for(username):
                 if "wholesaler_packages" not in data or not data["wholesaler_packages"]:
                     data["wholesaler_packages"] = [{"id": "ws1", "name": "WS1", "discount_pct": 3.0}, {"id": "ws2", "name": "WS2", "discount_pct": 5.0}, {"id": "ws3", "name": "WS3", "discount_pct": 7.0}]
                 
-                # BOOKERS KI SALARY AGAR MISSING HAI TOH INITIALIZE KARO
                 for b in data.get("bookers", []):
                     if b not in data["bookers_salaries"]:
                         data["bookers_salaries"][b] = {"base_salary": 0, "transactions": []}
@@ -906,11 +717,11 @@ def render_booker_sidebar():
                 st.session_state[k] = None if k not in ["bk_bill_draft", "bk_load_draft", "bk_bill_items"] else []
             st.session_state["bk_bills_created"] = 0; st.rerun()
 
-def save_booker_draft(shop, items):
+def save_booker_draft(shop, items, salesman=""):
     if not st.session_state.get("booker_name"): return
     draft_file = get_booker_draft_file(st.session_state["booker_name"])
     try:
-        with open(draft_file, "w", encoding="utf-8") as f: json.dump({"shop": shop, "items": items}, f, indent=4, ensure_ascii=False)
+        with open(draft_file, "w", encoding="utf-8") as f: json.dump({"shop": shop, "items": items, "salesman": salesman}, f, indent=4, ensure_ascii=False)
     except Exception: pass
 
 def clear_booker_draft():
@@ -924,28 +735,35 @@ def render_booker_new_bill():
     bk_name = st.session_state.get("booker_name", "")
     st.markdown(f"<h1 style='color:#0f172a;'>🧾 New Bill — <span style='color:#2563eb;'>{bk_name}</span></h1>", unsafe_allow_html=True)
     st.markdown("---")
+    
+    if "bk_selected_salesman" not in st.session_state: st.session_state["bk_selected_salesman"] = "-- Select --"
+
     if st.session_state.get("bk_reset_item_form"):
         st.session_state["bk_product_sel"] = "-- Select --"; st.session_state["bk_qty"] = 0; st.session_state["bk_reset_item_form"] = False
     if is_wholesaler(st.session_state.get("bk_current_shop", "")): st.markdown(f"<div class='hint-box'>🏢 Wholesaler detected! WS1, WS2, WS3 discount applies.</div>", unsafe_allow_html=True)
+    
     col_a, col_b, col_c = st.columns([2, 2, 1])
     with col_a: shop = st.text_input("🏪 Shop Name", value=st.session_state.get("bk_current_shop", ""), key="bk_shop_input", placeholder="Enter shop name")
     with col_b:
         sms = db.get("salesmen", [])
         if sms:
             selected_sm = st.selectbox("🧑‍💼 Select Salesman", ["-- Select --"] + sms, key="bk_salesman_select")
+            st.session_state["bk_selected_salesman"] = selected_sm
             current_sm = "" if selected_sm == "-- Select --" else selected_sm
         else:
             current_sm = st.text_input("🧑‍💼 Salesman (Admin not added)", key="bk_salesman_manual")
+            st.session_state["bk_selected_salesman"] = current_sm
     with col_c: st.markdown("<br>", unsafe_allow_html=True)
     
     if shop:
         new_shop = shop.strip()
         if new_shop != st.session_state.get("bk_current_shop", ""):
-            st.session_state["bk_current_shop"] = new_shop; st.session_state["bk_bill_draft"] = []; save_booker_draft(new_shop, st.session_state["bk_bill_draft"]); st.rerun()
+            st.session_state["bk_current_shop"] = new_shop; st.session_state["bk_bill_draft"] = []; save_booker_draft(new_shop, st.session_state["bk_bill_draft"], current_sm); st.rerun()
     if not shop.strip(): st.warning("⚠️ Enter shop name first"); return
     if is_wholesaler(shop):
         ws_pkg = get_wholesaler_package_from_shop(shop)
         if ws_pkg: st.markdown(f"<div class='hint-box' style='background:#faf5ff;border-left-color:#9333ea;color:#6b21a8;'>🏢 Package: {ws_pkg['name']} — {ws_pkg['discount_pct']}% discount</div>", unsafe_allow_html=True)
+    
     st.markdown("---"); st.markdown("### ➕ Add Item")
     all_products = get_all_products()
     search_txt = st.text_input("🔍 Search Product", key="bk_search", placeholder="Type name...")
@@ -967,32 +785,34 @@ def render_booker_new_bill():
         elif boxes <= 0: st.error("❌ Enter Boxes")
         else:
             tp = get_price(selected_product["code"], selected_product["price"])
-            st.session_state["bk_bill_draft"].append({"Code": selected_product["code"], "Product": selected_product["name"], "Boxes": int(boxes), "TP/Box": float(tp), "Gross": float(boxes * tp), "Discount %": 0.0, "Net": float(boxes * tp)})
-            save_booker_draft(shop, st.session_state["bk_bill_draft"]); st.session_state["bk_reset_item_form"] = True; st.rerun()
+            st.session_state["bk_bill_draft"].append({"Code": selected_product["code"], "Product": selected_product["name"], "Boxes": int(boxes), "TP/Box": float(tp), "Gross": float(boxes * tp), "Discount %": 0.0, "Net": float(boxes * tp), "Salesman": current_sm})
+            save_booker_draft(shop, st.session_state["bk_bill_draft"], current_sm); st.session_state["bk_reset_item_form"] = True; st.rerun()
+    
     st.markdown("---")
     draft = st.session_state.get("bk_bill_draft", [])
     if not draft: st.info("No items added yet.")
     else:
-        st.markdown(f"### 📋 Current Bill — {shop}")
-        st.dataframe(pd.DataFrame([{"Code": it["Code"], "Product": it["Product"], "Boxes": it["Boxes"], "TP/Box": it["TP/Box"], "Total": it["Gross"]} for it in draft]), use_container_width=True, hide_index=True)
+        st.markdown(f"### 📋 Current Bill — {shop} (Salesman: {current_sm})")
+        st.dataframe(pd.DataFrame([{"Code": it["Code"], "Product": it["Product"], "Boxes": it["Boxes"], "TP/Box": it["TP/Box"], "Total": it["Gross"], "Salesman": it.get("Salesman", "")} for it in draft]), use_container_width=True, hide_index=True)
         c1, c2 = st.columns([3, 1])
         with c1: remove_idx = st.selectbox("Delete item:", options=["--"] + [f"{i+1}. {it['Product']} ({it['Boxes']} boxes)" for i, it in enumerate(draft)], key="bk_remove_sel")
         with c2:
             st.markdown("<br>", unsafe_allow_html=True)
             if st.button("🗑 Remove", key="bk_remove_btn", use_container_width=True):
                 if remove_idx != "--":
-                    idx = int(remove_idx.split(".")[0]) - 1; st.session_state["bk_bill_draft"].pop(idx); save_booker_draft(shop, st.session_state["bk_bill_draft"]); st.rerun()
+                    idx = int(remove_idx.split(".")[0]) - 1; st.session_state["bk_bill_draft"].pop(idx); save_booker_draft(shop, st.session_state["bk_bill_draft"], current_sm); st.rerun()
         gross_total = sum(float(it["Gross"]) for it in draft); st.markdown(f"<div class='summary-box'><b>Gross Total:</b> <span style='color:#2563eb;font-weight:700;font-size:20px;'>Rs {gross_total:,.0f}</span></div>", unsafe_allow_html=True)
         c1, c2 = st.columns(2)
         with c1:
             if st.button("✅ Done Bill (Save to Admin)", key="bk_done_bill", use_container_width=True, type="primary"): finalize_booker_bill(shop, current_sm, draft)
         with c2:
             if st.button("🗑 Clear Draft", key="bk_clear_draft", use_container_width=True): st.session_state["bk_bill_draft"] = []; clear_booker_draft(); st.rerun()
+    
     st.markdown("---"); load_draft = st.session_state.get("bk_load_draft", []); total_load_boxes = sum(int(it.get("Boxes", 0)) for it in load_draft)
     st.markdown(f"### 📦 Load Form — Session Total")
     if not load_draft: st.info("No bills completed yet. Create a bill first.")
     else:
-        st.dataframe(pd.DataFrame([{"Code": it["Code"], "Product": it["Product"], "Boxes": it["Boxes"]} for it in load_draft]), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame([{"Code": it["Code"], "Product": it["Product"], "Boxes": it["Boxes"], "Salesman": it.get("Salesman", "")} for it in load_draft]), use_container_width=True, hide_index=True)
         st.markdown(f"<div class='summary-box'><b>Total Products:</b> {len(load_draft)} | <b>Total Boxes:</b> <span style='color:#2563eb;font-weight:700;font-size:20px;'>{total_load_boxes}</span></div>", unsafe_allow_html=True)
         if st.button("📦 Done Load Form (Save to Admin)", key="bk_done_load", use_container_width=True, type="primary"): finalize_booker_load_form()
 
@@ -1004,8 +824,8 @@ def finalize_booker_bill(shop, salesman, draft):
     for it in draft:
         found = False
         for ld in st.session_state["bk_load_draft"]:
-            if str(ld["Code"]) == str(it["Code"]): ld["Boxes"] += int(it["Boxes"]); found = True; break
-        if not found: st.session_state["bk_load_draft"].append({"Code": it["Code"], "Product": it["Product"], "Boxes": int(it["Boxes"])})
+            if str(ld["Code"]) == str(it["Code"]): ld["Boxes"] += int(it["Boxes"]); ld["Salesman"] = salesman; found = True; break
+        if not found: st.session_state["bk_load_draft"].append({"Code": it["Code"], "Product": it["Product"], "Boxes": int(it["Boxes"]), "Salesman": salesman})
     bill_total_net = sum(float(it["Net"]) for it in draft); pkg_pct, _, _ = get_effective_discount_pct(shop, bill_total_net); after_disc_total = bill_total_net - (bill_total_net * pkg_pct / 100)
     st.session_state["bk_bill_draft"] = []; clear_booker_draft(); st.session_state["bk_bills_created"] = st.session_state.get("bk_bills_created", 0) + 1
     st.session_state["success_msg"] = f"✅ Bill #{bill_no} saved | {shop} | Salesman: {salesman} | Net: Rs {after_disc_total:,.0f}"; st.rerun()
@@ -1042,7 +862,7 @@ def render_booker_load_status():
     if not load_draft: st.info("No bills completed yet."); return
     total_boxes = sum(int(it["Boxes"]) for it in load_draft)
     st.markdown(f"<div class='summary-box'><b>Products:</b> {len(load_draft)} &nbsp;|&nbsp; <b>Total Boxes:</b> <span style='color:#2563eb;font-size:18px;font-weight:700;'>{total_boxes}</span></div>", unsafe_allow_html=True)
-    st.dataframe(pd.DataFrame([{"Code": it["Code"], "Product": it["Product"], "Boxes": it["Boxes"]} for it in load_draft]), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame([{"Code": it["Code"], "Product": it["Product"], "Boxes": it["Boxes"], "Salesman": it.get("Salesman", "")} for it in load_draft]), use_container_width=True, hide_index=True)
     if st.button("📦 Done Load Form", key="bk_done_load_2", use_container_width=True, type="primary"): finalize_booker_load_form()
 
 def render_booker_bills_history():
@@ -1065,9 +885,10 @@ def render_booker_bills_history():
     if not groups: st.info("No bills found in this filter."); return
     for key, g in sorted(groups.items(), key=lambda kv: kv[0][1], reverse=True):
         shop = g["shop"]; dt = g["date"]; bn = g["bill_no"]; tb = sum(int(it.get("Boxes",0)) for it in g["items"]); t_net = sum(float(it.get("Net",0)) for it in g["items"])
-        st.markdown(f"""<div class='lf-simple-card'><div class='lf-info'><div class='lf-line1'>🏪 {shop}</div><div class='lf-line2'>📅 {dt} · 🧾 #{bn} · 💰 Rs {t_net:,.0f}</div></div><div class='lf-boxes'>{tb}<small>BOXES</small></div></div>""", unsafe_allow_html=True)
+        sm = g["items"][0].get("Salesman", "-")
+        st.markdown(f"""<div class='lf-simple-card'><div class='lf-info'><div class='lf-line1'>🏪 {shop}</div><div class='lf-line2'>📅 {dt} · 🧑‍💼 {sm} · 🧾 #{bn} · 💰 Rs {t_net:,.0f}</div></div><div class='lf-boxes'>{tb}<small>BOXES</small></div></div>""", unsafe_allow_html=True)
         with st.expander("View Items"):
-            st.dataframe(pd.DataFrame([{"Code": i["Code"], "Product": i["Product"], "Boxes": i["Boxes"], "Net": i["Net"]} for i in g["items"]]), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame([{"Code": i["Code"], "Product": i["Product"], "Boxes": i["Boxes"], "Net": i["Net"], "Salesman": i.get("Salesman", "")} for i in g["items"]]), use_container_width=True, hide_index=True)
         c1, c2 = st.columns(2)
         with c1:
             if st.button("🗑 Delete Bill", key=f"bk_del_{key}_{dt}", type="primary", use_container_width=True):
@@ -1201,7 +1022,7 @@ def render_admin_booker_bills():
                 for shop, info in sorted(shop_groups.items()):
                     st.markdown(f"""<div class='lf-simple-card'><div class='lf-info'><div class='lf-line1'>🏪 {shop}</div><div class='lf-line2'>🧾 {len(info['bill_nos'])} bill(s) · 📅 {', '.join(sorted(info['dates']))}</div></div><div class='lf-boxes'>{info['boxes']}<small>BOXES</small></div></div>""", unsafe_allow_html=True)
                     with st.expander(f"📋 {shop} — full items ({len(info['items'])})"):
-                        st.dataframe(pd.DataFrame([{"Bill No": b.get("Bill No"), "Date": b.get("Date"), "Code": b.get("Code"), "Product": b.get("Product"), "Boxes": b.get("Boxes"), "TP/Box": b.get("TP/Box"), "Net": b.get("Net")} for b in info["items"]]), use_container_width=True, hide_index=True)
+                        st.dataframe(pd.DataFrame([{"Bill No": b.get("Bill No"), "Date": b.get("Date"), "Code": b.get("Code"), "Product": b.get("Product"), "Boxes": b.get("Boxes"), "TP/Box": b.get("TP/Box"), "Salesman": b.get("Salesman", ""), "Net": b.get("Net")} for b in info["items"]]), use_container_width=True, hide_index=True)
             st.markdown("---"); st.markdown("**↩️ Returns (item-wise)**")
             if bk_returns:
                 for r in sorted(bk_returns, key=lambda x: x.get("created_at", ""), reverse=True):
@@ -1209,7 +1030,7 @@ def render_admin_booker_bills():
                     st.markdown(f"""<div class='lf-simple-card ret'><div class='lf-info'><div class='lf-line1'>↩️ Return — {ret_total} boxes <span class='badge-return'>LF #{lf_id}</span></div><div class='lf-line2'>📅 {r.get('date','')} · {r.get('note','') or '—'}</div></div><div class='lf-boxes' style="background:#fee2e2;color:#dc2626;">{ret_total}<small>RET</small></div></div>""", unsafe_allow_html=True)
                     if items: st.dataframe(pd.DataFrame([{"Code": it.get("Code", ""), "Product": it.get("Product", ""), "Return Boxes": int(it.get("ReturnBoxes", 0))} for it in items if int(it.get("ReturnBoxes", 0)) > 0]), use_container_width=True, hide_index=True)
             st.markdown("---"); st.markdown("**🧾 All Bills**")
-            if bk_bills: st.dataframe(pd.DataFrame([{"Bill No": b.get("Bill No"), "Date": b.get("Date"), "Shop": b.get("Shop"), "Code": b.get("Code"), "Product": b.get("Product"), "Boxes": b.get("Boxes"), "TP/Box": b.get("TP/Box"), "Gross": b.get("Gross"), "Net": b.get("Net")} for b in bk_bills]), use_container_width=True, hide_index=True)
+            if bk_bills: st.dataframe(pd.DataFrame([{"Bill No": b.get("Bill No"), "Date": b.get("Date"), "Shop": b.get("Shop"), "Code": b.get("Code"), "Product": b.get("Product"), "Boxes": b.get("Boxes"), "TP/Box": b.get("TP/Box"), "Salesman": b.get("Salesman", ""), "Gross": b.get("Gross"), "Net": b.get("Net")} for b in bk_bills]), use_container_width=True, hide_index=True)
     st.markdown("---")
     st.markdown(f"""<div class='bb-summary'><div class='bb-stat'><div class='bb-stat-label'>All Bookers Sold</div><div class='bb-stat-val'>{grand_sold}</div></div><div class='bb-stat'><div class='bb-stat-label'>Total Returns</div><div class='bb-stat-val red'>-{grand_ret}</div></div><div class='bb-stat'><div class='bb-stat-label'>NET</div><div class='bb-stat-val green'>{grand_net}</div></div></div>""", unsafe_allow_html=True)
 
@@ -1571,7 +1392,7 @@ def render_admin_bills_list():
         elif filter_mode == "📆 Custom Range" and (bdate is None or not (from_date <= bdate <= to_date)): continue
         key = (b.get("Shop",""), b.get("Date",""), b.get("Order Booker",""), b.get("Bill No",""))
         if key not in groups: groups[key] = {"shop": b.get("Shop",""), "date": b.get("Date",""), "booker": b.get("Order Booker",""), "salesman": b.get("Salesman",""), "bill_no": b.get("Bill No",""), "items": [], "idx": []}
-        groups[key]["items"].append({"Code": b.get("Code"), "Product": b.get("Product"), "Boxes": b.get("Boxes"), "TP/Box": b.get("TP/Box"), "Discount %": b.get("Discount %"), "Gross": b.get("Gross"), "Net": b.get("Net")}); groups[key]["idx"].append(bi)
+        groups[key]["items"].append({"Code": b.get("Code"), "Product": b.get("Product"), "Boxes": b.get("Boxes"), "TP/Box": b.get("TP/Box"), "Discount %": b.get("Discount %"), "Gross": b.get("Gross"), "Net": b.get("Net"), "Salesman": b.get("Salesman", "")}); groups[key]["idx"].append(bi)
     st.markdown(f"### 📋 Bills ({len(groups)})")
     for key, g in sorted(groups.items(), key=lambda kv: kv[0][1], reverse=True):
         shop = g["shop"] or "-"; dt = g["date"] or "-"; bk = g["booker"] or "-"; sm = g["salesman"] or "-"; bn = g["bill_no"]; tb = sum(int(it.get("Boxes",0)) for it in g["items"])
@@ -1660,7 +1481,8 @@ def render_admin_load_form():
             if not bk_lfs: st.info("No load forms in this filter.")
             for lf in sorted(bk_lfs, key=lambda x: x.get("created_at", ""), reverse=True):
                 lf_id = lf.get("id"); dt = lf.get("date", ""); tb = lf.get("total_boxes", 0); items = lf.get("items", []); trf = lf.get("transferred_to_dsr", False); lf_ret_map = get_lf_return_items(lf_id); lf_ret_total = sum(lf_ret_map.values()); net_lf = tb - lf_ret_total; badge = f'✅ DSR #{lf.get("dsr_id")}' if trf else '🟢 Active'
-                st.markdown(f"""<div class='lf-simple-card'><div class='lf-info'><div class='lf-line1'>📦 Load Form #{lf_id} <span class='badge-pending'>{badge}</span></div><div class='lf-line2'>📅 {dt} · 🕐 {lf.get('time','')} · 📦 {len(items)} products · ↩️ Returns: {lf_ret_total} · 🟢 Net: {net_lf}</div></div><div class='lf-boxes'>{tb}<small>BOXES</small></div></div>""", unsafe_allow_html=True)
+                sm_names = set(it.get("Salesman", "N/A") for it in items); sm_str = ", ".join(sm_names) if sm_names else "-"
+                st.markdown(f"""<div class='lf-simple-card'><div class='lf-info'><div class='lf-line1'>📦 Load Form #{lf_id} <span class='badge-pending'>{badge}</span></div><div class='lf-line2'>📅 {dt} · 🧑‍💼 {sm_str} · 🕐 {lf.get('time','')} · 📦 {len(items)} products · ↩️ Returns: {lf_ret_total} · 🟢 Net: {net_lf}</div></div><div class='lf-boxes'>{tb}<small>BOXES</small></div></div>""", unsafe_allow_html=True)
                 salesmen_list = db.get("salesmen", [])
                 if salesmen_list:
                     current_salesman = lf.get("salesman", ""); default_idx = 0
@@ -1803,6 +1625,7 @@ def _build_bill_excel(shop, bills, pkg_pct, pkg_name, tier_label, booker="", dat
     if not date_str:
         try: date_str = bills[0].get("Date", "") if bills else ""
         except Exception: date_str = ""
+    salesman = bills[0].get("Salesman", "") if bills else ""
     output = BytesIO(); wb = xlsxwriter.Workbook(output, {'in_memory': True}); ws = wb.add_worksheet("Bill")
     headers_txt = ["PRODUCT", "CODE", "BOXES", "TP/BOX", "GROSS", "DISC %", "NET", "PKG DISC %", "AFTER DISC NET", "SAVED"]
     max_lens = [len(h) for h in headers_txt]
@@ -1830,10 +1653,11 @@ def _build_bill_excel(shop, bills, pkg_pct, pkg_name, tier_label, booker="", dat
     net_val = wb.add_format({"bold": True, "font_size": 16, "bg_color": "#dcfce7", "align": "center", "border": 2, "num_format": '"RS "#,##0', "valign": "vcenter"})
     ws.merge_range("A1:J1", COMPANY_NAME, title)
     ws.merge_range("A3:B3", "ORDER BOOKER:", info_lbl); ws.merge_range("C3:E3", f"{booker or '-'}".upper(), info_val); ws.merge_range("F3:G3", "DATE:", info_lbl); ws.merge_range("H3:J3", f"{date_str or '-'}".upper(), info_date)
-    ws.merge_range("A4:B4", "SHOP:", info_lbl); ws.merge_range("C4:E4", (shop or "-").upper(), info_val); ws.merge_range("F4:G4", "BILL NO:", info_lbl); ws.merge_range("H4:J4", f"#{str(bills[0].get('Bill No', '')).upper() if bills else ''}", info_val)
-    if pkg_pct > 0: ws.merge_range("A5:J5", f"DISCOUNT: {pkg_name} | {tier_label} | {pkg_pct}%".upper(), pi)
-    else: ws.merge_range("A5:J5", "NO DISCOUNT APPLIED", pi)
-    hr = 6
+    ws.merge_range("A4:B4", "SHOP:", info_lbl); ws.merge_range("C4:E4", (shop or "-").upper(), info_val); ws.merge_range("F4:G4", "SALESMAN:", info_lbl); ws.merge_range("H4:J4", f"{salesman or '-'}".upper(), info_val)
+    ws.merge_range("A5:B5", "BILL NO:", info_lbl); ws.merge_range("C5:E5", f"#{str(bills[0].get('Bill No', '')).upper() if bills else ''}", info_val)
+    if pkg_pct > 0: ws.merge_range("A6:J6", f"DISCOUNT: {pkg_name} | {tier_label} | {pkg_pct}%".upper(), pi)
+    else: ws.merge_range("A6:J6", "NO DISCOUNT APPLIED", pi)
+    hr = 7
     for col, h in enumerate(headers_txt): ws.write(hr, col, h, hdr)
     row = hr + 1; gt = 0; tb = 0; nt = 0; ad = 0; sv = 0
     for b in bills:
