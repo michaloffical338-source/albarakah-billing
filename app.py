@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# Full code with Premium Login (Waves), Admin + Booker login
+# Full code with Premium Login, DSR Date Fix & Data Backup
 # ============================================================
 
 import os
@@ -69,8 +69,7 @@ def default_blank_db():
         "misc_expenses": [], "booker_returns": [],
         "discount_packages": default_discount_packages(),
         "custom_products": [], "dsr_forms": [], "credit_bills": [],
-        "deleted_products": [],
-        "next_credit_id": 1,
+        "deleted_products": [], "next_credit_id": 1,
         "wholesaler_packages": [
             {"id": "ws1", "name": "WS1", "discount_pct": 3.0},
             {"id": "ws2", "name": "WS2", "discount_pct": 5.0},
@@ -80,14 +79,10 @@ def default_blank_db():
 
 def default_discount_packages():
     return [
-        {"id": 1, "name": "Package 1", "tier1_amount": 1200.0, "tier1_pct": 1.0,
-         "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
-        {"id": 2, "name": "Package 2", "tier1_amount": 1200.0, "tier1_pct": 1.0,
-         "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
-        {"id": 3, "name": "Package 3", "tier1_amount": 1200.0, "tier1_pct": 1.0,
-         "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
-        {"id": 4, "name": "Package 4", "tier1_amount": 1200.0, "tier1_pct": 1.0,
-         "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
+        {"id": 1, "name": "Package 1", "tier1_amount": 1200.0, "tier1_pct": 1.0, "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
+        {"id": 2, "name": "Package 2", "tier1_amount": 1200.0, "tier1_pct": 1.0, "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
+        {"id": 3, "name": "Package 3", "tier1_amount": 1200.0, "tier1_pct": 1.0, "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
+        {"id": 4, "name": "Package 4", "tier1_amount": 1200.0, "tier1_pct": 1.0, "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
     ]
 
 # ============================================================
@@ -114,19 +109,10 @@ st.markdown("""
 
     /* ========================================================
        PROPER LOGIN CARD (middle column itself becomes the card)
-       - ::before  = light golden glow coming from behind
-       - ::after   = the card surface (cream / light golden)
        ======================================================== */
     @keyframes floatCard { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
-    @keyframes goldPulse {
-        0%   { opacity: 0.70; transform: scale(1); }
-        50%  { opacity: 1;    transform: scale(1.07); }
-        100% { opacity: 0.70; transform: scale(1); }
-    }
-    @keyframes cardShine {
-        0%   { background-position: -300% 0; }
-        100% { background-position: 300% 0; }
-    }
+    @keyframes goldPulse { 0% { opacity: 0.70; transform: scale(1); } 50% { opacity: 1; transform: scale(1.07); } 100% { opacity: 0.70; transform: scale(1); } }
+    @keyframes cardShine { 0% { background-position: -300% 0; } 100% { background-position: 300% 0; } }
 
     div[data-testid="stColumn"]:has(.login-card-marker),
     div[data-testid="column"]:has(.login-card-marker) {
@@ -138,38 +124,29 @@ st.markdown("""
         animation: floatCard 6s ease-in-out infinite;
         isolation: isolate;
     }
-    /* soft golden light behind the card */
     div[data-testid="stColumn"]:has(.login-card-marker)::before,
     div[data-testid="column"]:has(.login-card-marker)::before {
         content: '';
         position: absolute;
         inset: -55px;
         border-radius: 60px;
-        background:
-            radial-gradient(circle at 50% 45%, rgba(255, 223, 100, 0.85) 0%, rgba(255, 200, 60, 0.55) 35%, rgba(255, 190, 40, 0.0) 70%);
+        background: radial-gradient(circle at 50% 45%, rgba(255, 223, 100, 0.85) 0%, rgba(255, 200, 60, 0.55) 35%, rgba(255, 190, 40, 0.0) 70%);
         filter: blur(38px);
         z-index: -2;
         animation: goldPulse 4s ease-in-out infinite;
         pointer-events: none;
     }
-    /* the actual card surface */
     div[data-testid="stColumn"]:has(.login-card-marker)::after,
     div[data-testid="column"]:has(.login-card-marker)::after {
         content: '';
         position: absolute;
         inset: 0;
         border-radius: 26px;
-        background:
-            linear-gradient(115deg, rgba(255,255,255,0) 35%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0) 65%),
-            linear-gradient(160deg, #fffdf3 0%, #fff7d6 55%, #ffefb0 100%);
+        background: linear-gradient(115deg, rgba(255,255,255,0) 35%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0) 65%), linear-gradient(160deg, #fffdf3 0%, #fff7d6 55%, #ffefb0 100%);
         background-size: 300% 100%, 100% 100%;
         animation: cardShine 7s linear infinite;
         border: 1.5px solid rgba(218, 165, 32, 0.55);
-        box-shadow:
-            0 25px 60px rgba(0, 0, 0, 0.35),
-            0 0 0 5px rgba(255, 215, 0, 0.12),
-            inset 0 1px 0 rgba(255, 255, 255, 0.9),
-            inset 0 -12px 30px rgba(218, 165, 32, 0.12);
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35), 0 0 0 5px rgba(255, 215, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -12px 30px rgba(218, 165, 32, 0.12);
         z-index: -1;
         pointer-events: none;
     }
@@ -1167,6 +1144,20 @@ def render_admin_dashboard():
                 sub_text = 'Salary not set' if base == 0 else f'Remaining: <b>Rs {remaining:,.0f}</b>'
                 al = (s_name[0] if s_name else "?").upper()
                 st.markdown(f"""<div class="team-card"><div class="team-avatar salesman">{al}</div><div class="team-info"><div class="team-name">{s_name}</div><div class="team-meta">{sub_text}</div></div><div class="team-badge" style="background:#faf5ff;color:#9333ea;">SALESMAN</div></div>""", unsafe_allow_html=True)
+    st.markdown("---"); st.markdown("### 💾 Backup & Restore (Data Safety)")
+    bc1, bc2 = st.columns(2)
+    with bc1:
+        bk_data = json.dumps(db, indent=4, ensure_ascii=False)
+        st.download_button(label="📥 Download Backup (JSON)", data=bk_data, file_name=f"Backup_{CURRENT_USER}_{datetime.now().strftime('%Y%m%d')}.json", mime="application/json", use_container_width=True, type="primary")
+    with bc2:
+        up_file = st.file_uploader("📂 Upload Backup", type=["json"], key="restore_file_uploader", label_visibility="collapsed")
+        if up_file is not None:
+            try:
+                new_db = json.load(up_file)
+                with open(user_data_file(CURRENT_USER), "w", encoding="utf-8") as f: json.dump(new_db, f, indent=4, ensure_ascii=False)
+                st.session_state.database = new_db
+                st.success("✅ Data Restored Successfully! Please Reboot App.")
+            except Exception as e: st.error(f"❌ Error: {e}")
 
 def render_admin_booker_bills():
     st.markdown(f"<h1 style='color:#0f172a;'>📈 Booker Bills & Returns</h1>", unsafe_allow_html=True); st.markdown("---")
