@@ -808,11 +808,15 @@ def get_effective_discount_pct(shop_name, bill_total):
 
 def get_dsr_credit_info(dsr):
     booker = dsr.get("booker", "").strip()
+    dsr_date = dsr.get("date", "").strip()
     credit_total = 0.0; credit_shops = {}; credit_details = []
     for sb in dsr.get("source_bills", []):
         shop = sb.get("shop", ""); bill_no = sb.get("bill_no", "")
         for cb in db.get("credit_bills", []):
-            if (str(cb.get("booker", "")).strip() == booker and str(cb.get("bill_no", "")) == str(bill_no) and str(cb.get("shop", "")) == str(shop)):
+            if (str(cb.get("booker", "")).strip() == booker and 
+                str(cb.get("bill_no", "")) == str(bill_no) and 
+                str(cb.get("shop", "")) == str(shop) and
+                str(cb.get("date", "")).strip() == dsr_date):
                 amt = float(cb.get("total_net", 0)); credit_total += amt; credit_shops[shop] = credit_shops.get(shop, 0) + amt
                 credit_details.append({"shop": shop, "bill_no": bill_no, "amount": amt, "status": cb.get("status", "pending"), "credit_id": cb.get("id")}); break
     return credit_total, credit_shops, credit_details
