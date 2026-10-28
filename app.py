@@ -1,5 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
+# (With Google Sheets Cloud Database)
 # ============================================================
 
 import os
@@ -11,6 +12,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 import xlsxwriter
 from io import BytesIO
+from streamlit_gsheets import GSheetsConnection
 
 st.set_page_config(
     page_title="AL-BARAKAH ENTERPRISES",
@@ -18,6 +20,14 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# ============================================================
+# GOOGLE SHEETS CONNECTION
+# ============================================================
+try:
+    conn = st.connection("gsheets", type=GSheetsConnection)
+except Exception as e:
+    st.error(f"Google Sheets connection failed. Check Secrets. Error: {e}")
 
 # ============================================================
 # AUTH HELPERS
@@ -359,6 +369,28 @@ COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
 PRODUCTS = []
 
 # ============================================================
+# CLOUD DATABASE HELPERS
+# ============================================================
+def load_cloud_db():
+    try:
+        df = conn.read(worksheet="Sheet1", ttl=0)
+        if df.empty or 'data' not in df.columns:
+            return default_blank_db()
+        data_str = df['data'].iloc[0]
+        return json.loads(data_str)
+    except Exception:
+        return default_blank_db()
+
+def save_cloud_db(db_data):
+    try:
+        json_str = json.dumps(db_data, ensure_ascii=False)
+        df = pd.DataFrame([{"data": json_str}])
+        conn.update(worksheet="Sheet1", data=df)
+        conn.read(worksheet="Sheet1", ttl=0) 
+    except Exception as e:
+        st.error(f"⚠️ Cloud Save Error: {e}")
+
+# ============================================================
 # AUTH SCREEN
 # ============================================================
 def render_auth_page():
@@ -460,6 +492,7 @@ def render_auth_page():
                     users[uname_safe] = {"username": uname_safe, "display_name": su_user.strip(), "password_hash": hash_password(su_pass), "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
                     save_users(users)
                     with open(user_data_file(uname_safe), "w", encoding="utf-8") as f: json.dump(default_blank_db(), f, indent=4, ensure_ascii=False)
+                    save_cloud_db(default_blank_db())
                     st.success(f"✅ Account created — Username: **{uname_safe}**")
 
 # ============================================================
@@ -467,39 +500,32 @@ def render_auth_page():
 # ============================================================
 def load_database_for(username):
     if not username: return default_blank_db()
-    fpath = user_data_file(username)
-    if os.path.exists(fpath):
-        try:
-            with open(fpath, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                for k in ["bookers", "salesmen", "load_forms", "petrol_expenses", "lunch_expenses", "misc_expenses", "booker_returns", "custom_products", "dsr_forms", "credit_bills", "deleted_products"]:
-                    if k not in data or data[k] is None: data[k] = []
-                for k in ["bookers_salaries", "salesmen_salaries", "product_prices"]:
-                    if k not in data or data[k] is None: data[k] = {}
-                if "discount_packages" not in data or not isinstance(data.get("discount_packages"), list) or not data["discount_packages"]:
-                    data["discount_packages"] = default_discount_packages()
-                else:
-                    for p in data["discount_packages"]:
-                        if "tier3_amount" not in p: p["tier3_amount"] = 0.0
-                        if "tier3_pct" not in p: p["tier3_pct"] = 0.0
-                if "bills" not in data or data["bills"] is None: data["bills"] = []
-                if "next_bill_no" not in data: data["next_bill_no"] = 1
-                if "next_credit_id" not in data: data["next_credit_id"] = max([c.get("id", 0) for c in data.get("credit_bills", [])] + [0]) + 1
-                if "wholesaler_packages" not in data or not data["wholesaler_packages"]:
-                    data["wholesaler_packages"] = [{"id": "ws1", "name": "WS1", "discount_pct": 3.0}, {"id": "ws2", "name": "WS2", "discount_pct": 5.0}, {"id": "ws3", "name": "WS3", "discount_pct": 7.0}]
-                
-                for b in data.get("bookers", []):
-                    if b not in data["bookers_salaries"]:
-                        data["bookers_salaries"][b] = {"base_salary": 0, "transactions": []}
-                for s in data.get("salesmen", []):
-                    if s not in data["salesmen_salaries"]:
-                        data["salesmen_salaries"][s] = {"base_salary": 0, "transactions": []}
-
-                return data
-        except Exception as e: 
-            st.error(f"⚠️ Data read error: {e}")
-            pass
-    return default_blank_db()
+    data = load_cloud_db()
+    if not data: return default_blank_db()
+    
+    for k in ["bookers", "salesmen", "load_forms", "petrol_expenses", "lunch_expenses", "misc_expenses", "booker_returns", "custom_products", "dsr_forms", "credit_bills", "deleted_products"]:
+        if k not in data or data[k] is None: data[k] = []
+    for k in ["bookers_salaries", "salesmen_salaries", "product_prices"]:
+        if k not in data or data[k] is None: data[k] = {}
+    if "discount_packages" not in data or not isinstance(data.get("discount_packages"), list) or not data["discount_packages"]:
+        data["discount_packages"] = default_discount_packages()
+    else:
+        for p in data["discount_packages"]:
+            if "tier3_amount" not in p: p["tier3_amount"] = 0.0
+            if "tier3_pct" not in p: p["tier3_pct"] = 0.0
+    if "bills" not in data or data["bills"] is None: data["bills"] = []
+    if "next_bill_no" not in data: data["next_bill_no"] = 1
+    if "next_credit_id" not in data: data["next_credit_id"] = max([c.get("id", 0) for c in data.get("credit_bills", [])] + [0]) + 1
+    if "wholesaler_packages" not in data or not data["wholesaler_packages"]:
+        data["wholesaler_packages"] = [{"id": "ws1", "name": "WS1", "discount_pct": 3.0}, {"id": "ws2", "name": "WS2", "discount_pct": 5.0}, {"id": "ws3", "name": "WS3", "discount_pct": 7.0}]
+    
+    for b in data.get("bookers", []):
+        if b not in data["bookers_salaries"]:
+            data["bookers_salaries"][b] = {"base_salary": 0, "transactions": []}
+    for s in data.get("salesmen", []):
+        if s not in data["salesmen_salaries"]:
+            data["salesmen_salaries"][s] = {"base_salary": 0, "transactions": []}
+    return data
 
 if "logged_in_user" not in st.session_state or not st.session_state["logged_in_user"]:
     render_auth_page()
@@ -508,19 +534,15 @@ if "logged_in_user" not in st.session_state or not st.session_state["logged_in_u
 CURRENT_USER = st.session_state["logged_in_user"]
 ROLE = st.session_state.get("role", "admin")
 
-def save_database(db):
-    try:
-        with open(user_data_file(CURRENT_USER), "w", encoding="utf-8") as f: json.dump(db, f, indent=4, ensure_ascii=False)
-    except Exception as e: st.warning(f"⚠️ Save Error: {e}")
+def save_database(db_data):
+    save_cloud_db(db_data)
 
 def parse_date(dstr):
     try: return datetime.strptime(dstr, "%d-%m-%Y").date()
     except Exception: return None
 
-if "database" not in st.session_state: st.session_state.database = load_database_for(CURRENT_USER)
-if st.session_state.get("_db_user") != CURRENT_USER:
+if "database" not in st.session_state:
     st.session_state.database = load_database_for(CURRENT_USER)
-    st.session_state["_db_user"] = CURRENT_USER
 
 for _k, _v in [("_prev_prod", None), ("last_bill_no", None), ("download_file", None), ("_dl_counter", 0), ("page", "📊 Dashboard"), ("view_bill_key", None), ("view_lf_key", None), ("view_dsr_key", None), ("view_credit_key", None), ("bk_page", "🧾 New Bill"), ("bk_bill_draft", []), ("bk_load_draft", []), ("bk_current_shop", ""), ("bk_bills_created", 0), ("bk_reset_item_form", False), ("bk_reset_shop_form", False), ("prod_select_mode", False), ("prod_confirm_all", False)]:
     if _k not in st.session_state: st.session_state[_k] = _v
@@ -993,8 +1015,7 @@ def render_admin_dashboard():
         if up_file is not None:
             try:
                 new_db = json.load(up_file)
-                with open(user_data_file(CURRENT_USER), "w", encoding="utf-8") as f: json.dump(new_db, f, indent=4, ensure_ascii=False)
-                st.session_state.database = new_db
+                save_cloud_db(new_db)
                 st.success("✅ Data Restored Successfully! Please Reboot App.")
             except Exception as e: st.error(f"❌ Error: {e}")
 
