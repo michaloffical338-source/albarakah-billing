@@ -1,7 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# (100% Original Design + Google Sheet Auto-Save)
-# Final Fixed Version
+# (100% Working Google Sheet + Original Design + Auto-Save)
 # ============================================================
 
 import os
@@ -23,21 +22,21 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# --- CONSTANTS ---
+COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
+PRODUCTS = []
+PASSWORD_SALT = st.secrets.get("PASSWORD_SALT", "albarakah_2026_secret_salt")
+AUTH_SHEET = "Auth"
+BOOKERS_SHEET = "Bookers"
+
 # ============================================================
-# GOOGLE SHEETS CONNECTION
+# GOOGLE SHEETS CONNECTION & HELPERS
 # ============================================================
 try:
     conn = st.connection("gsheets", type=GSheetsConnection)
 except Exception as e:
     st.error(f"Google Sheets connection failed. Check Secrets. Error: {e}")
     st.stop()
-
-# ============================================================
-# AUTH HELPERS
-# ============================================================
-PASSWORD_SALT = st.secrets.get("PASSWORD_SALT", "albarakah_2026_secret_salt")
-AUTH_SHEET = "Auth"
-BOOKERS_SHEET = "Bookers"
 
 def hash_password(password):
     return hashlib.sha256((PASSWORD_SALT + password).encode()).hexdigest()
@@ -107,7 +106,7 @@ def save_bookers(registry):
         except Exception as e: st.session_state["cloud_error"] = f"⚠️ Bookers save failed: {e}"
 
 # ============================================================
-# CLOUD DB PER ADMIN
+# CLOUD DB PER ADMIN (AUTO SAVE)
 # ============================================================
 def _worksheet_name_for_admin(username):
     return f"Data_{sanitize_username(username) or 'default'}"
@@ -206,8 +205,6 @@ def load_database_for(admin_username):
 def parse_date(dstr):
     try: return datetime.strptime(dstr, "%d-%m-%Y").date()
     except Exception: return None
-
-PRODUCTS = []
 
 # ============================================================
 # GLOBAL CSS & ANIMATIONS (ORIGINAL PREMIUM DESIGN)
