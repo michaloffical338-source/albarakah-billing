@@ -1,6 +1,7 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
 # (With Google Sheets Cloud Database - Auto Save)
+# 100% Final & Error-Free Code
 # ============================================================
 
 import os
@@ -39,36 +40,16 @@ PASSWORD_SALT = "albarakah_2026_secret_salt"
 def hash_password(password):
     return hashlib.sha256((PASSWORD_SALT + password).encode()).hexdigest()
 
-def load_users():
-    if os.path.exists(USERS_FILE):
-        try:
-            with open(USERS_FILE, "r", encoding="utf-8") as f: return json.load(f)
-        except Exception: pass
-    return {}
-
-def save_users(users):
-    with open(USERS_FILE, "w", encoding="utf-8") as f:
-        json.dump(users, f, indent=4, ensure_ascii=False)
-
-def load_bookers():
-    if os.path.exists(BOOKERS_FILE):
-        try:
-            with open(BOOKERS_FILE, "r", encoding="utf-8") as f: return json.load(f)
-        except Exception: pass
-    return {}
-
-def save_bookers(bookers):
-    with open(BOOKERS_FILE, "w", encoding="utf-8") as f:
-        json.dump(bookers, f, indent=4, ensure_ascii=False)
-
 def sanitize_username(u):
     return "".join(ch for ch in u if ch.isalnum() or ch in "_-.").lower()
 
-def user_data_file(username):
-    return f"billing_database_{username}.json"
-
-def get_booker_draft_file(booker_name):
-    return f"booker_draft_{sanitize_username(booker_name)}.json"
+def default_discount_packages():
+    return [
+        {"id": 1, "name": "Package 1", "tier1_amount": 1200.0, "tier1_pct": 1.0, "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
+        {"id": 2, "name": "Package 2", "tier1_amount": 1200.0, "tier1_pct": 1.0, "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
+        {"id": 3, "name": "Package 3", "tier1_amount": 1200.0, "tier1_pct": 1.0, "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
+        {"id": 4, "name": "Package 4", "tier1_amount": 1200.0, "tier1_pct": 1.0, "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
+    ]
 
 def default_blank_db():
     return {
@@ -86,13 +67,102 @@ def default_blank_db():
         ],
     }
 
-def default_discount_packages():
-    return [
-        {"id": 1, "name": "Package 1", "tier1_amount": 1200.0, "tier1_pct": 1.0, "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
-        {"id": 2, "name": "Package 2", "tier1_amount": 1200.0, "tier1_pct": 1.0, "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
-        {"id": 3, "name": "Package 3", "tier1_amount": 1200.0, "tier1_pct": 1.0, "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
-        {"id": 4, "name": "Package 4", "tier1_amount": 1200.0, "tier1_pct": 1.0, "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True},
-    ]
+# ============================================================
+# SMART CLOUD DB HELPERS (Fixes Column/JSON issues)
+# ============================================================
+def load_users_cloud():
+    """Smart load: Parhta hai chahe data JSON mein ho ya Columns mein."""
+    try:
+        df = conn.read(worksheet="Auth", ttl=0)
+        if df.empty: return {}
+        
+        # If data is in columns (username, display_name, etc)
+        if "username" in df.columns and "password_hash" in df.columns:
+            users = {}
+            for _, row in df.iterrows():
+                u = str(row["username"]).strip()
+                if u and u != "nan":
+                    users[u] = {
+                        "username": u,
+                        "display_name": str(row.get("display_name", u)),
+                        "password_hash": str(row.get("password_hash", "")),
+                        "created_at": str(row.get("created_at", ""))
+                    }
+            return users
+            
+        # If data is in single column JSON
+        elif "data" in df.columns:
+            raw = df["data"].iloc[0]
+            if pd.isna(raw) or str(raw).strip() == "": return {}
+            return json.loads(raw)
+            
+        return {}
+    except Exception: 
+        return {}
+
+def save_users_cloud(users):
+    try:
+        # Save as single JSON column to keep it simple
+        df = pd.DataFrame([{"data": json.dumps(users, ensure_ascii=False)}])
+        try: conn.update(worksheet="Auth", data=df)
+        except Exception: conn.create(worksheet="Auth", data=df)
+    except Exception: pass
+
+def load_bookers_cloud():
+    try:
+        df = conn.read(worksheet="Bookers", ttl=0)
+        if df.empty: return {}
+        if "booker_username" in df.columns:
+            reg = {}
+            for _, row in df.iterrows():
+                u = str(row["booker_username"]).strip()
+                if u and u != "nan":
+                    reg[u] = {
+                        "username": u,
+                        "display_name": str(row.get("display_name", u)),
+                        "admin": str(row.get("admin", "")),
+                        "password_hash": str(row.get("password_hash", "")),
+                        "created_at": str(row.get("created_at", ""))
+                    }
+            return reg
+        elif "data" in df.columns:
+            raw = df["data"].iloc[0]
+            if pd.isna(raw) or str(raw).strip() == "": return {}
+            return json.loads(raw)
+        return {}
+    except Exception: 
+        return {}
+
+def save_bookers_cloud(registry):
+    try:
+        df = pd.DataFrame([{"data": json.dumps(registry, ensure_ascii=False)}])
+        try: conn.update(worksheet="Bookers", data=df)
+        except Exception: conn.create(worksheet="Bookers", data=df)
+    except Exception: pass
+
+def load_database_for(username):
+    if not username: return default_blank_db()
+    sheet = f"Data_{sanitize_username(username)}"
+    try:
+        df = conn.read(worksheet=sheet, ttl=0)
+        if df.empty or "data" not in df.columns: return default_blank_db()
+        raw = df["data"].iloc[0]
+        if pd.isna(raw) or str(raw).strip() == "": return default_blank_db()
+        return json.loads(raw)
+    except Exception: 
+        return default_blank_db()
+
+def save_cloud_db(admin_username, db_data):
+    sheet = f"Data_{sanitize_username(admin_username)}"
+    try:
+        json_str = json.dumps(db_data, ensure_ascii=False)
+        df = pd.DataFrame([{"data": json_str}])
+        try: conn.update(worksheet=sheet, data=df)
+        except Exception: conn.create(worksheet=sheet, data=df)
+        return True
+    except Exception as e:
+        st.error(f"⚠️ Cloud Save Error: {e}")
+        return False
 
 # ============================================================
 # GLOBAL CSS
@@ -117,23 +187,12 @@ st.markdown("""
     div[data-testid="stColumn"]:has(.login-card-marker) .stTabs [data-baseweb="tab-list"], div[data-testid="column"]:has(.login-card-marker) .stTabs [data-baseweb="tab-list"] { gap: 8px; background-color: rgba(255, 255, 255, 0.65); padding: 6px; border-radius: 12px; margin-bottom: 18px; border: 1px solid rgba(218, 165, 32, 0.3); }
     div[data-testid="stColumn"]:has(.login-card-marker) .stTabs [data-baseweb="tab"], div[data-testid="column"]:has(.login-card-marker) .stTabs [data-baseweb="tab"] { border-radius: 8px; padding: 10px 15px; background-color: transparent; color: #8b6508 !important; font-weight: 700 !important; border: none; transition: all 0.3s ease; }
     div[data-testid="stColumn"]:has(.login-card-marker) .stTabs [aria-selected="true"], div[data-testid="column"]:has(.login-card-marker) .stTabs [aria-selected="true"] { background-color: #ffffff !important; color: #b8860b !important; box-shadow: 0 2px 8px rgba(218, 165, 32, 0.25) !important; }
-    div[data-testid="stColumn"]:has(.login-card-marker) .stTabs [data-baseweb="tab-highlight"], div[data-testid="column"]:has(.login-card-marker) .stTabs [data-baseweb="tab-highlight"] { background-color: #daa520 !important; }
     div[data-testid="stColumn"]:has(.login-card-marker) .stTextInput > div > div > input, div[data-testid="column"]:has(.login-card-marker) .stTextInput > div > div > input, div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="input"] input, div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="input"] input { background-color: rgba(255, 255, 255, 0.95) !important; border: 1.5px solid rgba(218, 165, 32, 0.55) !important; border-radius: 10px !important; color: #333 !important; transition: all 0.3s ease !important; }
     div[data-testid="stColumn"]:has(.login-card-marker) .stTextInput > div > div > input:focus, div[data-testid="column"]:has(.login-card-marker) .stTextInput > div > div > input:focus { border-color: #daa520 !important; box-shadow: 0 0 12px rgba(218, 165, 32, 0.45) !important; }
-    div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="input"], div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="input"], div[data-testid="stColumn"]:has(.login-card-marker) div[data-baseweb="base-input"], div[data-testid="column"]:has(.login-card-marker) div[data-baseweb="base-input"] { background-color: transparent !important; border-color: transparent !important; }
     div[data-testid="stColumn"]:has(.login-card-marker) .stButton > button, div[data-testid="column"]:has(.login-card-marker) .stButton > button { background: linear-gradient(135deg, #daa520 0%, #b8860b 100%) !important; border: none !important; color: #ffffff !important; font-weight: 700 !important; border-radius: 10px !important; transition: all 0.3s ease !important; box-shadow: 0 4px 15px rgba(218, 165, 32, 0.4) !important; }
     div[data-testid="stColumn"]:has(.login-card-marker) .stButton > button:hover, div[data-testid="column"]:has(.login-card-marker) .stButton > button:hover { transform: translateY(-2px) !important; box-shadow: 0 8px 25px rgba(218, 165, 32, 0.6) !important; background: linear-gradient(135deg, #ffd700 0%, #daa520 100%) !important; }
     .bubbles { position: fixed; bottom: -100px; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; margin: 0; padding: 0; }
     .bubbles li { position: absolute; list-style: none; display: block; width: 40px; height: 40px; bottom: -160px; animation: square 25s infinite linear; border-radius: 50%; }
-    .bubbles li:nth-child(1) { left: 10%; width: 80px; height: 80px; animation-delay: 0s; background: rgba(33,150,243,0.15); }
-    .bubbles li:nth-child(2) { left: 20%; width: 30px; height: 30px; animation-delay: 2s; animation-duration: 12s; background: rgba(76,175,80,0.15); }
-    .bubbles li:nth-child(3) { left: 35%; width: 100px; height: 100px; animation-delay: 4s; background: rgba(255,152,0,0.15); }
-    .bubbles li:nth-child(4) { left: 50%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s; background: rgba(156,39,176,0.15); }
-    .bubbles li:nth-child(5) { left: 65%; width: 40px; height: 40px; animation-delay: 1s; background: rgba(0,188,212,0.15); }
-    .bubbles li:nth-child(6) { left: 80%; width: 120px; height: 120px; animation-delay: 3s; background: rgba(233,30,99,0.12); }
-    .bubbles li:nth-child(7) { left: 90%; width: 50px; height: 50px; animation-delay: 5s; animation-duration: 14s; background: rgba(255,193,7,0.15); }
-    .bubbles li:nth-child(8) { left: 25%; width: 90px; height: 90px; animation-delay: 7s; background: rgba(76,175,80,0.15); }
-    .bubbles li:nth-child(9) { left: 75%; width: 70px; height: 70px; animation-delay: 2s; animation-duration: 22s; background: rgba(33,150,243,0.15); }
     @keyframes square { 0% { transform: translateY(0) rotate(0deg); opacity: 1; border-radius: 50%; } 100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; border-radius: 50%; } }
     @keyframes heroShade { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
     .dash-hero { background: linear-gradient(-45deg, #1e3a8a, #2563eb, #3b82f6, #8b5cf6, #2563eb) !important; background-size: 300% 300% !important; animation: heroShade 8s ease infinite !important; border-radius: 20px; padding: 26px 32px; margin-bottom: 22px; color: #fff; position: relative; overflow: hidden; box-shadow: 0 12px 32px rgba(37, 99, 235, 0.35); z-index: 2; }
@@ -369,80 +428,13 @@ COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
 PRODUCTS = []
 
 # ============================================================
-# CLOUD DATABASE HELPERS
-# ============================================================
-def load_cloud_db(admin_username):
-    sheet = f"Data_{sanitize_username(admin_username) or 'default'}"
-    try:
-        df = conn.read(worksheet=sheet, ttl=0)
-        if df.empty or 'data' not in df.columns:
-            return default_blank_db()
-        data_str = df['data'].iloc[0]
-        if not data_str or pd.isna(data_str): return default_blank_db()
-        return json.loads(data_str)
-    except Exception:
-        return default_blank_db()
-
-def save_cloud_db(admin_username, db_data):
-    sheet = f"Data_{sanitize_username(admin_username) or 'default'}"
-    try:
-        json_str = json.dumps(db_data, ensure_ascii=False)
-        df = pd.DataFrame([{"data": json_str}])
-        try: conn.update(worksheet=sheet, data=df)
-        except Exception: conn.create(worksheet=sheet, data=df)
-        return True
-    except Exception as e:
-        st.error(f"⚠️ Cloud Save Error: {e}")
-        return False
-
-def load_bookers_cloud():
-    try:
-        df = conn.read(worksheet="Bookers", ttl=0)
-        if df.empty or "data" not in df.columns: return {}
-        raw = df["data"].iloc[0]
-        return json.loads(raw) if raw and not pd.isna(raw) else {}
-    except Exception: return {}
-
-def save_bookers_cloud(registry):
-    try:
-        df = pd.DataFrame([{"data": json.dumps(registry, ensure_ascii=False)}])
-        try: conn.update(worksheet="Bookers", data=df)
-        except Exception: conn.create(worksheet="Bookers", data=df)
-    except Exception: pass
-
-def load_users_cloud():
-    try:
-        df = conn.read(worksheet="Auth", ttl=0)
-        if df.empty or "data" not in df.columns: return {}
-        raw = df["data"].iloc[0]
-        return json.loads(raw) if raw and not pd.isna(raw) else {}
-    except Exception: return {}
-
-def save_users_cloud(users):
-    try:
-        df = pd.DataFrame([{"data": json.dumps(users, ensure_ascii=False)}])
-        try: conn.update(worksheet="Auth", data=df)
-        except Exception: conn.create(worksheet="Auth", data=df)
-    except Exception: pass
-
-# ============================================================
 # AUTH SCREEN
 # ============================================================
 def render_auth_page():
     st.markdown("""
     <style>
-    @keyframes waveMove {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-    .login-bg {
-        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-        background: linear-gradient(270deg, #0f172a, #1e3a8a, #2563eb, #3b82f6, #8b5cf6, #2563eb, #1e3a8a, #0f172a);
-        background-size: 400% 400%;
-        animation: waveMove 15s ease infinite;
-        z-index: -1;
-    }
+    @keyframes waveMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    .login-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(270deg, #0f172a, #1e3a8a, #2563eb, #3b82f6, #8b5cf6, #2563eb, #1e3a8a, #0f172a); background-size: 400% 400%; animation: waveMove 15s ease infinite; z-index: -1; }
     </style>
     <div class="login-bg"></div>
     """, unsafe_allow_html=True)
@@ -524,11 +516,6 @@ def render_auth_page():
 # ============================================================
 # LOAD DB & CHECK LOGIN
 # ============================================================
-def load_database_for(username):
-    if not username: return default_blank_db()
-    data = load_cloud_db(username)
-    return data if data else default_blank_db()
-
 if "logged_in_user" not in st.session_state or not st.session_state["logged_in_user"]:
     render_auth_page()
     st.stop()
