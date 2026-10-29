@@ -1,7 +1,7 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# (With Google Sheets Cloud Database - Auto Save)
-# Final Fixed Code for Booker & Salesmen
+# (With Google Sheets Cloud Database - Auto Save & Merge)
+# Final Fixed Code
 # ============================================================
 
 import os
@@ -514,8 +514,9 @@ def parse_date(dstr):
     try: return datetime.strptime(dstr, "%d-%m-%Y").date()
     except Exception: return None
 
-# Yahan data load ho raha hai
-st.session_state.database = load_database_for(CURRENT_USER)
+if "database" not in st.session_state:
+    st.session_state.database = load_database_for(CURRENT_USER)
+    
 db = st.session_state.database
 
 for _k, _v in [("_prev_prod", None), ("last_bill_no", None), ("download_file", None), ("_dl_counter", 0), ("page", "📊 Dashboard"), ("view_bill_key", None), ("view_lf_key", None), ("view_dsr_key", None), ("view_credit_key", None), ("bk_page", "🧾 New Bill"), ("bk_bill_draft", []), ("bk_load_draft", []), ("bk_current_shop", ""), ("bk_bills_created", 0), ("bk_reset_item_form", False), ("bk_reset_shop_form", False), ("prod_select_mode", False), ("prod_confirm_all", False)]:
@@ -753,16 +754,11 @@ def render_booker_new_bill():
         if ws_pkg: st.markdown(f"<div class='hint-box' style='background:#faf5ff;border-left-color:#9333ea;color:#6b21a8;'>🏢 Package: {ws_pkg['name']} — {ws_pkg['discount_pct']}% discount</div>", unsafe_allow_html=True)
     
     st.markdown("---"); st.markdown("### ➕ Add Item")
-    
-    # Yahan products load ho rahe hain (Admin wale saare products show honge)
     all_products = get_all_products()
     search_txt = st.text_input("🔍 Search Product", key="bk_search", placeholder="Type name...")
     su = search_txt.strip().upper()
-    
-    # Filter logic fix
     filtered = [p for p in all_products if su in p["name"].upper() or su in str(p["code"]).upper()] if su else all_products
     filtered_labels = [f"{p['name']} (Code: {p['code']})" for p in filtered]
-    
     c1, c2, c3 = st.columns([3, 1, 1])
     with c1: selected = st.selectbox("Product", options=["-- Select --"] + filtered_labels, key="bk_product_sel")
     with c2: boxes = st.number_input("Boxes", min_value=0, step=1, value=0, key="bk_qty")
@@ -827,18 +823,58 @@ def finalize_booker_load_form():
     global db
     load_draft = st.session_state.get("bk_load_draft", [])
     if not load_draft: st.session_state["error_msg"] = "❌ Load form empty"; return
-    bk_name = st.session_state.get("booker_name", ""); today_str = datetime.now().strftime("%d-%m-%Y"); total_boxes = sum(int(it["Boxes"]) for it in load_draft); sm_name = load_draft[0].get("Salesman", "Unknown")
+    
+    bk_name = st.session_state.get("booker_name", ""); today_str = datetime.now().strftime("%d-%m-%Y")
+    total_boxes = sum(int(it["Boxes"]) for it in load_draft)
+    sm_name = load_draft[0].get("Salesman", "Unknown")
+
+    # AGAR PEHLE SE USI DIN KA AUR USI SALESMAN KA LOAD FORM MOJOOD HAI TO UPDATE KAREIN (MERGE)
     existing_lf = None
     for lf in db.get("load_forms", []):
         lf_sm = lf.get("salesman", "")
         if not lf_sm and lf.get("items"): lf_sm = lf["items"][0].get("Salesman", "Unknown")
-        if lf.get("booker") == bk_name and lf.get("date") == today_str and not lf.get("transferred_to_dsr") and lf_sm == sm_name: existing_lf = lf; break
+        if (lf.get("booker") == bk_name and lf.get("date") == today_str 
+            and not lf.get("transferred_to_dsr") and lf_sm == sm_name):
+            existing_lf = lf
+            break
+
     if existing_lf:
-        existing_lf["items"] = load_draft; existing_lf["total_boxes"] = total_boxes; existing_lf["total_products"] = len(load_draft); existing_lf["time"] = datetime.now().strftime("%H:%M"); existing_lf["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S"); existing_lf["salesman"] = sm_name; msg = f"🔄 Load Form #{existing_lf['id']} updated for {sm_name}"
+        # JAZB (MERGE) LOGIC: Purane items ke sath naye items milayein
+        existing_items = existing_lf.get("items", [])
+        for new_item in load_draft:
+            found = False
+            for old_item in existing_items:
+                if str(old_item.get("Code")) == str(new_item.get("Code")):
+                    old_item["Boxes"] += int(new_item["Boxes"]) # Boxes jama kar dein
+                    found = True
+                    break
+            if not found:
+                existing_items.append(new_item)
+                
+        existing_lf["items"] = existing_items
+        existing_lf["total_boxes"] = sum(int(it.get("Boxes", 0)) for it in existing_items)
+        existing_lf["total_products"] = len(existing_items)
+        existing_lf["time"] = datetime.now().strftime("%H:%M")
+        existing_lf["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        existing_lf["salesman"] = sm_name
+        msg = f"🔄 Load Form Merged! Now Total: {existing_lf['total_boxes']} boxes"
+        
     else:
-        next_id = max([lf.get("id", 0) for lf in db["load_forms"]] + [0]) + 1
-        db["load_forms"].append({"id": next_id, "date": today_str, "time": datetime.now().strftime("%H:%M"), "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "booker": bk_name, "salesman": sm_name, "items": load_draft, "total_boxes": total_boxes, "total_products": len(load_draft), "transferred_to_dsr": False, "refreshed": False, "source": "booker"}); msg = f"✅ New Load Form #{next_id} saved for {sm_name}"
-    save_database(db); st.session_state["bk_load_draft"] = []; st.session_state["success_msg"] = msg; st.rerun()
+        # NAYA LOAD FORM
+        next_id = max([lf.get("id", 0) for lf in db.get("load_forms", [])] + [0]) + 1
+        db.setdefault("load_forms", []).append({
+            "id": next_id, "date": today_str, "time": datetime.now().strftime("%H:%M"),
+            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "booker": bk_name, "salesman": sm_name, "items": load_draft,
+            "total_boxes": total_boxes, "total_products": len(load_draft),
+            "transferred_to_dsr": False, "refreshed": False, "source": "booker"
+        })
+        msg = f"✅ New Load Form #{next_id} saved"
+        
+    save_database(db)
+    st.session_state["bk_load_draft"] = [] # Session clear karein
+    st.session_state["success_msg"] = msg
+    st.rerun()
 
 def render_booker_all_products():
     st.markdown(f"<h1 style='color:#0f172a;'>🛒 All Products with TP</h1>", unsafe_allow_html=True); st.markdown("---")
