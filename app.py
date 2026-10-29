@@ -1,7 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# (Google Sheets Cloud Database + ALL Original Animations)
-# 100% Complete & Error-Free Code
+# (Original Code with Google Sheets Cloud Database)
 # ============================================================
 
 import os
@@ -33,10 +32,8 @@ except Exception as e:
     st.stop()
 
 # ============================================================
-# CONSTANTS & AUTH
+# AUTH HELPERS
 # ============================================================
-COMPANY_NAME = "AL-BARAKAH ENTERPRISES"
-PRODUCTS = []
 PASSWORD_SALT = st.secrets.get("PASSWORD_SALT", "albarakah_2026_secret_salt")
 AUTH_SHEET = "Auth"
 BOOKERS_SHEET = "Bookers"
@@ -109,18 +106,6 @@ def save_bookers(registry):
         except Exception as e: st.session_state["cloud_error"] = f"⚠️ Bookers save failed: {e}"
 
 # ============================================================
-# DEFAULTS
-# ============================================================
-def default_discount_packages():
-    return [{"id": i, "name": f"Package {i}", "tier1_amount": 1200.0, "tier1_pct": 1.0, "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True} for i in range(1, 5)]
-
-def default_wholesaler_packages():
-    return [{"id": "ws1", "name": "WS1", "discount_pct": 3.0}, {"id": "ws2", "name": "WS2", "discount_pct": 5.0}, {"id": "ws3", "name": "WS3", "discount_pct": 7.0}]
-
-def default_blank_db():
-    return {"next_bill_no": 1, "bills": [], "bookers": [], "salesmen": [], "load_forms": [], "bookers_salaries": {}, "salesmen_salaries": {}, "product_prices": {}, "petrol_expenses": [], "lunch_expenses": [], "misc_expenses": [], "booker_returns": [], "discount_packages": default_discount_packages(), "custom_products": [], "dsr_forms": [], "credit_bills": [], "deleted_products": [], "next_credit_id": 1, "wholesaler_packages": default_wholesaler_packages()}
-
-# ============================================================
 # CLOUD DB PER ADMIN
 # ============================================================
 def _worksheet_name_for_admin(username):
@@ -181,8 +166,17 @@ def clear_booker_draft(admin_username, booker_name):
         save_all_drafts(admin_username, drafts)
 
 # ============================================================
-# DB SHAPE
+# DEFAULT DB
 # ============================================================
+def default_discount_packages():
+    return [{"id": i, "name": f"Package {i}", "tier1_amount": 1200.0, "tier1_pct": 1.0, "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True} for i in range(1, 5)]
+
+def default_wholesaler_packages():
+    return [{"id": "ws1", "name": "WS1", "discount_pct": 3.0}, {"id": "ws2", "name": "WS2", "discount_pct": 5.0}, {"id": "ws3", "name": "WS3", "discount_pct": 7.0}]
+
+def default_blank_db():
+    return {"next_bill_no": 1, "bills": [], "bookers": [], "salesmen": [], "load_forms": [], "bookers_salaries": {}, "salesmen_salaries": {}, "product_prices": {}, "petrol_expenses": [], "lunch_expenses": [], "misc_expenses": [], "booker_returns": [], "discount_packages": default_discount_packages(), "custom_products": [], "dsr_forms": [], "credit_bills": [], "deleted_products": [], "next_credit_id": 1, "wholesaler_packages": default_wholesaler_packages()}
+
 def _ensure_db_shape(db):
     if not db: db = default_blank_db()
     for k in ["bookers", "salesmen", "load_forms", "petrol_expenses", "lunch_expenses", "misc_expenses", "booker_returns", "custom_products", "dsr_forms", "credit_bills", "deleted_products", "bills"]:
@@ -212,8 +206,10 @@ def parse_date(dstr):
     try: return datetime.strptime(dstr, "%d-%m-%Y").date()
     except Exception: return None
 
+PRODUCTS = []
+
 # ============================================================
-# GLOBAL CSS & ANIMATIONS (ORIGINAL PREMIUM DESIGN)
+# GLOBAL CSS - ORIGINAL ANIMATIONS
 # ============================================================
 st.markdown("""
 <style>
