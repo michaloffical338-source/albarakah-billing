@@ -1,7 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
 # (With Google Sheets Cloud Database - Auto Save)
-# Original Logic + All Animations Intact
 # ============================================================
 
 import os
@@ -96,7 +95,7 @@ def default_discount_packages():
     ]
 
 # ============================================================
-# GLOBAL CSS (EXACT ORIGINAL)
+# GLOBAL CSS
 # ============================================================
 st.markdown("""
 <style>
@@ -553,10 +552,17 @@ for _k, _v in [("_prev_prod", None), ("last_bill_no", None), ("download_file", N
     if _k not in st.session_state: st.session_state[_k] = _v
 
 db = st.session_state.database
-for k in ["bookers", "salesmen", "load_forms", "petrol_expenses", "lunch_expenses", "misc_expenses", "booker_returns", "custom_products", "dsr_forms", "credit_bills", "deleted_products"]:
-    if k not in db: db[k] = []
+if not isinstance(db, dict): 
+    db = default_blank_db()
+
+for k in ["bookers", "salesmen", "load_forms", "petrol_expenses", "lunch_expenses", "misc_expenses", "booker_returns", "custom_products", "dsr_forms", "credit_bills", "deleted_products", "bills"]:
+    if k not in db or db[k] is None: 
+        db[k] = []
+        
 for k in ["bookers_salaries", "salesmen_salaries", "product_prices"]:
-    if k not in db: db[k] = {}
+    if k not in db or db[k] is None: 
+        db[k] = {}
+
 if "discount_packages" not in db or not db["discount_packages"]: db["discount_packages"] = default_discount_packages()
 for p in db["discount_packages"]:
     if "tier3_amount" not in p: p["tier3_amount"] = 0.0
