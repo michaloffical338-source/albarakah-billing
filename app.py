@@ -1,7 +1,7 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
 # (With Google Sheets Cloud Database - Auto Save)
-# 100% Final & Error-Free Code
+# Final Fixed Code for Booker & Salesmen
 # ============================================================
 
 import os
@@ -68,41 +68,29 @@ def default_blank_db():
     }
 
 # ============================================================
-# SMART CLOUD DB HELPERS (Fixes Column/JSON issues)
+# SMART CLOUD DB HELPERS
 # ============================================================
 def load_users_cloud():
-    """Smart load: Parhta hai chahe data JSON mein ho ya Columns mein."""
     try:
         df = conn.read(worksheet="Auth", ttl=0)
         if df.empty: return {}
-        
-        # If data is in columns (username, display_name, etc)
         if "username" in df.columns and "password_hash" in df.columns:
             users = {}
             for _, row in df.iterrows():
                 u = str(row["username"]).strip()
                 if u and u != "nan":
-                    users[u] = {
-                        "username": u,
-                        "display_name": str(row.get("display_name", u)),
-                        "password_hash": str(row.get("password_hash", "")),
-                        "created_at": str(row.get("created_at", ""))
-                    }
+                    users[u] = {"username": u, "display_name": str(row.get("display_name", u)), "password_hash": str(row.get("password_hash", "")), "created_at": str(row.get("created_at", ""))}
             return users
-            
-        # If data is in single column JSON
         elif "data" in df.columns:
             raw = df["data"].iloc[0]
             if pd.isna(raw) or str(raw).strip() == "": return {}
             return json.loads(raw)
-            
         return {}
     except Exception: 
         return {}
 
 def save_users_cloud(users):
     try:
-        # Save as single JSON column to keep it simple
         df = pd.DataFrame([{"data": json.dumps(users, ensure_ascii=False)}])
         try: conn.update(worksheet="Auth", data=df)
         except Exception: conn.create(worksheet="Auth", data=df)
@@ -117,13 +105,7 @@ def load_bookers_cloud():
             for _, row in df.iterrows():
                 u = str(row["booker_username"]).strip()
                 if u and u != "nan":
-                    reg[u] = {
-                        "username": u,
-                        "display_name": str(row.get("display_name", u)),
-                        "admin": str(row.get("admin", "")),
-                        "password_hash": str(row.get("password_hash", "")),
-                        "created_at": str(row.get("created_at", ""))
-                    }
+                    reg[u] = {"username": u, "display_name": str(row.get("display_name", u)), "admin": str(row.get("admin", "")), "password_hash": str(row.get("password_hash", "")), "created_at": str(row.get("created_at", ""))}
             return reg
         elif "data" in df.columns:
             raw = df["data"].iloc[0]
@@ -532,13 +514,13 @@ def parse_date(dstr):
     try: return datetime.strptime(dstr, "%d-%m-%Y").date()
     except Exception: return None
 
-if "database" not in st.session_state:
-    st.session_state.database = load_database_for(CURRENT_USER)
+# Yahan data load ho raha hai
+st.session_state.database = load_database_for(CURRENT_USER)
+db = st.session_state.database
 
 for _k, _v in [("_prev_prod", None), ("last_bill_no", None), ("download_file", None), ("_dl_counter", 0), ("page", "📊 Dashboard"), ("view_bill_key", None), ("view_lf_key", None), ("view_dsr_key", None), ("view_credit_key", None), ("bk_page", "🧾 New Bill"), ("bk_bill_draft", []), ("bk_load_draft", []), ("bk_current_shop", ""), ("bk_bills_created", 0), ("bk_reset_item_form", False), ("bk_reset_shop_form", False), ("prod_select_mode", False), ("prod_confirm_all", False)]:
     if _k not in st.session_state: st.session_state[_k] = _v
 
-db = st.session_state.database
 if not isinstance(db, dict): 
     db = default_blank_db()
 
@@ -771,11 +753,16 @@ def render_booker_new_bill():
         if ws_pkg: st.markdown(f"<div class='hint-box' style='background:#faf5ff;border-left-color:#9333ea;color:#6b21a8;'>🏢 Package: {ws_pkg['name']} — {ws_pkg['discount_pct']}% discount</div>", unsafe_allow_html=True)
     
     st.markdown("---"); st.markdown("### ➕ Add Item")
+    
+    # Yahan products load ho rahe hain (Admin wale saare products show honge)
     all_products = get_all_products()
     search_txt = st.text_input("🔍 Search Product", key="bk_search", placeholder="Type name...")
     su = search_txt.strip().upper()
+    
+    # Filter logic fix
     filtered = [p for p in all_products if su in p["name"].upper() or su in str(p["code"]).upper()] if su else all_products
     filtered_labels = [f"{p['name']} (Code: {p['code']})" for p in filtered]
+    
     c1, c2, c3 = st.columns([3, 1, 1])
     with c1: selected = st.selectbox("Product", options=["-- Select --"] + filtered_labels, key="bk_product_sel")
     with c2: boxes = st.number_input("Boxes", min_value=0, step=1, value=0, key="bk_qty")
