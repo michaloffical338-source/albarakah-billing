@@ -1,6 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# (100% Working Google Sheet + Original Design + Auto-Save)
+# (100% Working Google Sheet + Original Design + Sidebar Fixed)
 # ============================================================
 
 import os
@@ -264,12 +264,14 @@ st.markdown("""
     .team-meta { font-size: 11.5px; color: #64748b !important; font-weight: 500; }
     .team-meta b { color: #2563eb !important; font-weight: 700; }
     .team-badge { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); color: #1e40af !important; font-size: 10px; font-weight: 800; padding: 5px 10px; border-radius: 8px; }
-    .block-container { animation: fadeInPage 0.6s ease-out !important; padding-top: 1rem !important; }
+    .block-container { animation: fadeInPage 0.6s ease-out !important; padding-top: 1rem !important; margin-top: 0 !important; }
     @keyframes fadeInPage { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
     html, body, .stApp, .stApp p, .stApp span, .stApp div, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6, .stApp label, .stApp li, .stApp a { color: #000000; }
     [data-testid="stToolbar"] { display: none !important; }
     #MainMenu { visibility: hidden !important; }
     footer { visibility: hidden !important; }
+    header[data-testid="stHeader"] { background: transparent !important; box-shadow: none !important; height: 0 !important; }
+    header[data-testid="stHeader"] > div:first-child { height: 0 !important; }
 </style>
 <ul class="bubbles">
     <li style="left:10%; background:rgba(33,150,243,0.15);"></li>
