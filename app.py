@@ -1,7 +1,6 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# (Original Code with Google Sheets Cloud Database)
-# 100% Fixed - Final Version
+# (Original Design + Google Sheets Auto-Save Cloud)
 # ============================================================
 
 import os
@@ -33,7 +32,7 @@ except Exception as e:
     st.stop()
 
 # ============================================================
-# AUTH HELPERS
+# AUTH HELPERS (CLOUD BASED)
 # ============================================================
 PASSWORD_SALT = st.secrets.get("PASSWORD_SALT", "albarakah_2026_secret_salt")
 AUTH_SHEET = "Auth"
@@ -67,11 +66,7 @@ def load_users():
     for _, row in df.iterrows():
         u = str(row.get("username", "")).strip()
         if not u or u == "nan": continue
-        users[u] = {
-            "username": u, "display_name": str(row.get("display_name", u)),
-            "password_hash": str(row.get("password_hash", "")),
-            "created_at": str(row.get("created_at", "")),
-        }
+        users[u] = {"username": u, "display_name": str(row.get("display_name", u)), "password_hash": str(row.get("password_hash", "")), "created_at": str(row.get("created_at", ""))}
     return users
 
 def save_users(users):
@@ -107,7 +102,7 @@ def save_bookers(registry):
         except Exception as e: st.session_state["cloud_error"] = f"⚠️ Bookers save failed: {e}"
 
 # ============================================================
-# CLOUD DB PER ADMIN
+# CLOUD DB PER ADMIN (AUTO SAVE)
 # ============================================================
 def _worksheet_name_for_admin(username):
     return f"Data_{sanitize_username(username) or 'default'}"
@@ -167,7 +162,7 @@ def clear_booker_draft(admin_username, booker_name):
         save_all_drafts(admin_username, drafts)
 
 # ============================================================
-# DEFAULT DB
+# DEFAULT BLANK DB & SHAPE
 # ============================================================
 def default_discount_packages():
     return [{"id": i, "name": f"Package {i}", "tier1_amount": 1200.0, "tier1_pct": 1.0, "tier2_amount": 2100.0, "tier2_pct": 2.0, "tier3_amount": 3100.0, "tier3_pct": 3.0, "active": True} for i in range(1, 5)]
@@ -210,7 +205,7 @@ def parse_date(dstr):
 PRODUCTS = []
 
 # ============================================================
-# GLOBAL CSS - ORIGINAL ANIMATIONS
+# GLOBAL CSS & ANIMATIONS (EXACT ORIGINAL)
 # ============================================================
 st.markdown("""
 <style>
@@ -391,7 +386,7 @@ def save_database(db_data):
     return ok
 
 # ============================================================
-# HELPERS
+# HELPERS (EXACT ORIGINAL)
 # ============================================================
 def get_all_products():
     merged = list(PRODUCTS)
