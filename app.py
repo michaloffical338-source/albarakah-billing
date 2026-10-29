@@ -1,7 +1,7 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# (Google Sheets Cloud Database + All Original Animations)
-# 100% Fixed & Error Free
+# (Google Sheets Cloud Database + ALL Original Animations)
+# 100% Complete & Error-Free Code
 # ============================================================
 
 import os
