@@ -1,6 +1,7 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# (Original Design + Google Sheets Auto-Save Cloud)
+# (100% Original Design + Google Sheet Auto-Save)
+# Final Fixed Version
 # ============================================================
 
 import os
@@ -32,7 +33,7 @@ except Exception as e:
     st.stop()
 
 # ============================================================
-# AUTH HELPERS (CLOUD BASED)
+# AUTH HELPERS
 # ============================================================
 PASSWORD_SALT = st.secrets.get("PASSWORD_SALT", "albarakah_2026_secret_salt")
 AUTH_SHEET = "Auth"
@@ -66,7 +67,11 @@ def load_users():
     for _, row in df.iterrows():
         u = str(row.get("username", "")).strip()
         if not u or u == "nan": continue
-        users[u] = {"username": u, "display_name": str(row.get("display_name", u)), "password_hash": str(row.get("password_hash", "")), "created_at": str(row.get("created_at", ""))}
+        users[u] = {
+            "username": u, "display_name": str(row.get("display_name", u)),
+            "password_hash": str(row.get("password_hash", "")),
+            "created_at": str(row.get("created_at", "")),
+        }
     return users
 
 def save_users(users):
@@ -102,7 +107,7 @@ def save_bookers(registry):
         except Exception as e: st.session_state["cloud_error"] = f"⚠️ Bookers save failed: {e}"
 
 # ============================================================
-# CLOUD DB PER ADMIN (AUTO SAVE)
+# CLOUD DB PER ADMIN
 # ============================================================
 def _worksheet_name_for_admin(username):
     return f"Data_{sanitize_username(username) or 'default'}"
@@ -205,7 +210,7 @@ def parse_date(dstr):
 PRODUCTS = []
 
 # ============================================================
-# GLOBAL CSS & ANIMATIONS (EXACT ORIGINAL)
+# GLOBAL CSS & ANIMATIONS (ORIGINAL PREMIUM DESIGN)
 # ============================================================
 st.markdown("""
 <style>
@@ -386,7 +391,7 @@ def save_database(db_data):
     return ok
 
 # ============================================================
-# HELPERS (EXACT ORIGINAL)
+# HELPERS
 # ============================================================
 def get_all_products():
     merged = list(PRODUCTS)
