@@ -1,7 +1,7 @@
 # ============================================================
 # AL-BARAKAH ENTERPRISES - BILLING SOFTWARE 2026
-# (Google Sheets Cloud Database + Premium Animations)
-# 100% Error Free - Final Working Code
+# (Google Sheets Cloud Database + All Original Animations)
+# 100% Fixed & Error Free
 # ============================================================
 
 import os
@@ -68,7 +68,7 @@ def load_users():
     if df.empty: return users
     for _, row in df.iterrows():
         u = str(row.get("username", "")).strip()
-        if not u: continue
+        if not u or u == "nan": continue
         users[u] = {
             "username": u, "display_name": str(row.get("display_name", u)),
             "password_hash": str(row.get("password_hash", "")),
@@ -96,7 +96,7 @@ def load_bookers():
     if df.empty: return registry
     for _, row in df.iterrows():
         u = str(row.get("booker_username", "")).strip()
-        if not u: continue
+        if not u or u == "nan": continue
         registry[u] = {"username": u, "display_name": str(row.get("display_name", u)), "admin": str(row.get("admin", "")), "password_hash": str(row.get("password_hash", "")), "created_at": str(row.get("created_at", ""))}
     return registry
 
@@ -213,7 +213,7 @@ def parse_date(dstr):
     except Exception: return None
 
 # ============================================================
-# GLOBAL CSS & ANIMATIONS
+# GLOBAL CSS & ANIMATIONS (ORIGINAL PREMIUM DESIGN)
 # ============================================================
 st.markdown("""
 <style>
@@ -239,8 +239,37 @@ st.markdown("""
     .bubbles li { position: absolute; list-style: none; display: block; width: 40px; height: 40px; bottom: -160px; animation: square 25s infinite linear; border-radius: 50%; }
     @keyframes square { 0% { transform: translateY(0) rotate(0deg); opacity: 1; border-radius: 50%; } 100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; border-radius: 50%; } }
     .dash-hero { background: linear-gradient(-45deg, #1e3a8a, #2563eb, #3b82f6, #8b5cf6, #2563eb) !important; background-size: 300% 300% !important; animation: gradientBG 8s ease infinite !important; border-radius: 20px; padding: 26px 32px; margin-bottom: 22px; color: #fff; box-shadow: 0 12px 32px rgba(37, 99, 235, 0.35); z-index: 2; }
+    .dash-hero-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 24px; }
+    .dash-hero-title { font-size: 28px; font-weight: 800; margin: 0; color: #fff !important; }
+    .dash-hero-sub { font-size: 13px; color: rgba(255,255,255,0.9) !important; font-weight: 500; }
+    .dash-hero-stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.6px; color: rgba(255,255,255,0.7) !important; font-weight: 700; }
+    .dash-hero-stat-val { font-size: 24px; font-weight: 800; color: #fff !important; }
     .kpi-card { background: #ffffff; border-radius: 16px; padding: 20px 22px; border: 1px solid rgba(37,99,235,0.12); box-shadow: 0 4px 16px rgba(37,99,235,0.08); display: flex; flex-direction: column; gap: 12px; transition: all 0.3s; }
     .kpi-card:hover { transform: translateY(-8px) scale(1.02) !important; box-shadow: 0 15px 30px rgba(37,99,235,0.25) !important; }
+    .kpi-top { display: flex; align-items: center; justify-content: space-between; }
+    .kpi-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); color: #1e40af !important; }
+    .kpi-icon.purple { background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%); color: #6b21a8 !important; }
+    .kpi-icon.teal { background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%); color: #115e59 !important; }
+    .kpi-icon.orange { background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%); color: #9a3412 !important; }
+    .kpi-icon.green { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color: #065f46 !important; }
+    .kpi-icon.red { background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%); color: #991b1b !important; }
+    .kpi-label { font-size: 10.5px; font-weight: 800; color: #64748b !important; text-transform: uppercase; letter-spacing: 1.2px; }
+    .kpi-value-group { display: flex; align-items: baseline; gap: 6px; }
+    .kpi-value { font-size: 32px; font-weight: 800; color: #0f172a !important; line-height: 1; }
+    .kpi-value-unit { font-size: 12px; color: #94a3b8 !important; font-weight: 700; text-transform: uppercase; }
+    .kpi-sub { font-size: 11.5px; color: #64748b !important; font-weight: 600; }
+    .kpi-sub.blue { color: #2563eb !important; }
+    .kpi-sub.orange { color: #ea580c !important; }
+    .kpi-sub.green { color: #059669 !important; }
+    .team-card { background: #ffffff; border-radius: 14px; padding: 14px 18px; border: 1px solid rgba(37,99,235,0.10); box-shadow: 0 2px 10px rgba(37,99,235,0.06); display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+    .team-avatar { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; color: #fff !important; }
+    .team-avatar.booker { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
+    .team-avatar.salesman { background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); }
+    .team-info { flex: 1; min-width: 0; }
+    .team-name { font-size: 14.5px; font-weight: 700; color: #0f172a !important; }
+    .team-meta { font-size: 11.5px; color: #64748b !important; font-weight: 500; }
+    .team-meta b { color: #2563eb !important; font-weight: 700; }
+    .team-badge { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); color: #1e40af !important; font-size: 10px; font-weight: 800; padding: 5px 10px; border-radius: 8px; }
     .block-container { animation: fadeInPage 0.6s ease-out !important; padding-top: 1rem !important; }
     @keyframes fadeInPage { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
     html, body, .stApp, .stApp p, .stApp span, .stApp div, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6, .stApp label, .stApp li, .stApp a { color: #000000; }
@@ -334,7 +363,7 @@ def render_auth_page():
                 else:
                     add_or_update_user(username=uname_safe, display_name=su_user.strip(), password_hash=hash_password(su_pass))
                     save_cloud_db(uname_safe, default_blank_db())
-                    st.success(f"✅ Account created — Username: **{uname_safe}**")
+                    st.success(f"✅ Account created! Ab 'Admin' tab par ja kar **{uname_safe}** se login karein.")
 
 # ============================================================
 # SESSION GUARD
@@ -807,34 +836,69 @@ with st.sidebar:
 # ADMIN PAGES
 # ============================================================
 def render_admin_dashboard():
-    dn = st.session_state.get("display_name", CURRENT_USER); today_str = date.today().strftime("%A, %d %B %Y")
-    bk = db.get("bookers", []); sm = db.get("salesmen", []); tp = len(get_all_products()); tb = len(db["bills"])
-    pc = [c for c in db.get("credit_bills", []) if c.get("status") == "pending"]; yc = [c for c in db.get("credit_bills", []) if c.get("status") == "paid"]
-    pa = sum(float(c.get("total_net", 0)) for c in pc); ya = sum(float(c.get("total_net", 0)) for c in yc)
-    st.markdown(f"""<div class="dash-hero"><div style="font-size:11px;font-weight:800;letter-spacing:2px;color:rgba(255,255,255,0.75);">WELCOME</div><h1 style="font-size:28px;margin:4px 0;color:#fff;">{dn}</h1><div style="font-size:13px;color:rgba(255,255,255,0.9);">🏢 {COMPANY_NAME} · 📅 {today_str}</div></div>""", unsafe_allow_html=True)
-    st.markdown("### Business Overview")
+    display_name = st.session_state.get("display_name", CURRENT_USER); today_str = date.today().strftime("%A, %d %B %Y")
+    bookers = db.get("bookers", []); salesmen = db.get("salesmen", []); total_products = len(get_all_products()); total_bills = len(db["bills"])
+    pending_credits = [c for c in db.get("credit_bills", []) if c.get("status") == "pending"]; paid_credits = [c for c in db.get("credit_bills", []) if c.get("status") == "paid"]
+    pending_amt = sum(float(c.get("total_net", 0)) for c in pending_credits); paid_amt = sum(float(c.get("total_net", 0)) for c in paid_credits)
+    
+    st.markdown(f"""<div class="dash-hero"><div class="dash-hero-content"><div class="dash-hero-left"><div style="font-size:13px;font-weight:600;color:#94a3b8;margin-bottom:8px;">WELCOME BACK</div><h1 class="dash-hero-title">{display_name}</h1><div class="dash-hero-sub">🏢 {COMPANY_NAME} &nbsp;·&nbsp; 📅 {today_str}</div></div><div class="dash-hero-right" style="display:flex;gap:32px;"><div class="dash-hero-stat"><div class="dash-hero-stat-label">Total Bills</div><div class="dash-hero-stat-val">{total_bills}</div></div><div class="dash-hero-stat"><div class="dash-hero-stat-label">Products</div><div class="dash-hero-stat-val">{total_products}</div></div></div></div></div>""", unsafe_allow_html=True)
+    
+    st.markdown('<div class="dash-section-title" style="font-size:18px;font-weight:700;color:#0f172a;margin-bottom:16px;">Business Overview</div>', unsafe_allow_html=True)
     c1, c2, c3, c4 = st.columns(4)
-    for col, (icon, lbl, val, sub) in zip([c1, c2, c3, c4], [("👤", "Bookers", len(bk), "Team"), ("🧑‍💼", "Salesmen", len(sm), "Field"), ("📦", "Products", tp, "Active"), ("🧾", "Bills", tb, "Total")]):
-        with col:
-            st.markdown(f"""<div class="kpi-card"><div style="font-size:24px;">{icon}</div><div style="font-size:11px;color:#64748b;font-weight:800;margin-top:8px;">{lbl.upper()}</div><div style="font-size:28px;font-weight:800;color:#0f172a;">{val}</div><div style="font-size:11px;color:#2563eb;">{sub}</div></div>""", unsafe_allow_html=True)
-    st.markdown("### Credit & Ops")
+    with c1: st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">👤</div><div class="kpi-label">Bookers</div></div><div class="kpi-value-group"><div class="kpi-value">{len(bookers)}</div><div class="kpi-value-unit">members</div></div><div class="kpi-sub blue">Booking team</div></div>""", unsafe_allow_html=True)
+    with c2: st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon purple">🧑‍💼</div><div class="kpi-label">Salesmen</div></div><div class="kpi-value-group"><div class="kpi-value">{len(salesmen)}</div><div class="kpi-value-unit">members</div></div><div class="kpi-sub blue">Field team</div></div>""", unsafe_allow_html=True)
+    with c3: st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon teal">📦</div><div class="kpi-label">Products</div></div><div class="kpi-value-group"><div class="kpi-value">{total_products}</div><div class="kpi-value-unit">items</div></div><div class="kpi-sub blue">Active catalog</div></div>""", unsafe_allow_html=True)
+    with c4: st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">🧾</div><div class="kpi-label">Total Bills</div></div><div class="kpi-value-group"><div class="kpi-value">{total_bills}</div><div class="kpi-value-unit">bills</div></div><div class="kpi-sub blue">Generated</div></div>""", unsafe_allow_html=True)
+    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+    
+    st.markdown('<div class="dash-section-title" style="font-size:18px;font-weight:700;color:#0f172a;margin-bottom:16px;">Credit & Operations</div>', unsafe_allow_html=True)
     c1, c2, c3, c4 = st.columns(4)
-    for col, (icon, lbl, val, sub) in zip([c1, c2, c3, c4], [("⏳", "Pending Credit", len(pc), f"Rs {pa:,.0f}"), ("✅", "Paid Credit", len(yc), f"Rs {ya:,.0f}"), ("📦", "Load Forms", len(db.get("load_forms", [])), "Saved"), ("📋", "DSR", len(db.get("dsr_forms", [])), "Active")]):
-        with col:
-            st.markdown(f"""<div class="kpi-card"><div style="font-size:24px;">{icon}</div><div style="font-size:11px;color:#64748b;font-weight:800;margin-top:8px;">{lbl.upper()}</div><div style="font-size:28px;font-weight:800;color:#0f172a;">{val}</div><div style="font-size:11px;color:#ea580c;">{sub}</div></div>""", unsafe_allow_html=True)
-    st.markdown("---")
-    st.markdown("### 💾 Backup")
-    bc1, bc2 = st.columns(2)
+    with c1: st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon orange">⏳</div><div class="kpi-label">Pending Credit</div></div><div class="kpi-value-group"><div class="kpi-value">{len(pending_credits)}</div><div class="kpi-value-unit">bills</div></div><div class="kpi-sub orange">Rs {pending_amt:,.0f} receivable</div></div>""", unsafe_allow_html=True)
+    with c2: st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon green">✅</div><div class="kpi-label">Paid Credit</div></div><div class="kpi-value-group"><div class="kpi-value">{len(paid_credits)}</div><div class="kpi-value-unit">bills</div></div><div class="kpi-sub green">Rs {paid_amt:,.0f} settled</div></div>""", unsafe_allow_html=True)
+    with c3: st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">📦</div><div class="kpi-label">Load Forms</div></div><div class="kpi-value-group"><div class="kpi-value">{len(db.get('load_forms', []))}</div><div class="kpi-value-unit">saved</div></div><div class="kpi-sub blue">Stock dispatch</div></div>""", unsafe_allow_html=True)
+    with c4: st.markdown(f"""<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon red">📋</div><div class="kpi-label">DSR Forms</div></div><div class="kpi-value-group"><div class="kpi-value">{len(db.get('dsr_forms', []))}</div><div class="kpi-value-unit">active</div></div><div class="kpi-sub blue">Daily reports</div></div>""", unsafe_allow_html=True)
+    st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True); st.markdown("---")
+    
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown('<div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:16px;">👤 Order Booker Team</div>', unsafe_allow_html=True)
+        if not bookers: st.info("No bookers added yet.")
+        else:
+            for b_name in bookers:
+                sd = db.get("bookers_salaries", {}).get(b_name, {}); base = sd.get("base_salary", 0); txns = sd.get("transactions", [])
+                adv_p = sum(t["amount"] for t in txns if t.get("type") == "advanced" and t.get("status", "pending") == "pending"); short_p = sum(t["amount"] for t in txns if t.get("type") == "shortage" and t.get("status", "pending") == "pending"); remaining = base - adv_p - short_p
+                sub_text = 'Salary not set' if base == 0 else f'Remaining: <b>Rs {remaining:,.0f}</b>'
+                al = (b_name[0] if b_name else "?").upper()
+                st.markdown(f"""<div class="team-card"><div class="team-avatar booker">{al}</div><div class="team-info"><div class="team-name">{b_name}</div><div class="team-meta">{sub_text}</div></div><div class="team-badge">BOOKER</div></div>""", unsafe_allow_html=True)
+    with c2:
+        st.markdown('<div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:16px;">🧑‍💼 Salesmen Team</div>', unsafe_allow_html=True)
+        if not salesmen: st.info("No salesmen added yet.")
+        else:
+            for s_name in salesmen:
+                sd = db.get("salesmen_salaries", {}).get(s_name, {}); base = sd.get("base_salary", 0); txns = sd.get("transactions", [])
+                adv_p = sum(t["amount"] for t in txns if t.get("type") == "advanced" and t.get("status", "pending") == "pending"); short_p = sum(t["amount"] for t in txns if t.get("type") == "shortage" and t.get("status", "pending") == "pending"); remaining = base - adv_p - short_p
+                sub_text = 'Salary not set' if base == 0 else f'Remaining: <b>Rs {remaining:,.0f}</b>'
+                al = (s_name[0] if s_name else "?").upper()
+                st.markdown(f"""<div class="team-card"><div class="team-avatar salesman">{al}</div><div class="team-info"><div class="team-name">{s_name}</div><div class="team-meta">{sub_text}</div></div><div class="team-badge" style="background:#faf5ff;color:#9333ea;">SALESMAN</div></div>""", unsafe_allow_html=True)
+    
+    st.markdown("---"); st.markdown("### 💾 Backup & Cloud Sync")
+    bc1, bc2, bc3 = st.columns(3)
     with bc1:
-        bdata = json.dumps(db, indent=4, ensure_ascii=False)
-        st.download_button("📥 Download Backup", data=bdata, file_name=f"Backup_{CURRENT_USER}_{datetime.now().strftime('%Y%m%d')}.json", mime="application/json", use_container_width=True, type="primary")
+        if st.button("☁️ Force Save to Cloud", type="primary", use_container_width=True):
+            save_cloud_db(CURRENT_USER, db)
+            st.session_state["success_msg"] = "✅ Data pushed to Google Sheet!"
+            st.rerun()
     with bc2:
-        up = st.file_uploader("📂 Restore", type=["json"], key="restore_uploader")
-        if up is not None:
+        bk_data = json.dumps(db, indent=4, ensure_ascii=False)
+        st.download_button(label="📥 Download Backup (JSON)", data=bk_data, file_name=f"Backup_{CURRENT_USER}_{datetime.now().strftime('%Y%m%d')}.json", mime="application/json", use_container_width=True)
+    with bc3:
+        up_file = st.file_uploader("📂 Upload Backup", type=["json"], key="restore_file_uploader", label_visibility="collapsed")
+        if up_file is not None:
             try:
-                nd = _ensure_db_shape(json.load(up))
-                if save_database(nd): st.success("✅ Restored!")
-            except Exception as e: st.error(f"❌ {e}")
+                new_db = json.load(up_file)
+                save_cloud_db(CURRENT_USER, new_db)
+                st.success("✅ Data Restored Successfully! Please Reboot App.")
+            except Exception as e: st.error(f"❌ Error: {e}")
 
 def render_admin_booker_bills():
     st.markdown("<h1 style='color:#0f172a;'>📈 Booker Bills & Returns</h1>", unsafe_allow_html=True); st.markdown("---")
